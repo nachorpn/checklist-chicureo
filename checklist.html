@@ -239,7 +239,8 @@ $('print').addEventListener('click',()=>window.print());
 function makeCanvas(){
  const scale=2,W=880,pad=37,contentW=W-2*pad,x=pad;
  const rowHeights=tasks.map(t=>t.length>46?49:40);
- const H=62+128+35+rowHeights.reduce((a,b)=>a+b,0)+110+96+50;
+ const metricsH=132;
+ const H=225+metricsH+36+38+35+rowHeights.reduce((a,b)=>a+b,0)+60;
  const c=document.createElement('canvas');c.width=W*scale;c.height=H*scale;
  const ctx=c.getContext('2d');ctx.scale(scale,scale);
  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
@@ -254,16 +255,31 @@ function makeCanvas(){
    if(line&&ctx.measureText(next).width>maxw){lines.push(line);line=word}else line=next
   }if(line)lines.push(line);return lines;
  }
- // Encabezado y resumen
- rect(0,0,W,172,'#12483e');
- txt('GESTARK',pad,55,22,'#bde8d2',780);
- txt('CHECKLIST DIARIO',pad,104,31,'#ffffff',780);
- txt('AGENCIA CHICUREO',pad,143,14,'#e0eee4',620);
- txt('Responsable: '+(window.GestarkAuth?.getUser()?.name||'Sin identificar'),pad,163,12,'#c6ebd7',570);
- txt(displayDate($('date').value),W-pad,57,19,'#ffffff',760,'right');
+ rect(0,0,W,197,'#12483e');
+ txt('GESTARK',pad,44,26,'#ffffff',790);
+ txt('Greenbox',pad,72,16,'#ccefe0',620);
+ txt('CHECKLIST DIARIO',pad,117,32,'#ffffff',790);
+ txt('SUCURSAL CHICUREO',pad,152,14,'#dbeee5',650);
+ txt('Responsable: '+(window.GestarkAuth?.getUser()?.name||'Sin identificar'),pad,178,12,'#c6ebd7',570);
+ txt(displayDate($('date').value),W-pad,48,19,'#ffffff',760,'right');
  const count=state.done.filter(Boolean).length;
- txt(`${count} / ${tasks.length} actividades marcadas`,W-pad,135,16,'#dcf4e8',630,'right');
- let y=200;
+ txt(`${count} / ${tasks.length} actividades marcadas`,W-pad,92,16,'#dcf4e8',630,'right');
+ txt('Resumen principal del día',W-pad,126,13,'#bfe6d3',560,'right');
+ let y=225;
+ const gap=18,cardW=(contentW-gap)/2;
+ rect(x,y,cardW,metricsH,'#eef8f3',18);
+ rect(x+cardW+gap,y,cardW,metricsH,'#eef8f3',18);
+ txt('OF REALIZADAS',x+22,y+26,14,'#547a6d',760);
+ const ofsVal=(state.ofs===''||state.ofs==null)?'—':state.ofs;
+ let ofsFs=46;while(ofsFs>28){ctx.font=`800 ${ofsFs}px Arial`;if(ctx.measureText(ofsVal).width<cardW-44)break;ofsFs--}
+ txt(ofsVal,x+22,y+78,ofsFs,'#12483e',800);
+ txt('Dato clave del reporte',x+22,y+108,12,'#6f8d80',550);
+ txt('VENTA PRODUCCIÓN',x+cardW+gap+22,y+26,14,'#547a6d',760);
+ const val=state.sales?money(state.sales):'—';
+ let fs=40;while(fs>24){ctx.font=`800 ${fs}px Arial`;if(ctx.measureText(val).width<cardW-44)break;fs--}
+ txt(val,x+cardW+gap+22,y+78,fs,'#12483e',800);
+ txt('Monto principal del día',x+cardW+gap+22,y+108,12,'#6f8d80',550);
+ y+=metricsH+36;
  rect(x,y,contentW,38,'#e5f3ec',10);
  txt('REQUERIMIENTOS DIARIOS',x+14,y+19,16,'#184d3b',750);
  txt('ESTADO',W-pad-25,y+19,14,'#184d3b',750,'right');
@@ -278,20 +294,7 @@ function makeCanvas(){
   }else{txt('—',bx+8,y+rh/2,18,'#93a89b',560,'center')}
   y+=rh;
  }
- y+=21;
- rect(x,y,contentW,88,'#e5f3ec',12);
- txt('OF REALIZADAS',x+16,y+24,13,'#547a6d',720);
- txt(state.ofs===''||state.ofs==null?'—':state.ofs,x+16,y+59,21,'#184c39',790);
- const sx=x+contentW/2;
- ctx.strokeStyle='#c7e0d1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(sx,y+16);ctx.lineTo(sx,y+72);ctx.stroke();
- txt('VENTA PRODUCCIÓN',sx+20,y+24,13,'#547a6d',720);
- const val=state.sales?money(state.sales):'—';
- let fs=21;while(fs>14){ctx.font=`790 ${fs}px Arial`;if(ctx.measureText(val).width<contentW/2-40)break;fs--}
- txt(val,sx+20,y+59,fs,'#184c39',790);
- y+=116;
- ctx.strokeStyle='#d6e5dc';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(W-pad,y);ctx.stroke();
- txt(shareMessage(),x+4,y+27,17,'#244339',540);
- txt('Gestark · Control diario',W-pad,H-29,12,'#849c8d',530,'right');
+ txt('Gestark · Greenbox · Control diario',W-pad,H-29,12,'#849c8d',530,'right');
  return c;
 }
 const filename=()=>`Gestark_Checklist_${$('date').value}.png`;
