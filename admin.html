@@ -40,4 +40,5 @@ document.getElementById('create-form').onsubmit=async e=>{e.preventDefault();con
 document.getElementById('export-users').onclick=()=>{const payload='/* Gestark: verificadores de acceso local. No colocar contraseñas en texto plano. */\nwindow.GESTARK_USERS = '+JSON.stringify(ga().users(),null,2)+';\n';const blob=new Blob([payload],{type:'text/javascript;charset=utf-8'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='usuarios.js';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000)};
 document.addEventListener('gestark:ready',refresh);
 </script><noscript>Activa JavaScript para administrar las cuentas.</noscript>
+<script src="./gestark-updates.js?v=2026.11.15.4"></script>
 </body></html>
