@@ -267,18 +267,19 @@ function makeCanvas(){
  txt('Resumen principal del día',W-pad,126,13,'#bfe6d3',560,'right');
  let y=225;
  const gap=18,cardW=(contentW-gap)/2;
- rect(x,y,cardW,metricsH,'#eef8f3',18);
- rect(x+cardW+gap,y,cardW,metricsH,'#eef8f3',18);
- txt('OF REALIZADAS',x+22,y+26,14,'#547a6d',760);
+ rect(x,y,cardW,metricsH,'#f2fbf6',18);
+ rect(x+cardW+gap,y,cardW,metricsH,'#fff6e8',18);
+ rect(x,y,cardW,12,'#1d7d5a',18);
+ rect(x+cardW+gap,y,cardW,12,'#d88422',18);
+ ctx.strokeStyle='#cfe6d8';ctx.lineWidth=2;ctx.beginPath();if(typeof ctx.roundRect==='function'){ctx.roundRect(x+1,y+1,cardW-2,metricsH-2,18);ctx.roundRect(x+cardW+gap+1,y+1,cardW-2,metricsH-2,18);}else{ctx.rect(x+1,y+1,cardW-2,metricsH-2);ctx.rect(x+cardW+gap+1,y+1,cardW-2,metricsH-2);}ctx.stroke();
+ txt('OF REALIZADAS',x+22,y+34,14,'#3f6e5b',780);
  const ofsVal=(state.ofs===''||state.ofs==null)?'—':state.ofs;
  let ofsFs=46;while(ofsFs>28){ctx.font=`800 ${ofsFs}px Arial`;if(ctx.measureText(ofsVal).width<cardW-44)break;ofsFs--}
- txt(ofsVal,x+22,y+78,ofsFs,'#12483e',800);
- txt('Dato clave del reporte',x+22,y+108,12,'#6f8d80',550);
- txt('VENTA PRODUCCIÓN',x+cardW+gap+22,y+26,14,'#547a6d',760);
+ txt(ofsVal,x+22,y+82,ofsFs,'#12483e',800);
+ txt('VENTA PRODUCCIÓN',x+cardW+gap+22,y+34,14,'#866331',780);
  const val=state.sales?money(state.sales):'—';
  let fs=40;while(fs>24){ctx.font=`800 ${fs}px Arial`;if(ctx.measureText(val).width<cardW-44)break;fs--}
- txt(val,x+cardW+gap+22,y+78,fs,'#12483e',800);
- txt('Monto principal del día',x+cardW+gap+22,y+108,12,'#6f8d80',550);
+ txt(val,x+cardW+gap+22,y+82,fs,'#8b4f00',800);
  y+=metricsH+36;
  rect(x,y,contentW,38,'#e5f3ec',10);
  txt('REQUERIMIENTOS DIARIOS',x+14,y+19,16,'#184d3b',750);
