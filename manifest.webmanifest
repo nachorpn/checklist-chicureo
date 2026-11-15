@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Gestión Chicureo",
+  "short_name": "Gestión Chicureo",
+  "description": "Acceso central al checklist, repositorio de enlaces y gestiones de Agencia Chicureo.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F4F7F6",
+  "theme_color": "#103D48",
+  "lang": "es-CL",
+  "icons": [
+    {"src":"./icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"}
+  ]
+}
