@@ -130,7 +130,7 @@ main{padding-top:23px}
   <button type="button" class="btn danger" id="reset">Limpiar día</button>
   <button type="button" class="btn" id="print">Imprimir / PDF</button>
  </div>
- <p class="note">Las primeras nueve actividades se marcan automáticamente cada vez que abres o recargas esta sección. «Limpiar día» deja la pantalla sin marcas hasta que vuelvas a entrar. El reporte para WhatsApp conserva las 14 actividades, la fecha, las OF y la venta, aunque no aparezcan todas juntas en pantalla.</p>
+ <p class="note">Las primeras nueve actividades se marcan automáticamente cada vez que abres o recargas esta sección. «Limpiar día» deja la pantalla sin marcas hasta que vuelvas a entrar. Las OF y la venta se guardan por fecha: se conservan si actualizas durante el mismo día y comienzan vacías al cambiar de día. El reporte para WhatsApp conserva las 14 actividades, la fecha, las OF y la venta.</p>
  <div class="mini">Gestark · Agencia Chicureo</div>
 </main>
 </div>
@@ -178,15 +178,29 @@ let state={done:defaultDone()};
 
 $('date').value=localDate();
 let storageWarningShown=false;
-function save(){try{localStorage.setItem(key(),JSON.stringify(state))}catch(e){console.warn('No se pudo guardar el registro',e);if(!storageWarningShown){storageWarningShown=true;alert('Atención: el navegador no pudo guardar este checklist. Descarga el reporte PNG para no perder los cambios.')}}}
+function save(){
+ // Cada registro pertenece exclusivamente a su fecha; nunca mezclamos días.
+ state.recordDate=$('date').value;
+ try{localStorage.setItem(key(),JSON.stringify(state))}
+ catch(e){console.warn('No se pudo guardar el registro',e);if(!storageWarningShown){storageWarningShown=true;alert('Atención: el navegador no pudo guardar este checklist. Descarga el reporte PNG para no perder los cambios.')}}
+}
 function load(){
+ const selectedDate=$('date').value;
  let saved;
  try{saved=JSON.parse(localStorage.getItem(key())||'{}')}catch{saved={}}
  if(!saved || typeof saved!=='object')saved={};
- state={...saved,done:Array.isArray(saved.done)?saved.done.slice(0,tasks.length):[]};
+ // La fecha ya forma parte de la clave de almacenamiento. Este control extra
+ // impide reutilizar cifras si un registro se copiara o migrara incorrectamente.
+ const correctDay=!saved.recordDate || saved.recordDate===selectedDate;
+ state={
+  ...saved,
+  recordDate:selectedDate,
+  ofs:correctDay?(saved.ofs??''):'',
+  sales:correctDay?(saved.sales??''):'',
+  done:Array.isArray(saved.done)?saved.done.slice(0,tasks.length):[]
+ };
  state.done=tasks.map((_,i)=>i<9?true:!!state.done[i]);
-
- $('ofs').value=state.ofs??'';
+ $('ofs').value=state.ofs;
  $('sales').value=money(state.sales);
  render();
 }
@@ -223,13 +237,23 @@ function render(){
 }
 $('date').addEventListener('change',()=>{autoDate=false;load()});
 $('today').addEventListener('click',()=>{autoDate=true;$('date').value=localDate();load()});
-function refreshToday(){if(!autoDate)return;const today=localDate();if($('date').value!==today){$('date').value=today;load()}}
+function refreshToday(){
+ // Al pasar de día, cambia a un registro propio de la fecha actual.
+ // OF y ventas se inician vacías; las cifras de ayer quedan archivadas por fecha.
+ if(!autoDate)return false;
+ const today=localDate();
+ if($('date').value===today)return false;
+ $('date').value=today;
+ state={done:defaultDone(),ofs:'',sales:'',recordDate:today};
+ load();
+ return true;
+}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshToday()});
 window.addEventListener('focus',refreshToday);
 window.addEventListener('pageshow',e=>{if(e.persisted){refreshToday();load()}});
-setInterval(refreshToday,60000);
-$('ofs').addEventListener('input',()=>{state.ofs=$('ofs').value;save()});
-$('sales').addEventListener('input',()=>{const elem=$('sales');const digits=elem.value.replace(/\D/g,'');state.sales=digits;elem.value=money(digits);save()});
+setInterval(refreshToday,15000);
+$('ofs').addEventListener('input',()=>{const val=$('ofs').value;if(refreshToday())$('ofs').value=val;state.ofs=val;save()});
+$('sales').addEventListener('input',()=>{const elem=$('sales'),digits=elem.value.replace(/\D/g,'');refreshToday();state.sales=digits;elem.value=money(digits);save()});
 $('reset').addEventListener('click',()=>{
  if(confirm('¿Limpiar todas las marcas, OF y venta de esta fecha?')){
   state={done:Array(tasks.length).fill(false),ofs:'',sales:''};
