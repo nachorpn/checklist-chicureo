@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="es-CL">
 <head>
+<style>html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}</style>
+
+<meta name="robots" content="noindex, nofollow">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#103D48">
@@ -54,6 +57,21 @@ main{padding-top:26px}
 .out-arrow{flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:#f1f6f4;display:grid;place-items:center;color:#3f626a}
 .out-arrow svg{width:16px;height:16px}
 .form-symbol{width:54px;height:54px;filter:drop-shadow(0 6px 8px #9a611b22)}
+.whatsapp .graphic{background:#e5f8ed}
+.whatsapp .graphic img{object-fit:cover;border:1px solid #d5e5d9}
+.tool-as-button{width:100%;text-align:left;font-family:inherit;color:inherit;cursor:pointer}
+.tool-as-button:disabled{cursor:progress;opacity:.65}
+.cobro-note{color:#18815b;font-weight:700;font-size:11px;margin-top:5px;display:block}
+#cobro-fallback[hidden]{display:none!important}
+#cobro-fallback{position:fixed;z-index:100;inset:0;background:#092e2acb;display:grid;align-items:center;justify-items:center;padding:20px;overflow:auto}
+.cobro-panel{max-width:440px;width:100%;background:#fff;border-radius:23px;padding:19px;box-shadow:0 20px 80px #0b251c4c}
+.cobro-panel h2{font-size:19px;margin:0 0 7px}
+.cobro-panel p{font-size:12px;line-height:1.5;color:#5b706b;margin:0 0 15px}
+.cobro-panel>img{width:100%;height:auto;max-height:45vh;object-fit:contain;border-radius:11px;border:1px solid #e3e9e4;margin-bottom:13px}
+.cobro-buttons{display:grid;gap:8px}
+.cobro-buttons a,.cobro-buttons button{min-height:45px;display:flex;align-items:center;justify-content:center;border:0;border-radius:11px;background:#168556;color:#fff;font:700 14px system-ui,sans-serif;cursor:pointer}
+.cobro-buttons .secondary{background:#eef3f0;color:#235c48}
+body.cobro-modal-open{overflow:hidden}
 .tip{display:flex;align-items:flex-start;gap:12px;margin-top:22px;padding:16px 17px;border:1px solid #dfece7;border-radius:18px;background:#eef6f2;color:#4a6563}
 .tip svg{flex:0 0 19px;margin-top:2px;width:19px;height:19px}
 .tip strong{font-size:12px;color:#244c48}
@@ -69,7 +87,7 @@ footer{font-size:11px;color:#82948f;text-align:center;margin:27px 0 0}
  main{padding-top:34px}
  .tools{grid-template-columns:repeat(2,minmax(0,1fr))}
  .tool{min-height:155px}
- .tool.gold{grid-column:1/-1}
+ .tool.gold{grid-column:auto}
  .bottom-nav{max-width:790px;left:50%;transform:translateX(-50%);border-left:1px solid #e1e9e6;border-right:1px solid #e1e9e6;border-radius:18px 18px 0 0}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
@@ -83,17 +101,17 @@ footer{font-size:11px;color:#82948f;text-align:center;margin:27px 0 0}
       <img class="brand-logo" src="./icon-192.png?v=gs2" alt="">
       <div>
         <div class="brand-name">Gestark</div>
-        <div class="brand-sub">Centro de herramientas</div>
+        <div class="brand-sub">Greenbox</div>
       </div>
     </div>
     <div class="eyebrow">Tu espacio de trabajo</div>
     <h1>Todo en un solo lugar.</h1>
-    <p class="header-desc">Accede al checklist diario, los enlaces de agencia y el formulario de gestiones desde una sola aplicación.</p>
-    <div class="summary"><span class="dot"></span><span>3 herramientas disponibles</span></div>
+    <p class="header-desc">Accede al checklist, los enlaces de agencia, gestiones y WhatsApp desde un solo lugar.</p>
+    <div class="summary"><span class="dot"></span><span>4 herramientas disponibles</span></div>
   </div>
 </header>
 <main>
- <div class="section-title"><h2>Mis herramientas</h2><span class="count">3 accesos</span></div>
+ <div class="section-title"><h2>Mis herramientas</h2><span class="count">4 accesos</span></div>
  <div class="tools">
    <a class="tool green" href="./checklist.html" aria-label="Abrir Checklist Chicureo">
       <div class="graphic"><img src="./icono-checklist.png" alt=""></div>
@@ -120,10 +138,15 @@ footer{font-size:11px;color:#82948f;text-align:center;margin:27px 0 0}
       <div class="tool-copy"><div class="tool-tag">Formulario</div><h3>Gestiones Chicureo</h3><p>Ingresa al formulario de Microsoft Forms para registrar gestiones.</p></div>
       <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
    </a>
+   <button type="button" class="tool whatsapp tool-as-button" id="cobrar-whatsapp" aria-label="Cobrar transferencias: compartir aviso por WhatsApp">
+      <div class="graphic"><img src="./aviso-transferencia-chicureo.jpg" alt="Aviso de transferencia pendiente" loading="eager"></div>
+      <div class="tool-copy"><div class="tool-tag">Cobranza rápida</div><h3>Cobrar transferencias</h3><p>Prepara la imagen de recordatorio para compartir por WhatsApp.</p><span class="cobro-note">Compartir aviso en un toque</span></div>
+      <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
+   </button>
  </div>
  <aside class="tip">
   <svg viewBox="0 0 24 24" fill="none" stroke="#2b8879" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
-  <div><strong>Todo conectado desde un solo acceso</strong><p>Checklist y Repositorio funcionan dentro de Gestark. Los formularios externos pueden solicitar iniciar sesión en Microsoft.</p></div>
+  <div><strong>Todo conectado desde un solo acceso</strong><p>Checklist y Repositorio funcionan dentro de Gestark. Gestiones se abre en Microsoft Forms; Cobrar transferencias abre el menú para enviar la imagen por WhatsApp.</p></div>
  </aside>
 </main>
 <footer>Gestark · Acceso móvil para agencia</footer>
@@ -142,5 +165,68 @@ footer{font-size:11px;color:#82948f;text-align:center;margin:27px 0 0}
    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6m-6 4h6m-6 4h4"/></svg><span>Gestiones</span>
  </a>
 </nav>
+<section id="cobro-fallback" role="dialog" aria-modal="true" aria-labelledby="cobro-title" hidden>
+  <div class="cobro-panel">
+    <h2 id="cobro-title">Compartir aviso de transferencia</h2>
+    <p>Si tu navegador no permite compartir la imagen directamente, guárdala y adjúntala desde WhatsApp.</p>
+    <img src="./aviso-transferencia-chicureo.jpg" alt="Aviso de Sucursal Chicureo sobre transferencia pendiente">
+    <div class="cobro-buttons">
+      <a href="./aviso-transferencia-chicureo.jpg" download="Aviso_Transferencia_Chicureo.jpg">Guardar imagen</a>
+      <button class="secondary" id="cobro-copy" type="button">Copiar mensaje de cobranza</button>
+<a id="cobro-wa-fallback" href="https://wa.me/" target="_blank" rel="noopener noreferrer">Abrir WhatsApp</a>
+      <button type="button" id="cobro-close" class="secondary">Cerrar</button>
+    </div>
+  </div>
+</section>
+<script>
+(() => {
+ 'use strict';
+ const uri='./aviso-transferencia-chicureo.jpg';
+ const fileName='Aviso_Transferencia_Chicureo.jpg';
+ const cobroMessage='Hola, te recordamos amablemente que tenemos una transferencia pendiente. Te agradeceríamos regularizarla cuando puedas. ¡Muchas gracias!';
+ const button=document.getElementById('cobrar-whatsapp');
+ const modal=document.getElementById('cobro-fallback');
+ const close=document.getElementById('cobro-close');
+ const openWhatsApp=document.getElementById('cobro-wa-fallback');
+ const copyButton=document.getElementById('cobro-copy');
+ copyButton.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(cobroMessage);copyButton.textContent='¡Mensaje copiado!';setTimeout(()=>{copyButton.textContent='Copiar mensaje de cobranza'},2500)}catch(e){prompt('Copia el mensaje para WhatsApp:',cobroMessage)}});
+ openWhatsApp.href=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)?'whatsapp://app':'https://web.whatsapp.com/';
+ let imageFile=null;
+ // La imagen se carga antes del clic, para que Safari pueda compartirla desde el gesto del usuario.
+ fetch(uri).then(res=>{if(!res.ok)throw new Error('No se pudo abrir el aviso');return res.blob()})
+   .then(blob=>{imageFile=new File([blob],fileName,{type:'image/jpeg'})})
+   .catch(err=>console.warn('El aviso se ofrecerá para descarga manual.',err));
+ const showFallback=()=>{modal.hidden=false;document.body.classList.add('cobro-modal-open');close.focus()};
+ const hideFallback=()=>{modal.hidden=true;document.body.classList.remove('cobro-modal-open');button.focus()};
+ close.addEventListener('click',hideFallback);
+ modal.addEventListener('click',e=>{if(e.target===modal)hideFallback()});
+ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)hideFallback()});
+ button.addEventListener('click',()=>{
+   if(imageFile && typeof navigator.share==='function' &&
+      (typeof navigator.canShare!=='function' || navigator.canShare({files:[imageFile]}))){
+     try{
+       const sharing=navigator.share({files:[imageFile], title:'Transferencia pendiente',
+         text:cobroMessage});
+       Promise.resolve(sharing).catch(err=>{
+         if(err && err.name==='AbortError')return;
+         console.warn('No fue posible compartir el aviso.',err);showFallback();
+       });
+       return;
+     }catch(err){console.warn('No fue posible compartir el aviso.',err)}
+   }
+   showFallback();
+ });
+})();
+</script>
+<script>
+(() => {
+ const u=document.createElement('script');
+ u.src='./usuarios.js?actualizacion='+Date.now();
+ u.onload=()=>{const auth=document.createElement('script');auth.src='./gestark-auth.js?v=2';auth.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div id="gestark-login" style="padding:30px;color:#a22;background:#fff">No se pudo cargar el acceso de Gestark. Comprueba tu conexión.</div>')};document.body.appendChild(auth)};
+ u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div id="gestark-login" style="padding:30px;color:#a22;background:#fff">No se pudo cargar el catálogo de usuarios. Comprueba tu conexión.</div>')};
+ document.body.appendChild(u);
+})();
+</script>
+<noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
 </body>
 </html>
