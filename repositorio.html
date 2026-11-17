@@ -22,6 +22,10 @@
 .bottom-nav a:focus-visible{outline:2px solid #2eacc2;outline-offset:1px}
 @media(min-width:790px){.bottom-nav{max-width:790px;left:50%;transform:translateX(-50%);border-left:1px solid #e1e9e6;border-right:1px solid #e1e9e6;border-radius:18px 18px 0 0}}
 
+.ind-credentials{border-top:1px solid #e8efe8;padding:13px 15px 8px;background:#fbfdfb}
+.ind-credentials-title{font-size:12px;color:#396748;font-weight:800;margin-bottom:10px}
+.ind-credentials .field{margin-bottom:8px;background:#f1f8f2}
+.ind-credentials .fieldval{font-size:15px;font-weight:750;color:#173f2a}
 main.wrap{padding-bottom:calc(125px + env(safe-area-inset-bottom))}
 #toast{bottom:calc(86px + env(safe-area-inset-bottom))}
 </style>
@@ -30,7 +34,7 @@ main.wrap{padding-bottom:calc(125px + env(safe-area-inset-bottom))}
 <header class="hero"><div class="wrap" style="padding-bottom:0;padding-top:0"><div class="kicker">AGENCIA CHICUREO</div><h1>Repositorio de Links</h1><p>Accesos rápidos, instrucciones y datos de uso frecuente.</p></div></header>
 <main class="wrap">
 <label class="search"><span aria-hidden="true">⌕</span><input type="search" id="filter" placeholder="Buscar un enlace..." aria-label="Buscar enlaces"></label>
-<p class="intro">4 accesos disponibles · Toca «Abrir enlace» para acceder al sistema.</p>
+<p class="intro">5 accesos disponibles · Toca «Abrir enlace» para acceder al sistema.</p>
 <section class="list" id="links">
 <article class="card" data-keywords="solicitud agua bidones culligan waterlogic compra suministro">
  <div class="card-top"><div class="num">01</div><div><h2 class="name">Solicitud de agua</h2><p class="sub">Culligan · Pedido de bidones</p></div></div>
@@ -65,6 +69,15 @@ main.wrap{padding-bottom:calc(125px + env(safe-area-inset-bottom))}
 <article class="card" data-keywords="gestiones sharepoint excel gestión">
  <div class="card-top"><div class="num">04</div><div><h2 class="name">Gestiones</h2><p class="sub">SharePoint · Archivo Excel</p></div></div>
  <div class="actions"><a class="btn primary" href="https://duoccl0-my.sharepoint.com/:x:/g/personal/carlo_burgosc_duocuc_cl/IQCcYyLNHJJsQYYjBN8ymaOnAQRqUuGfEtge-Tdt2h27NE4?e=kZKYfn" target="_blank" rel="noopener noreferrer">↗ Abrir enlace</a><button class="btn secondary" data-link="https://duoccl0-my.sharepoint.com/:x:/g/personal/carlo_burgosc_duocuc_cl/IQCcYyLNHJJsQYYjBN8ymaOnAQRqUuGfEtge-Tdt2h27NE4?e=kZKYfn">Copiar link</button></div>
+</article>
+<article class="card" data-keywords="registro de ind incidencias topdesk starken portal usuario credenciales">
+ <div class="card-top"><div class="num">05</div><div><h2 class="name">Registro de IND</h2><p class="sub">Starken · Portal TOPdesk</p></div></div>
+ <div class="actions"><a class="btn primary" href="https://starken.topdesk.net/tas/public/ssp/content/detail/service?unid=12d6cd704aad4e36980ae20fa386789f&amp;from=8dea05c8-a585-41c8-b3e5-ad7af594980f" target="_blank" rel="noopener noreferrer">↗ Abrir enlace</a><button class="btn secondary" type="button" data-link="https://starken.topdesk.net/tas/public/ssp/content/detail/service?unid=12d6cd704aad4e36980ae20fa386789f&amp;from=8dea05c8-a585-41c8-b3e5-ad7af594980f">Copiar link</button></div>
+ <div class="ind-credentials" aria-label="Credenciales del portal Registro de IND">
+  <div class="ind-credentials-title">Datos de acceso al portal</div>
+  <div class="field"><div class="fieldmain"><div class="fieldlabel">Usuario</div><div class="fieldval">mariajose.berrios</div></div><button class="copy" type="button" data-copy="mariajose.berrios" aria-label="Copiar usuario del portal">Copiar</button></div>
+  <div class="field"><div class="fieldmain"><div class="fieldlabel">Contraseña</div><div class="fieldval">1234</div></div><button class="copy" type="button" data-copy="1234" aria-label="Copiar contraseña del portal">Copiar</button></div>
+ </div>
 </article>
 </section><div id="empty" class="empty">No hay enlaces que coincidan con la búsqueda.</div><div class="footer">Repositorio de Links · Agencia Chicureo<br>Los enlaces de Microsoft pueden requerir iniciar sesión.</div>
 </main><div id="toast" role="status" aria-live="polite"></div>
