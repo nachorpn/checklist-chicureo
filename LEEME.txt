@@ -1,0 +1,3 @@
+Gestark - Orden original de checklist
+
+Sube los 8 archivos al directorio raíz de nachorpn/checklist-chicureo en GitHub y elige Commit changes. Esta entrega conserva la PWA, los usuarios, el check de Instagram, el reporte PNG, los clientes captados y el contenido restante. Los cambios de versión permiten que el sistema detecte correctamente la actualización.

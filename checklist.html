@@ -48,9 +48,6 @@ main{padding-top:23px}
 .section-header h2{font-size:20px;margin:0;letter-spacing:-.5px}
 .section-header span{font-size:11px;color:#68827b}
 .group{background:#fff;border:1px solid #dfebe5;border-radius:19px;overflow:hidden;box-shadow:0 7px 26px #163e3010;margin-bottom:15px}
-.group-head{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;background:#f5f9f6;border-bottom:1px solid #edf2ef;gap:12px}
-.group-title{font-size:13px;font-weight:780;letter-spacing:-.1px}
-.group-count{font-size:11px;color:#4f7969;font-weight:700;white-space:nowrap}
 .task-list{list-style:none;padding:0 14px;margin:0}
 .task-list li+li{border-top:1px solid #eef2ef}
 .task{display:flex;width:100%;gap:12px;align-items:center;text-align:left;border:0;background:#fff;padding:13px 1px;min-height:64px;color:#21443c}
@@ -151,7 +148,7 @@ main{padding-top:23px}
 @media(print){:root{background:white}body{background:white}.hero{color:#173b36;background:white;box-shadow:none;padding:12px 15px}.hero *,h1{color:#173b36!important}.app{padding:0;max-width:100%}.bottom-nav,.actions,.note,.mini,.preview{display:none!important}.group{break-inside:avoid;box-shadow:none;margin-bottom:6px}.task{min-height:30px;padding:6px 0}.brand{margin-bottom:6px}.progress-head{margin-top:8px}.task-detail{display:none}.metric{box-shadow:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
-<link rel="manifest" href="./manifest.webmanifest?v=2026.11.17.2">
+<link rel="manifest" href="./manifest.webmanifest?v=2026.11.17.3">
 <style id="gestark-native-feel">
 /* Gestark PWA: interacción de aplicación en pantalla táctil.
    touch-action: manipulation evita doble toque para zoom y mantiene el zoom de accesibilidad con dos dedos. */
@@ -186,7 +183,7 @@ input, textarea, select { touch-action: manipulation; }
 </header>
 <main>
  <div class="section-header"><h2>Actividades del día</h2><span>14 actividades</span></div>
- <div class="groups" id="groups" aria-label="Actividades agrupadas"></div>
+ <div class="groups" id="groups" aria-label="Actividades del día en el orden original"></div>
  <div class="section-header"><h2>Resumen de producción</h2></div>
  <div class="metrics">
   <div class="metric"><label for="ofs">OF realizadas</label><input id="ofs" type="number" min="0" inputmode="numeric" placeholder="0" aria-label="OF realizadas"></div>
@@ -249,12 +246,7 @@ const tasks=[
  'RECEPCIONAR Y GUARDAR CARGA','ENVIO DE REPORTE MEDIO DIA',
  'REPORTE TERMINO DEL DIA','ANULACIONES ANTES DE LAS 17:00'
 ];
-// Los grupos conservan el orden original de las catorce actividades.
-const sections=[
- {title:'Apertura y caja',indexes:[0,1,2,3,4,5]},
- {title:'Operación y publicaciones',indexes:[6,7,8,9]},
- {title:'Carga, reportes y cierre',indexes:[10,11,12,13]}
-];
+// Lista única: se mantiene estrictamente el orden del Excel original.
 const $=id=>document.getElementById(id);
 const money=v=>{const digits=String(v??'').replace(/\D/g,'');return digits?'$ '+Number(digits).toLocaleString('es-CL'):''};
 const localDate=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
@@ -362,15 +354,9 @@ function render(){
  $('progress-pending').textContent=`${tasks.length-marked} pendientes`;
  renderClients();
  const mount=$('groups');mount.replaceChildren();
- for(const section of sections){
-  const box=document.createElement('section');box.className='group';
-  const h=document.createElement('div');h.className='group-head';
-  const title=document.createElement('span');title.className='group-title';title.textContent=section.title;
-  const counter=document.createElement('span');counter.className='group-count';
-  counter.textContent=`${section.indexes.filter(i=>!!state.done[i]).length} de ${section.indexes.length}`;
-  h.append(title,counter);box.append(h);
-  const list=document.createElement('ul');list.className='task-list';
-  for(const i of section.indexes){
+ const box=document.createElement('section');box.className='group';
+ const list=document.createElement('ul');list.className='task-list';
+ for(let i=0;i<tasks.length;i++){
    if(isStory(i)){
     const li=document.createElement('li');
     const current=storyCount(i),goal=storyGoals[i],completed=current===goal;
@@ -406,9 +392,8 @@ function render(){
    btn.append(circle,texts,status);
    btn.addEventListener('click',()=>{state.done[i]=!state.done[i];save();render()});
    li.append(btn);list.append(li);
-  }
-  box.append(list);mount.append(box);
  }
+ box.append(list);mount.append(box);
 }
 $('date').addEventListener('change',()=>{autoDate=false;load()});
 $('today').addEventListener('click',()=>{autoDate=true;$('date').value=localDate();load()});
@@ -607,7 +592,7 @@ load();
 })();
 </script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.17.2"></script>
-<script src="./gestark-pwa.js?v=2026.11.17.2"></script>
+<script src="./gestark-updates.js?v=2026.11.17.3"></script>
+<script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body>
 </html>

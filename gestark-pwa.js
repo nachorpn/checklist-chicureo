@@ -1,6 +1,6 @@
 (() => {
  'use strict';
- const VERSION='2026.11.17.2';
+ const VERSION='2026.11.17.3';
  const appBase=new URL('./',document.currentScript?.src||location.href);
  const isStandalone=()=>window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
  const isHome=()=>location.pathname===appBase.pathname||location.pathname===appBase.pathname+'index.html';

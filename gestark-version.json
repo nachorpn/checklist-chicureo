@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.17.2",
+  "version": "2026.11.17.3",
   "name": "Gestark",
-  "changes": "Experiencia instalable PWA y signo rojo discreto junto a Clientes captados en PNG"
+  "changes": "Checklist en lista continua, respetando orden original de las 14 actividades"
 }

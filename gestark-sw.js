@@ -1,7 +1,7 @@
-/* Gestark — versión 2026.11.17.2
+/* Gestark — versión 2026.11.17.3
  * Prioridad red: nunca se sacrifica frescura por cache. Los datos locales siguen en el navegador.
  */
-const VERSION='2026.11.17.2';
+const VERSION='2026.11.17.3';
 const CACHE='gestark-pwa-'+VERSION;
 const CORE=['./','./index.html','./checklist.html','./repositorio.html','./admin.html',
   './gestark-auth.js','./usuarios.js','./gestark-updates.js','./gestark-pwa.js',
