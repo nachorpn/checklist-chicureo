@@ -64,6 +64,22 @@ main{padding-top:23px}
 .task .task-detail{font-size:11px;color:#82938b;line-height:1.25}
 .task .task-state{color:#91a59b;font-size:11px;flex:0 0 auto}
 .task[aria-pressed="true"] .task-state{color:#167e54;font-weight:730}
+/* Conteo de historias: controles táctiles independientes, sin botones anidados. */
+.story-task{display:grid;grid-template-columns:27px minmax(0,1fr) auto;align-items:center;gap:11px;padding:12px 1px;min-height:70px;color:#21443c}
+.story-task .circle{height:27px;width:27px;border:2px solid #c8d8d1;background:#fff;border-radius:50%;display:grid;place-items:center}
+.story-task .circle svg{display:none;width:15px;height:15px;stroke:#fff;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.story-task.completed .circle{background:#1c9c65;border-color:#1c9c65}
+.story-task.completed .circle svg{display:block}
+.story-task .task-copy{min-width:0;display:flex;flex-direction:column;gap:4px}
+.story-task .task-name{font-weight:650;font-size:13.5px;line-height:1.34}
+.story-task .task-detail{font-size:11px;color:#6e8478;line-height:1.3}
+.story-task.completed .task-detail{color:#167e54;font-weight:730}
+.story-controls{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.story-controls button{width:36px;height:38px;border-radius:10px;border:1px solid #c6dfd0;background:#eaf6ee;color:#176747;font-size:22px;line-height:1;font-weight:750;display:grid;place-items:center;padding:0;touch-action:manipulation}
+.story-controls button:disabled{opacity:.35;cursor:not-allowed}
+.story-controls button:not(:disabled):active{background:#cfe9d8}
+.story-count{min-width:35px;text-align:center;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;color:#1c5c43;white-space:nowrap}
+@media(max-width:390px){.story-task{grid-template-columns:27px minmax(0,1fr)}.story-controls{grid-column:2;justify-self:start;margin-top:3px}}
 .metrics{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:17px 0 21px}
 .metric{min-width:0;background:#fff;border:1px solid #dfeae4;border-radius:17px;padding:15px;box-shadow:0 4px 18px #123d2e0d}
 .metric:first-child{background:#f0faf4;border-color:#c8e5d2;border-left:4px solid #178257}
@@ -80,6 +96,40 @@ main{padding-top:23px}
 .btn.danger{color:#8b4e42}
 .note{font-size:11.5px;line-height:1.55;color:#6e8378;margin:15px 2px 5px}
 .mini{font-size:11px;color:#9aaba2;text-align:center;margin:20px 0}
+
+.client-card{background:#fff;border:1px solid #dfeae4;border-radius:19px;padding:15px;box-shadow:0 4px 18px #123d2e0d;margin:0 0 20px}
+.client-card{background:linear-gradient(180deg,#f8fcfa 0%,#ffffff 100%);border-left:4px solid #2c8d67}
+.client-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.client-head h3{margin:0;font-size:15px;letter-spacing:-.2px;color:#173f35}
+.client-head p{margin:4px 0 0;font-size:11px;color:#70867d;line-height:1.4}
+.client-badge{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 10px;border-radius:999px;background:#e8f5ee;color:#146346;font-size:12px;font-weight:780;white-space:nowrap;border:1px solid #cde6d8}
+.client-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.client-entry input{width:100%;min-width:0;border:1px solid #d8e7df;background:#fbfdfc;border-radius:12px;padding:12px 13px;font-size:14px;color:#174c3b}
+.client-entry input::placeholder{color:#9fb0a7}
+.client-entry input:focus{border-color:#198a67;outline:none;box-shadow:0 0 0 3px #198a6712}
+.client-add{min-width:92px;min-height:44px;border-radius:12px;border:1px solid #16834d;background:#16834d;color:#fff;font-size:13px;font-weight:760;padding:0 16px;box-shadow:0 5px 13px #16834d1f}
+.client-empty{margin:13px 0 0;font-size:12px;color:#8b9d96;line-height:1.45}
+.client-list{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:8px}
+.client-item{display:flex;align-items:center;gap:9px;background:#f4faf7;border:1px solid #e1eee7;border-radius:13px;padding:10px 11px}
+.client-index{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:#e3f3ea;color:#146346;font-size:12px;font-weight:800;display:grid;place-items:center}
+.client-name{flex:1;min-width:0;font-size:13.2px;font-weight:650;color:#19473a;line-height:1.35;word-break:break-word}
+.client-remove{flex:0 0 auto;border:0;background:#eaf1ec;color:#6e8378;border-radius:10px;width:34px;height:34px;font-size:18px;font-weight:700;display:grid;place-items:center}
+.client-remove:active{background:#dce9e1}
+@media(max-width:390px){.client-entry{grid-template-columns:1fr}.client-add{width:100%}}
+@media(print){.client-card{box-shadow:none}}
+
+/* Captación compacta: la lista solo se despliega al seleccionar Sí. */
+[hidden]{display:none!important}
+.client-head h2{margin:0;font-size:15px;letter-spacing:-.2px;color:#173f35;line-height:1.25}
+.client-card{margin-top:0}
+.client-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px;background:#ecf4ef;border-radius:13px;border:1px solid #dfece4}
+.client-option{min-height:43px;border:1px solid transparent;border-radius:10px;background:transparent;color:#597268;font-size:13px;font-weight:780;display:flex;align-items:center;justify-content:center;gap:5px}
+.client-option.is-active{color:#14583f;background:#fff;border-color:#cde5d6;box-shadow:0 2px 7px #133d3410}
+.client-option[aria-pressed="true"]{color:#155e42}
+.client-fields{margin-top:14px;padding-top:14px;border-top:1px solid #e5efe8}
+.client-collapsed-hint{font-size:11px;line-height:1.5;color:#687f72;margin:9px 2px 0}
+.client-entry{margin:0}
+@media(max-width:390px){.client-toggle{grid-template-columns:1fr 1fr}}
 /* Preview modal */
 .preview{position:fixed;inset:0;z-index:200;background:#0c1b19d9;display:none;align-items:center;justify-content:center;padding:20px}
 .preview.open{display:flex}
@@ -122,6 +172,26 @@ main{padding-top:23px}
   <div class="metric"><label for="ofs">OF realizadas</label><input id="ofs" type="number" min="0" inputmode="numeric" placeholder="0" aria-label="OF realizadas"></div>
   <div class="metric"><label for="sales">Venta producción</label><input id="sales" type="text" inputmode="numeric" autocomplete="off" placeholder="$ 0" aria-label="Venta producción"></div>
  </div>
+
+ <section class="client-card" aria-labelledby="client-question">
+  <div class="client-head">
+   <div><h2 id="client-question">¿Hubo clientes captados hoy?</h2><p>Registra nuevos clientes solo cuando corresponda.</p></div>
+   <span class="client-badge" id="clients-count">0 clientes</span>
+  </div>
+  <div class="client-toggle" role="group" aria-label="¿Hubo clientes captados hoy?">
+   <button type="button" id="clients-no" class="client-option is-active" aria-pressed="true">No</button>
+   <button type="button" id="clients-yes" class="client-option" aria-pressed="false" aria-controls="client-fields" aria-expanded="false">Sí <span aria-hidden="true">⌄</span></button>
+  </div>
+  <p class="client-collapsed-hint" id="clients-collapsed-hint" hidden>Los clientes registrados siguen guardados. Selecciona «Sí» para verlos.</p>
+  <div class="client-fields" id="client-fields" hidden>
+   <form class="client-entry" id="client-form" autocomplete="off">
+    <input id="client-name" type="text" maxlength="80" placeholder="Ej.: Juan Pérez" aria-label="Nombre del cliente captado">
+    <button type="submit" class="client-add" id="add-client">Agregar</button>
+   </form>
+   <ul class="client-list" id="clients-list" aria-label="Clientes captados del día"></ul>
+   <p class="client-empty" id="clients-empty">Aún no hay clientes registrados en esta fecha.</p>
+  </div>
+ </section>
  <div class="actions">
   <button type="button" class="btn primary" id="whatsapp"><svg viewBox="0 0 24 24"><path d="M20 11.5a8.5 8.5 0 0 1-12.4 7.5L3 20l1-4.4a8.5 8.5 0 1 1 16-4.1Z"/><path d="M8.5 9.4c.8 2.7 2.8 4.7 5.6 5.5l1.1-1.2 2 1"/></svg>Compartir reporte por WhatsApp</button>
   <button type="button" class="btn subtle" id="preview"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 14l3-3 3 3 3-4 4 5"/></svg>Vista del reporte</button>
@@ -130,7 +200,7 @@ main{padding-top:23px}
   <button type="button" class="btn danger" id="reset">Limpiar día</button>
   <button type="button" class="btn" id="print">Imprimir / PDF</button>
  </div>
- <p class="note">Las primeras nueve actividades se marcan automáticamente cada vez que abres o recargas esta sección. «Limpiar día» deja la pantalla sin marcas hasta que vuelvas a entrar. Las OF y la venta se guardan por fecha: se conservan si actualizas durante el mismo día y comienzan vacías al cambiar de día. El reporte para WhatsApp conserva las 14 actividades, la fecha, las OF y la venta.</p>
+ <p class="note">Las primeras ocho actividades se marcan automáticamente; las publicaciones de Instagram se completan con los botones + y − al llegar a 3 y 2 historias, respectivamente. El registro de clientes se despliega con «Sí» y se contrae con «No» sin borrar los nombres. En el PNG solo aparece si hay clientes registrados. «Limpiar día» deja la pantalla sin marcas hasta que vuelvas a entrar. Las OF, la venta y los clientes se guardan por fecha: se conservan si actualizas durante el mismo día y comienzan vacíos al cambiar de día.</p>
  <div class="mini">Gestark · Agencia Chicureo</div>
 </main>
 </div>
@@ -171,15 +241,27 @@ const localDate=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.ge
 const displayDate=v=>{const d=String(v||'').split('-');return d.length===3?`${d[2]}-${d[1]}-${d[0]}`:String(v||'')};
 const shareDate=v=>{const d=String(v||'').split('-');return d.length===3?`${d[2]}-${d[1]}`:String(v||'')};
 const shareMessage=()=>`Hola! Les comparto checklist de hoy ${shareDate($('date').value)}.`;
-const defaultDone=()=>tasks.map((_,i)=>i<9);
+const storyGoals={8:3,9:2};
+const isStory=i=>Object.prototype.hasOwnProperty.call(storyGoals,i);
+const clampStory=(value,limit)=>Math.max(0,Math.min(limit,Math.trunc(Number(value)||0)));
+const storyCount=i=>clampStory(state.storyCounts?.[i],storyGoals[i]);
+const defaultStoryCounts=()=>({8:0,9:0});
+const defaultDone=()=>tasks.map((_,i)=>i<9&&!isStory(i));
+
+const normalizeClientName=value=>String(value||'').replace(/\s+/g,' ').trim();
+const sanitizeClients=value=>Array.isArray(value)?value.map(normalizeClientName).filter(Boolean).slice(0,30):[];
+const clientLabel=count=>`${count} cliente${count===1?'':'s'}`;
+function syncStoryCompletion(){for(const i of [8,9])state.done[i]=storyCount(i)===storyGoals[i]}
+
 const key=()=>`chicureo-checklist-v1:${$('date').value}`;
 let autoDate=true;
-let state={done:defaultDone()};
+let state={done:defaultDone(),storyCounts:defaultStoryCounts(),ofs:'',sales:'',clients:[],clientsExpanded:false};
 
 $('date').value=localDate();
 let storageWarningShown=false;
 function save(){
  // Cada registro pertenece exclusivamente a su fecha; nunca mezclamos días.
+ syncStoryCompletion();
  state.recordDate=$('date').value;
  try{localStorage.setItem(key(),JSON.stringify(state))}
  catch(e){console.warn('No se pudo guardar el registro',e);if(!storageWarningShown){storageWarningShown=true;alert('Atención: el navegador no pudo guardar este checklist. Descarga el reporte PNG para no perder los cambios.')}}
@@ -197,13 +279,60 @@ function load(){
   recordDate:selectedDate,
   ofs:correctDay?(saved.ofs??''):'',
   sales:correctDay?(saved.sales??''):'',
+  clients:correctDay?sanitizeClients(saved.clients):[],
+  clientsExpanded:correctDay?Boolean(saved.clientsExpanded):false,
+  storyCounts:{
+   8:correctDay?clampStory(saved.storyCounts?.[8],storyGoals[8]):0,
+   9:correctDay?clampStory(saved.storyCounts?.[9],storyGoals[9]):0
+  },
   done:Array.isArray(saved.done)?saved.done.slice(0,tasks.length):[]
  };
- state.done=tasks.map((_,i)=>i<9?true:!!state.done[i]);
+ // Las historias ya no se marcan por defecto: su cumplimiento depende del contador.
+ state.done=tasks.map((_,i)=>!isStory(i)&&(i<9?true:!!state.done[i]));
+ syncStoryCompletion();
  $('ofs').value=state.ofs;
  $('sales').value=money(state.sales);
+ $('client-name').value='';
  render();
 }
+
+function renderClientsToggle(){
+ const expanded=Boolean(state.clientsExpanded);
+ $('client-fields').hidden=!expanded;
+ $('clients-no').classList.toggle('is-active',!expanded);
+ $('clients-yes').classList.toggle('is-active',expanded);
+ $('clients-no').setAttribute('aria-pressed',String(!expanded));
+ $('clients-yes').setAttribute('aria-pressed',String(expanded));
+ $('clients-yes').setAttribute('aria-expanded',String(expanded));
+ $('clients-collapsed-hint').hidden=expanded||!(state.clients?.length);
+}
+$('clients-no').addEventListener('click',()=>{state.clientsExpanded=false;save();renderClientsToggle()});
+$('clients-yes').addEventListener('click',()=>{
+ const changed=!state.clientsExpanded;
+ state.clientsExpanded=true;save();renderClientsToggle();
+ if(changed)$('client-name').focus();
+});
+function renderClients(){
+ const list=$('clients-list'),empty=$('clients-empty'),badge=$('clients-count');
+ list.replaceChildren();
+ const clients=sanitizeClients(state.clients);
+ state.clients=clients;
+ badge.textContent=clientLabel(clients.length);
+ renderClientsToggle();
+ if(!clients.length){
+  list.hidden=true;empty.hidden=false;return;
+ }
+ list.hidden=false;empty.hidden=true;
+ clients.forEach((name,index)=>{
+  const li=document.createElement('li');li.className='client-item';
+  const idx=document.createElement('span');idx.className='client-index';idx.textContent=String(index+1);
+  const label=document.createElement('span');label.className='client-name';label.textContent=name;
+  const del=document.createElement('button');del.type='button';del.className='client-remove';del.textContent='×';del.title='Eliminar cliente';del.setAttribute('aria-label',`Eliminar ${name}`);
+  del.addEventListener('click',()=>{state.clients=state.clients.filter((_,i)=>i!==index);save();render()});
+  li.append(idx,label,del);list.append(li);
+ });
+}
+
 function render(){
  const marked=tasks.reduce((n,_,i)=>n+(state.done[i]?1:0),0);
  $('progress-number').textContent=`${marked}/${tasks.length}`;
@@ -211,6 +340,7 @@ function render(){
  $('progress-track').setAttribute('aria-valuenow',String(marked));
  $('progress-percent').textContent=`${Math.round(marked/tasks.length*100)}% de avance`;
  $('progress-pending').textContent=`${tasks.length-marked} pendientes`;
+ renderClients();
  const mount=$('groups');mount.replaceChildren();
  for(const section of sections){
   const box=document.createElement('section');box.className='group';
@@ -221,6 +351,31 @@ function render(){
   h.append(title,counter);box.append(h);
   const list=document.createElement('ul');list.className='task-list';
   for(const i of section.indexes){
+   if(isStory(i)){
+    const li=document.createElement('li');
+    const current=storyCount(i),goal=storyGoals[i],completed=current===goal;
+    const row=document.createElement('div');row.className='story-task'+(completed?' completed':'');
+    const circle=document.createElement('span');circle.className='circle';circle.setAttribute('aria-hidden','true');circle.innerHTML='<svg viewBox="0 0 24 24"><path d="m5 12 5 5L19 7"/></svg>';
+    const copy=document.createElement('div');copy.className='task-copy';
+    const name=document.createElement('span');name.className='task-name';name.textContent=tasks[i];
+    const detail=document.createElement('span');detail.className='task-detail';
+    detail.textContent=completed?'Actividad completada':`${current} de ${goal} historias publicadas`;
+    copy.append(name,detail);
+    const controls=document.createElement('div');controls.className='story-controls';controls.setAttribute('role','group');controls.setAttribute('aria-label',`Contador de historias: ${i===8?'mañana':'tarde'}`);
+    const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.title='Restar una historia';minus.setAttribute('aria-label',`Restar historia, ${i===8?'mañana':'tarde'}`);minus.disabled=current===0;
+    const counter=document.createElement('span');counter.className='story-count';counter.textContent=`${current}/${goal}`;counter.setAttribute('aria-live','polite');
+    const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.title='Sumar una historia';plus.setAttribute('aria-label',`Sumar historia, ${i===8?'mañana':'tarde'}`);plus.disabled=completed;
+    function changeStory(delta){
+     // Al pasar la medianoche, no trasladamos registros al día siguiente.
+     if(refreshToday())return;
+     state.storyCounts[i]=clampStory(storyCount(i)+delta,goal);
+     save();render();
+    }
+    minus.addEventListener('click',()=>changeStory(-1));
+    plus.addEventListener('click',()=>changeStory(1));
+    controls.append(minus,counter,plus);row.append(circle,copy,controls);li.append(row);list.append(li);
+    continue;
+   }
    const li=document.createElement('li');const btn=document.createElement('button');btn.className='task';btn.type='button';
    btn.setAttribute('aria-pressed',String(!!state.done[i]));
    btn.setAttribute('aria-label',`${tasks[i]}: ${state.done[i]?'marcada':'pendiente'}. Toca para cambiar`);
@@ -244,7 +399,7 @@ function refreshToday(){
  const today=localDate();
  if($('date').value===today)return false;
  $('date').value=today;
- state={done:defaultDone(),ofs:'',sales:'',recordDate:today};
+ state={done:defaultDone(),storyCounts:defaultStoryCounts(),ofs:'',sales:'',clients:[],clientsExpanded:false,recordDate:today};
  load();
  return true;
 }
@@ -254,10 +409,20 @@ window.addEventListener('pageshow',e=>{if(e.persisted){refreshToday();load()}});
 setInterval(refreshToday,15000);
 $('ofs').addEventListener('input',()=>{const val=$('ofs').value;if(refreshToday())$('ofs').value=val;state.ofs=val;save()});
 $('sales').addEventListener('input',()=>{const elem=$('sales'),digits=elem.value.replace(/\D/g,'');refreshToday();state.sales=digits;elem.value=money(digits);save()});
+
+function addClient(){
+ const input=$('client-name');
+ if(refreshToday())input.value='';
+ const name=normalizeClientName(input.value);
+ if(!name)return;
+ state.clients=sanitizeClients([...(state.clients||[]),name]);
+ save();input.value='';render();input.focus();
+}
+$('client-form').addEventListener('submit',e=>{e.preventDefault();addClient()});
 $('reset').addEventListener('click',()=>{
- if(confirm('¿Limpiar todas las marcas, OF y venta de esta fecha?')){
-  state={done:Array(tasks.length).fill(false),ofs:'',sales:''};
-  save();$('ofs').value='';$('sales').value='';render();
+ if(confirm('¿Limpiar las actividades, OF, venta y clientes captados de esta fecha?')){
+  state={done:Array(tasks.length).fill(false),storyCounts:defaultStoryCounts(),ofs:'',sales:'',clients:[],clientsExpanded:false};
+  save();$('ofs').value='';$('sales').value='';$('client-name').value='';render();
  }
 });
 $('print').addEventListener('click',()=>window.print());
@@ -266,7 +431,12 @@ function makeCanvas(){
  const scale=2,W=880,pad=37,contentW=W-2*pad,x=pad;
  const rowHeights=tasks.map(t=>t.length>46?49:40);
  const metricsH=132;
- const H=225+metricsH+36+38+35+rowHeights.reduce((a,b)=>a+b,0)+60;
+ const clients=sanitizeClients(state.clients);
+ const measureCtx=document.createElement('canvas').getContext('2d');
+ const clientLineGroups=clients.map((name,index)=>wrap(`${index+1}. ${name}`,contentW-46,15.2,620));
+ const clientBodyH=clients.length?(18 + clientLineGroups.reduce((sum,lines)=>sum + lines.length*20 + 8,0)):0;
+ const clientsCardH=clients.length?(56 + clientBodyH):0;
+ const H=225+metricsH+36+(clients.length?(clientsCardH+18):0)+38+35+rowHeights.reduce((a,b)=>a+b,0)+60;
  const c=document.createElement('canvas');c.width=W*scale;c.height=H*scale;
  const ctx=c.getContext('2d');ctx.scale(scale,scale);
  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
@@ -275,10 +445,10 @@ function makeCanvas(){
   ctx.font=`${weight} ${size}px Arial, Helvetica, sans-serif`;ctx.fillStyle=color;ctx.textBaseline='middle';ctx.textAlign=align;ctx.fillText(String(t),px,py)
  }
  function wrap(t,maxw,size=16,weight=500){
-  ctx.font=`${weight} ${size}px Arial, Helvetica, sans-serif`;
+  measureCtx.font=`${weight} ${size}px Arial, Helvetica, sans-serif`;
   let lines=[],line='';for(const word of t.split(' ')){
    const next=line?line+' '+word:word;
-   if(line&&ctx.measureText(next).width>maxw){lines.push(line);line=word}else line=next
+   if(line&&measureCtx.measureText(next).width>maxw){lines.push(line);line=word}else line=next
   }if(line)lines.push(line);return lines;
  }
  rect(0,0,W,197,'#12483e');
@@ -293,7 +463,6 @@ function makeCanvas(){
  txt('Resumen principal del día',W-pad,126,13,'#bfe6d3',560,'right');
  let y=225;
  const gap=18,cardW=(contentW-gap)/2;
- // Tarjetas limpias: bordes independientes y acentos laterales, sin franjas superpuestas.
  function metricCard(cx,bg,border,accent){
   rect(cx,y,cardW,metricsH,bg,18);
   ctx.save();ctx.strokeStyle=border;ctx.lineWidth=2;
@@ -317,6 +486,23 @@ function makeCanvas(){
  ctx.font=`800 ${fs}px Arial`;ctx.fillStyle='#0d5961';ctx.textBaseline='middle';ctx.textAlign='left';
  ctx.fillText(val,secondX+30,y+81,cardW-65);
  y+=metricsH+36;
+ if(clients.length){
+  rect(x,y,contentW,clientsCardH,'#f8fcfa',16);
+  ctx.save();ctx.strokeStyle='#d8e8df';ctx.lineWidth=1.6;
+  ctx.beginPath();
+  if(typeof ctx.roundRect==='function')ctx.roundRect(x+1,y+1,contentW-2,clientsCardH-2,16); else ctx.rect(x+1,y+1,contentW-2,clientsCardH-2);
+  ctx.stroke();ctx.restore();
+  rect(x+12,y+17,5,clientsCardH-34,'#2c8d67',2.5);
+  txt('CLIENTES CAPTADOS',x+29,y+26,16,'#184d3b',770);
+  txt(clientLabel(clients.length),W-pad-16,y+26,13,'#2c7a58',760,'right');
+  let cy=y+56;
+  for(let i=0;i<clientLineGroups.length;i++){
+   const lines=clientLineGroups[i];
+   lines.forEach((line,j)=>{txt(line,x+29,cy + j*20,15.2,'#21443c',620)});
+   cy += lines.length*20 + 8;
+  }
+  y+=clientsCardH+18;
+ }
  rect(x,y,contentW,38,'#e5f3ec',10);
  txt('REQUERIMIENTOS DIARIOS',x+14,y+19,16,'#184d3b',750);
  txt('ESTADO',W-pad-25,y+19,14,'#184d3b',750,'right');
@@ -326,7 +512,13 @@ function makeCanvas(){
   const lines=wrap(tasks[i],contentW-146,15.5,620);
   lines.slice(0,2).forEach((line,j)=>txt(line,x+14,y+rh/2+(j-(lines.length-1)/2)*17,15.5,'#1b3e35',620));
   const bx=W-pad-52;
-  if(state.done[i]){
+  if(isStory(i)){
+   const current=storyCount(i),completed=current===storyGoals[i];
+   if(current>0){
+    rect(bx-22,y+rh/2-13,59,26,completed?'#d6f3e2':'#e9f1ec',13);
+    txt(`${current}/${storyGoals[i]}`,bx+8,y+rh/2,16,completed?'#128355':'#4b7866',780,'center');
+   }
+  }else if(state.done[i]){
    rect(bx-10,y+rh/2-13,37,26,'#d6f3e2',13);txt('1',bx+8,y+rh/2,18,'#128355',780,'center');
   }else{txt('—',bx+8,y+rh/2,18,'#93a89b',560,'center')}
   y+=rh;
