@@ -29,6 +29,30 @@
 main.wrap{padding-bottom:calc(125px + env(safe-area-inset-bottom))}
 #toast{bottom:calc(86px + env(safe-area-inset-bottom))}
 </style>
+<link rel="manifest" href="./manifest.webmanifest?v=2026.11.17.2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gestark">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<style id="gestark-native-feel">
+/* Gestark PWA: interacción de aplicación en pantalla táctil.
+   touch-action: manipulation evita doble toque para zoom y mantiene el zoom de accesibilidad con dos dedos. */
+html { touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+button, a, summary, [role="button"] {
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+input, textarea, select { touch-action: manipulation; }
+/* Evitar zoom automático de Safari al enfocar formularios pequeños. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: max(16px, 1em) !important; }
+  .date-card input[type="date"] { width: 145px; max-width: 100%; }
+}
+@media (display-mode: standalone) {
+  html, body { min-height: 100%; }
+  body { overscroll-behavior-y: contain; }
+}
+</style>
 </head>
 <body>
 <header class="hero"><div class="wrap" style="padding-bottom:0;padding-top:0"><div class="kicker">AGENCIA CHICUREO</div><h1>Repositorio de Links</h1><p>Accesos rápidos, instrucciones y datos de uso frecuente.</p></div></header>
@@ -156,6 +180,7 @@ $('filter').addEventListener('input',e=>{let visible=0;const q=e.target.value.tr
 })();
 </script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.15.4"></script>
+<script src="./gestark-updates.js?v=2026.11.17.2"></script>
+<script src="./gestark-pwa.js?v=2026.11.17.2"></script>
 </body>
 </html>

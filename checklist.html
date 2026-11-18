@@ -151,6 +151,26 @@ main{padding-top:23px}
 @media(print){:root{background:white}body{background:white}.hero{color:#173b36;background:white;box-shadow:none;padding:12px 15px}.hero *,h1{color:#173b36!important}.app{padding:0;max-width:100%}.bottom-nav,.actions,.note,.mini,.preview{display:none!important}.group{break-inside:avoid;box-shadow:none;margin-bottom:6px}.task{min-height:30px;padding:6px 0}.brand{margin-bottom:6px}.progress-head{margin-top:8px}.task-detail{display:none}.metric{box-shadow:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
+<link rel="manifest" href="./manifest.webmanifest?v=2026.11.17.2">
+<style id="gestark-native-feel">
+/* Gestark PWA: interacción de aplicación en pantalla táctil.
+   touch-action: manipulation evita doble toque para zoom y mantiene el zoom de accesibilidad con dos dedos. */
+html { touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+button, a, summary, [role="button"] {
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+input, textarea, select { touch-action: manipulation; }
+/* Evitar zoom automático de Safari al enfocar formularios pequeños. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: max(16px, 1em) !important; }
+  .date-card input[type="date"] { width: 145px; max-width: 100%; }
+}
+@media (display-mode: standalone) {
+  html, body { min-height: 100%; }
+  body { overscroll-behavior-y: contain; }
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -494,6 +514,10 @@ function makeCanvas(){
   ctx.stroke();ctx.restore();
   rect(x+12,y+17,5,clientsCardH-34,'#2c8d67',2.5);
   txt('CLIENTES CAPTADOS',x+29,y+26,16,'#184d3b',770);
+  // Único cambio visual del PNG: exclamación roja pequeña junto al título.
+  ctx.font='770 16px Arial, Helvetica, sans-serif';
+  const clientTitleWidth=ctx.measureText('CLIENTES CAPTADOS').width;
+  txt('!',x+29+clientTitleWidth+12,y+26,20,'#d32632',850);
   txt(clientLabel(clients.length),W-pad-16,y+26,13,'#2c7a58',760,'right');
   let cy=y+56;
   for(let i=0;i<clientLineGroups.length;i++){
@@ -509,14 +533,21 @@ function makeCanvas(){
  y+=45;
  for(let i=0;i<tasks.length;i++){
   const rh=rowHeights[i];rect(x,y,contentW,rh,i%2===0?'#f8fbf9':'#edf5f0');
-  const lines=wrap(tasks[i],contentW-146,15.5,620);
+  // Las actividades de Instagram necesitan espacio para el texto completo del estado.
+  const lines=wrap(tasks[i],contentW-(isStory(i)?260:146),15.5,620);
   lines.slice(0,2).forEach((line,j)=>txt(line,x+14,y+rh/2+(j-(lines.length-1)/2)*17,15.5,'#1b3e35',620));
   const bx=W-pad-52;
   if(isStory(i)){
    const current=storyCount(i),completed=current===storyGoals[i];
+   // En el PNG, cero deja la casilla vacía; nunca mostramos 0/3 ni 0/2.
    if(current>0){
-    rect(bx-22,y+rh/2-13,59,26,completed?'#d6f3e2':'#e9f1ec',13);
-    txt(`${current}/${storyGoals[i]}`,bx+8,y+rh/2,16,completed?'#128355':'#4b7866',780,'center');
+    const storyText=`${current} ${current===1?'historia publicada':'historias publicadas'}`;
+    const badgeX=W-pad-204,badgeW=196;
+    rect(badgeX,y+rh/2-15,badgeW,30,completed?'#d6f3e2':'#e9f1ec',14);
+    ctx.font='760 13.5px Arial, Helvetica, sans-serif';
+    ctx.fillStyle=completed?'#128355':'#376e5a';
+    ctx.textBaseline='middle';ctx.textAlign='center';
+    ctx.fillText(storyText,badgeX+badgeW/2,y+rh/2,badgeW-18);
    }
   }else if(state.done[i]){
    rect(bx-10,y+rh/2-13,37,26,'#d6f3e2',13);txt('1',bx+8,y+rh/2,18,'#128355',780,'center');
@@ -576,6 +607,7 @@ load();
 })();
 </script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.15.4"></script>
+<script src="./gestark-updates.js?v=2026.11.17.2"></script>
+<script src="./gestark-pwa.js?v=2026.11.17.2"></script>
 </body>
 </html>

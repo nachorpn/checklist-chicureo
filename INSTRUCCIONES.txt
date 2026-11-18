@@ -1,0 +1,28 @@
+Gestark — actualización integral 2026.11.17.2
+
+Incluye las mejoras para usar Gestark como aplicación instalable en iPhone y Android,
+la navegación táctil y el modo sin conexión básico.
+
+ÚNICO CAMBIO DEL DISEÑO PNG DEL CHECKLIST:
+Una exclamación roja pequeña justo al lado del título «CLIENTES CAPTADOS».
+No se alteran textos, posiciones, tamaños ni colores de ningún otro elemento del PNG.
+El indicador aparece solo si hay al menos un cliente captado.
+
+Cómo instalar:
+1. Descomprime este ZIP.
+2. En el repositorio nachorpn/checklist-chicureo elige Add file → Upload files.
+3. Sube los 10 archivos de esta carpeta (no es necesario subir este TXT).
+4. Confirma Commit changes y permite que GitHub Pages publique la actualización.
+5. En Android abre Gestark en Chrome y selecciona Instalar app / Añadir a pantalla principal.
+   En iPhone abre Gestark en Safari → Compartir → Añadir a pantalla de inicio.
+
+La dirección se mantiene en https://nachorpn.github.io/checklist-chicureo/
+
+Notas:
+- La función de compartir por WhatsApp depende del navegador y del dispositivo.
+- Gestark sigue guardando datos del checklist localmente en cada dispositivo.
+- GitHub Pages no dispone de autenticación segura de servidor; no guardes
+  credenciales internas en HTML o JavaScript públicos.
+- Para las funciones offline, primero se debe visitar la app con conexión.
+- Formulario Microsoft, WhatsApp y otros portales externos requieren conectividad.
+- Se ha conservado la ampliación de accesibilidad con dos dedos.
