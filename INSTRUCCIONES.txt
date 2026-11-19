@@ -1,28 +1,17 @@
-Gestark — actualización integral 2026.11.17.2
+GESTARK · Actualización de Solicitud de agua y Registro de traslados
 
-Incluye las mejoras para usar Gestark como aplicación instalable en iPhone y Android,
-la navegación táctil y el modo sin conexión básico.
+CONTENIDO
+- index.html: nuevo acceso a Registro de traslados visible solo al usuario SCMN (Stephanie). Conserva el acceso al calendario.
+- repositorio.html: Solicitud de agua abre en pestaña/navegador externo; agrega Copiar enlace como respaldo. Conserva Registro de IND.
+- traslados.html: muestra Microsoft Forms dentro de Gestark para SCMN, con respaldo de apertura externa si Microsoft impide incrustarlo.
+- calendario.html + imagenes-calendario/: calendario anterior conservado e incluido por si aún no se había instalado.
+- gestark-updates.js y gestark-version.json: marca de versión para detectar novedades.
 
-ÚNICO CAMBIO DEL DISEÑO PNG DEL CHECKLIST:
-Una exclamación roja pequeña justo al lado del título «CLIENTES CAPTADOS».
-No se alteran textos, posiciones, tamaños ni colores de ningún otro elemento del PNG.
-El indicador aparece solo si hay al menos un cliente captado.
+SUBIR A GITHUB
+Descomprimir el ZIP. Subir todos los archivos y la carpeta imagenes-calendario a la raíz del repositorio checklist-chicureo. Sobrescribir los archivos que GitHub solicite reemplazar. Confirmar con Commit changes.
 
-Cómo instalar:
-1. Descomprime este ZIP.
-2. En el repositorio nachorpn/checklist-chicureo elige Add file → Upload files.
-3. Sube los 10 archivos de esta carpeta (no es necesario subir este TXT).
-4. Confirma Commit changes y permite que GitHub Pages publique la actualización.
-5. En Android abre Gestark en Chrome y selecciona Instalar app / Añadir a pantalla principal.
-   En iPhone abre Gestark en Safari → Compartir → Añadir a pantalla de inicio.
-
-La dirección se mantiene en https://nachorpn.github.io/checklist-chicureo/
-
-Notas:
-- La función de compartir por WhatsApp depende del navegador y del dispositivo.
-- Gestark sigue guardando datos del checklist localmente en cada dispositivo.
-- GitHub Pages no dispone de autenticación segura de servidor; no guardes
-  credenciales internas en HTML o JavaScript públicos.
-- Para las funciones offline, primero se debe visitar la app con conexión.
-- Formulario Microsoft, WhatsApp y otros portales externos requieren conectividad.
-- Se ha conservado la ampliación de accesibilidad con dos dedos.
+LIMITACIONES
+1. En iPhone/Android no existe una forma 100% garantizada desde HTML de obligar al sistema a abrir Safari/Chrome en vez de un navegador integrado. El enlace se lanza en nueva pestaña; si el sistema lo intercepta, usa Copiar enlace.
+2. Microsoft Forms puede bloquear la visualización en iframe según permisos, cookies y cabeceras de seguridad. En ese caso utiliza Abrir formulario en navegador.
+3. La visibilidad del acceso solo para SCMN es local en JavaScript, no permisos reales de servidor. No protege por sí sola el formulario ni oculta su URL a quien inspeccione el HTML público. Los accesos reales deben controlarse en Microsoft Forms.
+4. No se ha tocado la administración, checklist ni el resto de módulos del sitio.

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#123f3b">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Gestark | Calendario chileno</title>
+<link rel="icon" href="./icon-192.png" type="image/png">
+<style>html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}</style>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#143c37;background:#f4f7f5;font-synthesis:none}
+*{box-sizing:border-box}
+body{margin:0;min-width:300px}
+button,a{-webkit-tap-highlight-color:transparent}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid #25a67d;outline-offset:3px}
+.shell{max-width:760px;margin:auto;padding:0 14px calc(105px + env(safe-area-inset-bottom))}
+.top{margin:0 -14px 16px;padding:calc(14px + env(safe-area-inset-top)) 18px 17px;background:linear-gradient(125deg,#103d38,#147459);color:#fff;border-radius:0 0 22px 22px}
+.top-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.back{display:inline-flex;gap:8px;align-items:center;border:1px solid #ffffff4b;color:white;border-radius:13px;padding:9px 12px;text-decoration:none;font-size:13px;font-weight:700}
+.back svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+.brand{font-size:15px;font-weight:800;text-align:right}
+.brand small{display:block;font-size:11px;font-weight:500;color:#d4e9df;margin-top:2px}
+.photo{height:clamp(178px,52vw,320px);position:relative;border-radius:19px;overflow:hidden;background:#d8e4dc;box-shadow:0 8px 20px #14483218;margin-bottom:13px}
+.photo img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+.photo-label{position:absolute;left:12px;bottom:12px;background:#123e35d9;color:#fff;padding:6px 11px;border-radius:8px;font-size:11px;font-weight:650;letter-spacing:.15px}
+.calendar-panel{border:1px solid #d4e0d9;border-radius:19px;background:#fff;overflow:hidden;box-shadow:0 6px 19px #0b40300a}
+.month-toolbar{display:grid;grid-template-columns:42px 1fr 42px;align-items:center;gap:8px;padding:11px 11px 12px}
+.month-toolbar button{width:42px;height:42px;background:#e5f5ed;border:1px solid #cee5d8;border-radius:13px;display:grid;place-items:center;color:#176344;font-size:26px;font-weight:700}
+.month-toolbar button:disabled{opacity:.25;cursor:not-allowed}
+.month-toolbar h1{text-align:center;margin:0;font-size:clamp(18px,5.5vw,25px);letter-spacing:.45px;font-weight:850;color:#1d5575;text-transform:uppercase;white-space:nowrap}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;padding:0 7px 8px}
+.dow{display:grid;place-items:center;min-height:36px;background:#074d81;color:white;font-size:clamp(10px,2.8vw,14px);font-weight:800}
+.dow:first-child{border-radius:5px 0 0 0}.dow:nth-child(7){background:#064471;color:#ff4646;border-radius:0 5px 0 0}
+.day{background:#fff;border:1px solid #e0e5eb;min-height:clamp(47px,12vw,72px);width:100%;border-radius:0;color:#0d5682;display:grid;place-items:center;position:relative;padding:4px 0;font-weight:800;font-size:clamp(21px,6.8vw,35px);line-height:1;touch-action:manipulation}
+.day.other{color:#b7bec7;background:#f7f8fa;font-weight:580;cursor:default}
+.day.sun{color:#cf171d}
+.day.holiday{color:#c81520}
+.day.holiday::after{content:"";position:absolute;left:50%;bottom:5px;transform:translateX(-50%);width:5px;height:5px;background:#d02b35;border-radius:99px}
+.day.today{background:#101417;color:#fff!important;border-color:#101417}
+.day.today::after{background:#fff}
+.day.selected:not(.today){outline:2px solid #187c5a;outline-offset:-3px;z-index:1}
+.day.other.selected{outline:none}
+.day[disabled]{cursor:default}
+.date-info{min-height:42px;padding:9px 14px 12px;display:flex;align-items:center;justify-content:center;gap:7px;text-align:center;font-size:12px;color:#58786c;border-top:1px solid #e6eee9}
+.date-info .holiday-title{color:#ba2531;font-weight:780}
+.date-info .holiday-label{font-weight:550}
+.mini-note{margin:10px 8px;text-align:center;font-size:11px;color:#789188;line-height:1.5}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fffffff5;box-shadow:0 -5px 20px #1a3d3810;border-top:1px solid #dfeae4;padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;gap:3px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.bottom-nav a{min-width:0;max-width:170px;flex:1;display:flex;align-items:center;flex-direction:column;gap:4px;border-radius:11px;padding:7px 1px;text-decoration:none;color:#627a73;font-size:10px;font-weight:650}
+.bottom-nav a.active{color:#147458;background:#eaf7ee}
+.bottom-nav svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media(min-width:790px){.bottom-nav{max-width:790px;left:50%;transform:translateX(-50%);border-radius:18px 18px 0 0}}
+@media(max-width:360px){.month-toolbar{grid-template-columns:38px 1fr 38px}.month-toolbar button{width:38px;height:38px}.calendar-grid{gap:1px;padding:0 5px 7px}.date-info{font-size:11px}.day{min-height:45px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="top"><div class="top-row"><a class="back" href="./" aria-label="Volver a Gestark"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> Inicio</a><div class="brand">Calendario Gestark<small>Greenbox · Chile</small></div></div></header>
+<main>
+<div class="photo"><img id="month-photo" src="./imagenes-calendario/generica.webp" alt="Imagen del mes" fetchpriority="high"><span id="photo-label" class="photo-label">Fotografía del mes</span></div>
+<section class="calendar-panel" aria-label="Calendario chileno">
+<div class="month-toolbar"><button type="button" id="prev" aria-label="Mes anterior">‹</button><h1 id="month-name" aria-live="polite">NOVIEMBRE 2026</h1><button type="button" id="next" aria-label="Mes siguiente">›</button></div>
+<div class="calendar-grid" id="grid" role="group" aria-label="Días del mes">
+<div class="dow">LUN</div><div class="dow">MAR</div><div class="dow">MIÉ</div><div class="dow">JUE</div><div class="dow">VIE</div><div class="dow">SÁB</div><div class="dow">DOM</div>
+</div><div class="date-info" id="date-info" aria-live="polite">Toca un día para consultar si es feriado en Chile.</div>
+</section>
+<p class="mini-note">Domingos y feriados nacionales en rojo · Calendario Chile 2026–2027</p>
+</main>
+</div>
+<nav class="bottom-nav" aria-label="Navegación principal">
+<a href="./"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-8h6v8"/></svg><span>Inicio</span></a>
+<a href="./checklist.html"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="17" rx="2"/><path d="M9 5V3h6v2M8 11l1.5 1.5L12 10"/></svg><span>Checklist</span></a>
+<a href="./repositorio.html"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg><span>Enlaces</span></a>
+<a href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiUD06FKRYXJZIncdeqhvYNd9URTFXTFpDNVZROE80UkZCMk5ZV1dEWkMzNS4u" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6m-6 4h6m-6 4h4"/></svg><span>Gestiones</span></a>
+</nav>
+<script>
+'use strict';
+const MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+const holidayMap={"2026-01-01": "Año Nuevo", "2026-04-03": "Viernes Santo", "2026-04-04": "Sábado Santo", "2026-05-01": "Día Nacional del Trabajo", "2026-05-21": "Día de las Glorias Navales", "2026-06-21": "Día Nacional de los Pueblos Indígenas", "2026-06-29": "San Pedro y San Pablo", "2026-07-16": "Día de la Virgen del Carmen", "2026-08-15": "Asunción de la Virgen", "2026-09-18": "Independencia Nacional", "2026-09-19": "Día de las Glorias del Ejército", "2026-10-12": "Encuentro de Dos Mundos", "2026-10-31": "Día Nacional de las Iglesias Evangélicas y Protestantes", "2026-11-01": "Día de Todos los Santos", "2026-12-08": "Inmaculada Concepción", "2026-12-25": "Navidad", "2027-01-01": "Año Nuevo", "2027-03-26": "Viernes Santo", "2027-03-27": "Sábado Santo", "2027-05-01": "Día Nacional del Trabajo", "2027-05-21": "Día de las Glorias Navales", "2027-06-21": "Día Nacional de los Pueblos Indígenas", "2027-06-28": "San Pedro y San Pablo", "2027-07-16": "Día de la Virgen del Carmen", "2027-08-15": "Asunción de la Virgen", "2027-09-17": "Feriado adicional de Fiestas Patrias", "2027-09-18": "Independencia Nacional", "2027-09-19": "Día de las Glorias del Ejército", "2027-10-11": "Encuentro de Dos Mundos", "2027-10-31": "Día Nacional de las Iglesias Evangélicas y Protestantes", "2027-11-01": "Día de Todos los Santos", "2027-12-08": "Inmaculada Concepción", "2027-12-25": "Navidad"};
+const photoMap={
+ '2026-11':'2026-11.webp',
+ '2026-12':'2026-12.webp',
+ '2027-01':'2027-01.webp',
+ '2027-02':'2027-02.webp',
+ '2027-03':'2027-03.webp',
+ '2027-04':'2027-04.webp',
+ '2027-05':'2027-05.webp'
+};
+const photoLabels={
+ '2026-11':'Sucursal · Noviembre 2026',
+ '2026-12':'Navidad · Diciembre 2026',
+ '2027-01':'Operaciones · Enero 2027',
+ '2027-02':'Equipo · Febrero 2027',
+ '2027-03':'Operaciones · Marzo 2027',
+ '2027-04':'Equipo · Abril 2027',
+ '2027-05':'Transporte · Mayo 2027'
+};
+const firstYear=2026,firstMonth=0,lastYear=2027,lastMonth=11;
+const el=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const ym=(y,m)=>`${y}-${pad(m+1)}`;
+const iso=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
+function chileNow(){
+ const vals={};
+ const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Santiago',year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date());
+ parts.forEach(p=>{if(p.type==='year'||p.type==='month'||p.type==='day')vals[p.type]=Number(p.value)});
+ return {y:vals.year,m:vals.month-1,d:vals.day};
+}
+const today=chileNow();
+let year=Math.min(lastYear,Math.max(firstYear,today.y));
+let month=today.y<firstYear?firstMonth:today.y>lastYear?lastMonth:today.m;
+let selected=iso(year,month,(year===today.y&&month===today.m)?today.d:1);
+function info(date){
+ const [yy,mm,dd]=date.split('-').map(Number);
+ const dayOfWeek=new Date(Date.UTC(yy,mm-1,dd)).getUTCDay();
+ const fmt=new Intl.DateTimeFormat('es-CL',{timeZone:'UTC',day:'numeric',month:'long',year:'numeric',weekday:'long'});
+ const nice=fmt.format(new Date(Date.UTC(yy,mm-1,dd)));
+ const holiday=holidayMap[date];
+ let span=document.createElement('span');span.textContent=nice;
+ const root=el('date-info');root.replaceChildren(span);
+ if(holiday){let h=document.createElement('span');h.className='holiday-title';h.textContent=' · Feriado: '+holiday;root.appendChild(h)}
+ else if(dayOfWeek===0){let h=document.createElement('span');h.className='holiday-label';h.textContent=' · Domingo';root.appendChild(h)}
+}
+function draw(){
+ const monthKey=ym(year,month);
+ const path=photoMap[monthKey]||'generica.webp';
+ el('month-photo').src='./imagenes-calendario/'+path;
+ el('month-photo').alt=photoMap[monthKey]?`Fotografía de ${MONTHS[month].toLowerCase()} de ${year}`:'Fotografía genérica de una bodega logística';
+ el('photo-label').textContent=photoLabels[monthKey]||'Gestark · Operaciones';
+ el('month-name').textContent=MONTHS[month]+' '+year;
+ el('prev').disabled=year===firstYear&&month===firstMonth;
+ el('next').disabled=year===lastYear&&month===lastMonth;
+ const grid=el('grid');
+ [...grid.querySelectorAll('.day')].forEach(n=>n.remove());
+ const leading=(new Date(Date.UTC(year,month,1)).getUTCDay()+6)%7;
+ const daysInMonth=new Date(Date.UTC(year,month+1,0)).getUTCDate();
+ // Seis filas constantes conservan el aspecto del calendario chileno original.
+ for(let i=0;i<42;i++){
+  const raw=i-leading+1;
+  const dt=new Date(Date.UTC(year,month,raw));
+  const cy=dt.getUTCFullYear(), cm=dt.getUTCMonth(), cd=dt.getUTCDate();
+  const current=cy===year&&cm===month;
+  const date=iso(cy,cm,cd);
+  const dow=dt.getUTCDay();
+  const holiday=current?holidayMap[date]:null;
+  const btn=document.createElement('button');btn.type='button';
+  btn.className='day'+(!current?' other':'')+(dow===0?' sun':'')+(holiday?' holiday':'')+(current&&date===selected?' selected':'')+(current&&cy===today.y&&cm===today.m&&cd===today.d?' today':'');
+  btn.textContent=String(cd);
+  btn.disabled=!current;
+  btn.setAttribute('aria-label',`${cd} de ${MONTHS[cm].toLowerCase()} de ${cy}${holiday?', feriado '+holiday:''}`);
+  btn.setAttribute('aria-pressed',String(current&&date===selected));
+  if(current)btn.addEventListener('click',()=>{selected=date;draw()});
+  grid.appendChild(btn);
+ }
+ if(!selected.startsWith(monthKey))selected=iso(year,month,1);
+ info(selected);
+}
+function shift(delta){
+ const d=new Date(Date.UTC(year,month+delta,1));const y=d.getUTCFullYear(),m=d.getUTCMonth();
+ if(y<firstYear||(y===firstYear&&m<firstMonth)||y>lastYear||(y===lastYear&&m>lastMonth))return;
+ year=y;month=m;selected=iso(year,month,(year===today.y&&month===today.m)?today.d:1);draw();
+}
+el('prev').addEventListener('click',()=>shift(-1));
+el('next').addEventListener('click',()=>shift(1));
+draw();
+</script>
+<script>
+(() => {
+ const u=document.createElement('script');
+ u.src='./usuarios.js?actualizacion='+Date.now();
+ u.onload=()=>{const auth=document.createElement('script');auth.src='./gestark-auth.js?v=2';auth.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div id="gestark-login" style="padding:30px;color:#a22;background:#fff">No se pudo cargar el acceso de Gestark. Comprueba tu conexión.</div>')};document.body.appendChild(auth)};
+ u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div id="gestark-login" style="padding:30px;color:#a22;background:#fff">No se pudo cargar el catálogo de usuarios. Comprueba tu conexión.</div>')};
+ document.body.appendChild(u);
+})();
+</script>
+<noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
+<script src="./gestark-updates.js?v=2026.11.18.1"></script>
+<script src="./gestark-pwa.js?v=2026.11.17.3"></script>
+</body>
+</html>

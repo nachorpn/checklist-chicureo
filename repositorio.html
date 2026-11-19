@@ -28,6 +28,7 @@
 .ind-credentials .fieldval{font-size:15px;font-weight:750;color:#173f2a}
 main.wrap{padding-bottom:calc(125px + env(safe-area-inset-bottom))}
 #toast{bottom:calc(86px + env(safe-area-inset-bottom))}
+.water-external-help{font-size:11px;line-height:1.45;color:#6a8072;margin:-5px 15px 13px}
 </style>
 <link rel="manifest" href="./manifest.webmanifest?v=2026.11.17.3">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -35,23 +36,11 @@ main.wrap{padding-bottom:calc(125px + env(safe-area-inset-bottom))}
 <meta name="apple-mobile-web-app-title" content="Gestark">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <style id="gestark-native-feel">
-/* Gestark PWA: interacción de aplicación en pantalla táctil.
-   touch-action: manipulation evita doble toque para zoom y mantiene el zoom de accesibilidad con dos dedos. */
-html { touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-button, a, summary, [role="button"] {
-  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
-}
-input, textarea, select { touch-action: manipulation; }
-/* Evitar zoom automático de Safari al enfocar formularios pequeños. */
-@media (pointer: coarse) {
-  input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: max(16px, 1em) !important; }
-  .date-card input[type="date"] { width: 145px; max-width: 100%; }
-}
-@media (display-mode: standalone) {
-  html, body { min-height: 100%; }
-  body { overscroll-behavior-y: contain; }
-}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,summary,[role="button"]{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select{touch-action:manipulation}
+@media(pointer:coarse){input:not([type="checkbox"]):not([type="radio"]),select,textarea{font-size:max(16px,1em)!important}}
+@media(display-mode:standalone){html,body{min-height:100%}body{overscroll-behavior-y:contain}}
 </style>
 </head>
 <body>
@@ -62,7 +51,8 @@ input, textarea, select { touch-action: manipulation; }
 <section class="list" id="links">
 <article class="card" data-keywords="solicitud agua bidones culligan waterlogic compra suministro">
  <div class="card-top"><div class="num">01</div><div><h2 class="name">Solicitud de agua</h2><p class="sub">Culligan · Pedido de bidones</p></div></div>
- <div class="actions"><a class="btn primary" href="https://www.culligan.cl/formulario-bidones/" target="_blank" rel="noopener noreferrer">↗ Abrir formulario</a><button class="btn secondary" type="button" id="toggleWater" aria-expanded="false">Ver instrucciones</button></div>
+ <div class="actions"><a class="btn primary" id="water-external" href="https://www.culligan.cl/formulario-bidones/" target="_blank" rel="external noopener noreferrer" referrerpolicy="no-referrer">↗ Abrir en navegador</a><button class="btn secondary" type="button" data-link="https://www.culligan.cl/formulario-bidones/">Copiar enlace</button><button class="btn secondary" type="button" id="toggleWater" aria-expanded="false">Ver instrucciones</button></div>
+ <p class="water-external-help">El formulario se abrirá fuera de Gestark cuando el sistema lo permita. Si tu teléfono lo abre dentro, toca «Copiar enlace» y pégalo en Safari o Chrome.</p>
  <section class="details" id="waterDetails" hidden>
  <div class="autofill"><h3>⚡ Autorrelleno para Culligan (iPhone y Android)</h3>
 <p class="help">Esta opción funciona mediante un favorito especial del navegador, ejecutado <strong>dentro del formulario Culligan</strong>. No envía la solicitud.</p>
@@ -180,7 +170,7 @@ $('filter').addEventListener('input',e=>{let visible=0;const q=e.target.value.tr
 })();
 </script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.17.3"></script>
+<script src="./gestark-updates.js?v=2026.11.18.1"></script>
 <script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body>
 </html>

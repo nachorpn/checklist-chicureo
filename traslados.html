@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#136e60">
+<title>Gestark | Registro de traslados</title>
+<style>html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}</style>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f3f7f5;color:#173b36}
+*{box-sizing:border-box}body{margin:0}a{color:inherit;text-decoration:none}button{font:inherit}:focus-visible{outline:3px solid #53bfa5;outline-offset:3px}
+.app{max-width:790px;margin:0 auto;padding:0 15px 100px}
+.header{background:linear-gradient(125deg,#113d38,#176a5b);color:white;margin:0 -15px;padding:calc(24px + env(safe-area-inset-top)) 20px 23px;border-radius:0 0 26px 26px}
+.crumb{font-size:12px;color:#d7efe5;display:inline-flex;gap:8px;align-items:center;min-height:35px}
+h1{margin:15px 0 6px;font-size:28px;letter-spacing:-.6px}.subtitle{margin:0;color:#d3ece2;font-size:13px;line-height:1.45}
+.panel{margin:18px 0 0;background:white;border:1px solid #dfebe4;border-radius:18px;overflow:hidden;box-shadow:0 7px 22px #1d403115}
+.panel-head{padding:15px 16px;display:flex;flex-direction:column;gap:9px}
+.panel-head p{margin:0;color:#62766c;font-size:12px;line-height:1.55}
+.fallback{display:inline-flex;justify-content:center;align-items:center;gap:6px;padding:12px;border-radius:11px;background:#eaf4ee;color:#155b43;border:1px solid #cce0d1;font-size:13px;font-weight:750}
+.frame{display:block;width:100%;height:max(620px,72dvh);border:0;background:#fff}
+.restricted{padding:22px 18px;background:white;margin:20px 0;border-radius:16px;border:1px solid #dce8e0;color:#46695a;line-height:1.5}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;box-shadow:0 -3px 15px #14382c1f;padding:12px 15px calc(12px + env(safe-area-inset-bottom));text-align:center;z-index:10}
+.bottom a{display:inline-flex;justify-content:center;align-items:center;min-height:40px;padding:8px 20px;border-radius:12px;background:#e9f5ee;color:#166d4f;font-size:13px;font-weight:740}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header"><a href="./" class="crumb">‹ Volver a Gestark</a><h1>Registro de traslados</h1><p class="subtitle">Marca los viajes realizados en transporte compartido.</p></header>
+<main id="content" hidden>
+ <div class="panel">
+  <div class="panel-head"><p>Completa el formulario directamente aquí. Si Microsoft Forms impide mostrarlo dentro de Gestark o solicita iniciar sesión, utiliza la opción alternativa.</p>
+  <a id="outside" href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiUD06FKRYXJZIncdeqhvYNd9UMVJHTFFXUUNBWTg5SDBVREhNSEU3NUJUQi4u" target="_blank" rel="noopener noreferrer" class="fallback">Abrir formulario en navegador ↗</a></div>
+  <iframe id="transport-frame" class="frame" title="Registro de traslados - Microsoft Forms" referrerpolicy="strict-origin-when-cross-origin" loading="lazy" allow="clipboard-write" hidden></iframe>
+ </div>
+</main>
+<section class="restricted" id="restricted" hidden>Este acceso está disponible únicamente para la cuenta de Stephanie en Gestark. <a href="./" style="color:#137f5a;text-decoration:underline">Volver al inicio</a>.</section>
+</div>
+<nav class="bottom"><a href="./">⌂ Inicio de Gestark</a></nav>
+<script>
+document.addEventListener('gestark:ready',function(e){
+ const allowed=e.detail&&e.detail.username==='SCMN';
+ document.getElementById(allowed?'content':'restricted').hidden=false;
+ if(allowed){
+  const frame=document.getElementById('transport-frame');
+  frame.src="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiUD06FKRYXJZIncdeqhvYNd9UMVJHTFFXUUNBWTg5SDBVREhNSEU3NUJUQi4u&embed=true";
+  frame.hidden=false;
+ }
+});
+</script>
+<script>
+(()=>{
+ const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();
+ u.onload=()=>{const auth=document.createElement('script');auth.src='./gestark-auth.js?v=2';document.body.appendChild(auth)};
+ u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div id="gestark-login" style="padding:30px;background:white;color:#a22">No se pudo cargar el catálogo de usuarios de Gestark.</div>')};
+ document.body.appendChild(u);
+})();
+</script>
+<noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
+<script src="./gestark-updates.js?v=2026.11.18.1"></script>
+<script src="./gestark-pwa.js?v=2026.11.17.3"></script>
+</body></html>
