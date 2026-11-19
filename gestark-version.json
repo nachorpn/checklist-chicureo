@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.18.2",
+  "version": "2026.11.19.5",
   "name": "Gestark",
-  "changes": "Libreta rápida de transferencias y compartir lista por WhatsApp, sin Firebase"
+  "changes": "Repositorio de Links: nuevo acceso Insumos especiales (Microsoft Forms). Mantiene Inicio compacto, transferencias y demás funciones anteriores."
 }

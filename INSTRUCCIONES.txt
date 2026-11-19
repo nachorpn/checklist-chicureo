@@ -5,7 +5,7 @@ Gestark_Agua_Externa_Registro_Traslados.zip
 No incluye el piloto Firebase descartado.
 
 QUÉ CAMBIA
-1. Inicio: nuevo acceso «Mis transferencias» visible solo para la sesión CIBC.
+1. Inicio: acceso «Mis transferencias» en el PRIMER LUGAR de las herramientas, visible solo para la sesión CIBC.
 2. notas-transferencias.html: anotar nombre y monto, lista pendiente, total, copiar filas como tabla para Excel y compartir texto por WhatsApp.
 3. El registro es local (localStorage). Permanece aunque cierre Gestark o cambie de día, pero no sincroniza entre dispositivos y puede perderse si se borran datos del navegador. No se elimina automáticamente. Solo se vacía con confirmación tras el traspaso a Excel.
 4. Conserva calendario, Repositorio, solicitud externa de agua, traslados SCMN, checklist y cobranza previos.
@@ -21,4 +21,36 @@ ADVERTENCIAS
 - GitHub Pages es público. El acceso oculto por usuario es solo una restricción visual de frontend, no seguridad de servidor. El contenido de la libreta se almacena en el dispositivo, no en GitHub.
 - No usar esta libreta como único respaldo de transferencias hasta haberlas traspasado a la planilla oficial.
 - Compartir por WhatsApp abre un mensaje prellenado que el usuario debe escoger y enviar manualmente.
-- La copia para Excel tiene tres columnas separadas por tabulaciones: Fecha, Cliente, Monto (número entero).
+- La copia para Excel contiene exactamente DOS columnas separadas por tabulacion y SIN encabezados: Nombre y Monto (numero entero, sin $ ni puntos). Cada transferencia ocupa una fila. Seleccionar primera celda vacia de Nombre en Excel y pegar; si es posible, usar Pegar valores para preservar el formato. Esta funcion depende del pegado de texto tabulado que soporte Excel movil.
+
+ÚLTIMO CAMBIO (19-11-2026)
+- Se movió «Mis transferencias» al primer lugar de «Mis herramientas» en Inicio para CIBC.
+- No se cambiaron los formularios, registros, reportes de WhatsApp ni el resto de funciones.
+
+ACTUALIZACION 19-11-2026 (Excel movil)
+- Copiar nombre y monto: dos columnas sin encabezado y sin fecha, sin simbolo monetario.
+- Pega en la primera celda vacia de Nombre; verifica que Excel movil distribuya los datos en dos columnas antes de marcar traspasado.
+- Los registros locales no se eliminan al copiar ni al pegar; se borran solo desde el boton con confirmacion.
+
+ACTUALIZACIÓN 19-11-2026 (sumar montos por cliente)
+- Botón «+ Sumar monto» en cada registro existente. Introduce el monto adicional y confirma «Sumar».
+- Ejemplo: Carlos Pérez $12.000 + $5.000 = $17.000 en la misma fila.
+- Si se escribe nuevamente el mismo nombre en el formulario principal, el monto se acumula automáticamente en su registro existente (se ignoran diferencias de mayúsculas y tildes).
+- Se conservan las notas existentes en localStorage, sin borrado ni migración.
+- Copiar para Excel sigue entregando solo dos columnas: Nombre y Monto numérico, una fila por registro. WhatsApp muestra el total actualizado.
+- La modificación sigue usando almacenamiento local; el acceso de CIBC es visual y no sustituye autenticación de servidor.
+
+ACTUALIZACIÓN 19-11-2026 (Inicio compacto)
+- Inicio reorganizado en una CUADRICULA de accesos: 2 columnas en celular, 3 en pantallas amplias.
+- Cabecera compacta para ver todas las funciones sin recorrer una larga lista vertical; en pantallas muy pequeñas puede ser necesario un desplazamiento mínimo.
+- «Mis transferencias» permanece primero y exclusivo del perfil CIBC. «Registro de traslados» sigue exclusivo de SCMN.
+- Calendario se mantiene como acceso pequeño en la misma fila de «Accesos rápidos».
+- Sin cambios en guardar/sumar transferencias, copiar a Excel, WhatsApp, checklist ni formulario de agua.
+
+ACTUALIZACIÓN 19-11-2026 (Insumos especiales)
+- Se agrega en Repositorio de Links el acceso 06 «Insumos especiales».
+- Enlace Microsoft Forms facilitado por el usuario; abre en pestaña externa, como los demás enlaces del repositorio.
+- Contiene «Copiar link» para compartir o pegar la dirección.
+- El repositorio ahora muestra 6 accesos disponibles.
+- No reemplaza ni elimina enlaces existentes.
+- Se incrementa gestark-version.json a 2026.11.19.5 para detectar la actualización.

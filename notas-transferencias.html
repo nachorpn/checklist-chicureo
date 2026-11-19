@@ -28,7 +28,11 @@ h1{font-size:29px;letter-spacing:-1px;line-height:1.15;margin:0 0 7px} .hero p{f
 .full{width:100%}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.actions button{min-height:51px}
 .notice{font-size:12px;line-height:1.5;color:#5e7468;margin:11px 0 0}
 .stat{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border:1px solid #d9eae0;background:#edf8f1;padding:14px 15px;border-radius:13px}.stat strong{font-size:26px;color:#136c4a;white-space:nowrap}.stat span{color:#44665a;font-size:12px;font-weight:700}
-.list{list-style:none;margin:15px 0 0;padding:0}.entry{display:flex;gap:10px;align-items:center;padding:12px 1px;border-bottom:1px solid #edf2ee}.entry:last-child{border-bottom:0}.entry-info{flex:1;min-width:0}.entry-name{font-size:14px;font-weight:760;line-height:1.35;overflow-wrap:anywhere}.entry-date{font-size:11px;color:#788d80;margin-top:4px}.entry-amount{font-size:15px;font-weight:850;white-space:nowrap;color:#135d46;font-variant-numeric:tabular-nums}.remove{min-height:36px;min-width:36px;padding:6px;border:1px solid #f0d6d4;background:#fff8f8;color:#aa5c57;border-radius:10px;display:grid;place-items:center;font-size:20px}
+.list{list-style:none;margin:15px 0 0;padding:0}.entry{padding:12px 1px;border-bottom:1px solid #edf2ee}.entry:last-child{border-bottom:0}
+.entry-row{display:flex;gap:9px;align-items:center;min-width:0}.entry-info{flex:1;min-width:0}.entry-name{font-size:14px;font-weight:760;line-height:1.35;overflow-wrap:anywhere}.entry-date{font-size:11px;color:#788d80;margin-top:4px}.entry-amount{font-size:15px;font-weight:850;white-space:nowrap;color:#135d46;font-variant-numeric:tabular-nums}
+.entry-actions{display:flex;align-items:center;gap:7px;margin-top:8px}.add-amount{background:#e8f6ed;color:#136a48;border:1px solid #c7e9d2;border-radius:9px;min-height:35px;padding:7px 12px;font-size:12px;font-weight:800}.add-amount[aria-expanded="true"]{background:#d9f0e3}.entry-details{font-size:11px;color:#6d8375;flex:1}.remove{min-height:35px;min-width:35px;padding:6px;border:1px solid #f0d6d4;background:#fff8f8;color:#aa5c57;border-radius:9px;display:grid;place-items:center;font-size:20px}
+.add-form{margin-top:9px;padding:11px;background:#f2faf5;border:1px solid #d9e9df;border-radius:12px;display:grid;gap:9px}.add-form[hidden]{display:none!important}.add-form label{font-size:12px;font-weight:750;color:#305747}.add-form-controls{display:flex;align-items:center;gap:7px}.add-form input{flex:1;min-width:0;height:43px;border:1px solid #c5ddce;background:white;border-radius:9px;padding:8px 10px;font-size:16px}.add-form button{min-height:43px;white-space:nowrap;padding:7px 12px;font-size:12px;border-radius:9px;font-weight:800}.add-form .save-add{border:0;background:#138054;color:#fff}.add-form .cancel-add{border:1px solid #d5e4da;background:#fff;color:#456456}
+@media(max-width:370px){.add-form-controls{flex-wrap:wrap}.add-form input{flex-basis:100%}.add-form button{flex:1}}
 .empty{color:#708279;font-size:13px;text-align:center;padding:20px 10px;margin:0}.danger{margin:13px 0 0;padding:7px 0;background:transparent;border:0;color:#a54343;font-size:12px;text-decoration:underline;font-weight:700}
 #feedback{min-height:18px;margin:10px 0 0;color:#13754c;font-size:12px;font-weight:650}#feedback.error{color:#ac3535}
 #restricted{background:#fff;padding:20px;border-radius:15px;border:1px solid #e2eae3;font-size:14px;line-height:1.5}
@@ -49,6 +53,7 @@ h1{font-size:29px;letter-spacing:-1px;line-height:1.15;margin:0 0 7px} .hero p{f
      <div class="field"><label for="amount">Monto recibido ($)</label><input id="amount" name="amount" inputmode="numeric" placeholder="Ej. 12000" required maxlength="12" autocomplete="off" enterkeyhint="done"></div>
      <button class="primary" type="submit">+ Guardar</button>
    </form>
+   <p class="notice">Si vuelves a ingresar un nombre ya registrado, el monto se <strong>suma al existente</strong>, sin crear otra fila.</p>
    <p id="feedback" role="status" aria-live="polite"></p>
  </section>
  <section class="panel" aria-labelledby="pending-title">
@@ -56,9 +61,10 @@ h1{font-size:29px;letter-spacing:-1px;line-height:1.15;margin:0 0 7px} .hero p{f
    <div class="stat"><span id="record-count">0 transferencias</span><strong id="record-total">$0</strong></div>
    <div class="actions">
      <button type="button" id="send-wa" class="primary">Enviar por WhatsApp</button>
-     <button type="button" id="copy-excel" class="secondary">Copiar para Excel</button>
+     <button type="button" id="copy-excel" class="secondary">Copiar nombre y monto</button>
    </div>
-   <p class="notice">El reporte se envía como texto para que puedas copiarlo y revisarlo fácilmente. Ningún mensaje se envía sin tu confirmación en WhatsApp.</p>
+   <p class="notice">Para sumar otro pago de un cliente, toca <strong>«+ Sumar monto»</strong> bajo su nombre. La lista, WhatsApp y Excel mostrarán el monto actualizado.</p>
+   <p class="notice">Excel: copia solo <strong>Nombre</strong> y <strong>Monto</strong>, sin encabezados ni fecha. En tu planilla, selecciona la primera celda vacía de Nombre y pega. Si aparece la opción, elige «Pegar valores» para conservar el formato de las celdas. El reporte de WhatsApp no cambia.</p>
    <ul class="list" id="entries" aria-label="Transferencias pendientes"></ul>
    <p id="empty" class="empty">Aún no hay transferencias. Agrega la primera arriba.</p>
    <button type="button" id="clear" class="danger">Ya traspasé a Excel · Vaciar lista</button>
@@ -98,34 +104,80 @@ function render(){
  const frag=document.createDocumentFragment();
  for(const item of [...records].reverse()){
    const li=document.createElement('li');li.className='entry';
+   const row=document.createElement('div');row.className='entry-row';
    const info=document.createElement('div');info.className='entry-info';
    const name=document.createElement('div');name.className='entry-name';name.textContent=item.name;
    const date=document.createElement('div');date.className='entry-date';date.textContent=displayDate(item.date);
    info.append(name,date);
    const amount=document.createElement('span');amount.className='entry-amount';amount.textContent=numberString(item.amount);
+   row.append(info,amount);
+   const actions=document.createElement('div');actions.className='entry-actions';
+   const add=document.createElement('button');add.className='add-amount';add.type='button';add.textContent='+ Sumar monto';
+   add.setAttribute('aria-label','Sumar otro monto a '+item.name);add.setAttribute('aria-expanded','false');
+   const details=document.createElement('span');details.className='entry-details';
+   const parts=Array.isArray(item.parts)?item.parts:[];
+   if(parts.length>1)details.textContent=parts.length+' montos acumulados';
    const del=document.createElement('button');del.className='remove';del.type='button';del.textContent='×';del.title='Eliminar transferencia';del.setAttribute('aria-label','Eliminar transferencia de '+item.name);
    del.addEventListener('click',()=>{if(confirm('¿Eliminar la transferencia de '+item.name+' por '+numberString(item.amount)+'?')){persist(records.filter(x=>x.id!==item.id));}});
-   li.append(info,amount,del);frag.append(li);
+   actions.append(add,details,del);
+   const form=document.createElement('form');form.className='add-form';form.hidden=true;
+   const label=document.createElement('label');label.textContent='Monto adicional para '+item.name;
+   const controls=document.createElement('div');controls.className='add-form-controls';
+   const input=document.createElement('input');input.type='text';input.inputMode='numeric';input.maxLength=12;input.required=true;input.placeholder='Ej. 5000';input.autocomplete='off';input.setAttribute('aria-label','Monto adicional para '+item.name);
+   const save=document.createElement('button');save.className='save-add';save.type='submit';save.textContent='Sumar';
+   const cancel=document.createElement('button');cancel.className='cancel-add';cancel.type='button';cancel.textContent='Cancelar';
+   controls.append(input,save,cancel);form.append(label,controls);
+   add.addEventListener('click',()=>{form.hidden=!form.hidden;add.setAttribute('aria-expanded',String(!form.hidden));if(!form.hidden)input.focus();});
+   cancel.addEventListener('click',()=>{form.hidden=true;input.value='';add.setAttribute('aria-expanded','false');add.focus();});
+   form.addEventListener('submit',e=>{e.preventDefault();if(!allowed)return;
+     const extra=parseAmount(input.value);
+     if(extra===null){toast('Ingresa un monto adicional válido.',true);input.focus();return}
+     const updated=addToRecord(item.id,extra);
+     if(updated==='overflow'){toast('El total excede el máximo permitido de $999.999.999.',true);input.focus();return}
+     if(updated)toast('Sumados '+numberString(extra)+' a '+item.name+' ✓');
+   });
+   li.append(row,actions,form);frag.append(li);
  }
  $('entries').append(frag);
 }
+// Admite CLP sin decimales: 12000, 12.000 o $12.000.
+function parseAmount(value){const raw=String(value||'').trim();const digits=raw.replace(/[^0-9]/g,'');const amount=Number(digits);
+ if(!/^[\d\s.$]+$/.test(raw)||!digits||!Number.isSafeInteger(amount)||amount<1||amount>999999999)return null;
+ return amount;
+}
+function canonicalName(name){return name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLocaleLowerCase('es-CL')}
+function addToRecord(id,extra){const i=records.findIndex(r=>r.id===id);if(i<0)return false;
+ const old=records[i];const total=old.amount+extra;
+ if(!Number.isSafeInteger(total)||total>999999999)return 'overflow';
+ const parts=Array.isArray(old.parts)&&old.parts.length?old.parts:[old.amount];
+ return persist(records.map((r,j)=>j===i?{...r,amount:total,parts:[...parts,extra]}:r));
+}
 function message(){const lines=['*Transferencias pendientes*',''];for(const item of records){lines.push('• '+item.name+' — '+numberString(item.amount)+' ('+displayDate(item.date)+')')}lines.push('','*Total: '+numberString(sum())+'*','Registros: '+records.length);return lines.join('\n')}
-function excel(){return 'Fecha\tCliente\tMonto\n'+records.map(x=>displayDate(x.date)+'\t'+x.name.replace(/[\t\r\n]+/g,' ')+'\t'+x.amount).join('\n')}
+// Copia solo valores para las columnas contiguas Nombre y Monto de Excel.
+// TAB separa columnas; salto de linea separa filas; no agrega titulos ni formulas.
+function excel(){return records.map(x=>x.name.replace(/[\t\r\n]+/g,' ').replace(/^([=+\-@])/,'\u0027$1')+'\t'+String(x.amount)).join('\n')}
 async function copy(text){if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(text);return true}catch{}}
  const area=document.createElement('textarea');area.value=text;area.style.cssText='position:fixed;left:-9999px;top:0';document.body.append(area);area.select();let ok=false;try{ok=document.execCommand('copy')}catch{}area.remove();return ok}
 function init(){if(allowed)return;allowed=true;records=load();$('workspace').hidden=false;render();}
 document.addEventListener('gestark:ready',e=>{if(e.detail?.username===ALLOWED_USER)init();else $('restricted').hidden=false});
 $('note-form').addEventListener('submit',e=>{
  e.preventDefault();if(!allowed)return;
- const name=$('client').value.replace(/\s+/g,' ').trim();const amountText=$('amount').value.trim();const digits=amountText.replace(/[^0-9]/g,'');const amount=Number(digits);
+ const name=$('client').value.replace(/\s+/g,' ').trim();const amount=parseAmount($('amount').value);
  if(!name||name.length>80){toast('Escribe el nombre del cliente.',true);$('client').focus();return}
- if(!/^[\d\s.$]+$/.test(amountText)||!digits||!Number.isSafeInteger(amount)||amount<1||amount>999999999){toast('Ingresa un monto válido en pesos.',true);$('amount').focus();return}
+ if(amount===null){toast('Ingresa un monto válido en pesos.',true);$('amount').focus();return}
+ // Si el nombre ya está en los pendientes, acumular sin duplicar la fila de Excel.
+ const existing=records.find(x=>canonicalName(x.name)===canonicalName(name));
+ if(existing){const result=addToRecord(existing.id,amount);
+   if(result==='overflow'){toast('El total excede el máximo permitido de $999.999.999.',true);return}
+   if(result){$('client').value='';$('amount').value='';$('client').focus();toast('Sumados '+numberString(amount)+' a '+existing.name+' ✓')}
+   return;
+ }
  if(records.length>=1500){toast('Hay demasiados pendientes. Copia y traspasa la lista antes de seguir.',true);return}
  const id=crypto.randomUUID?.()||String(Date.now())+'-'+String(Math.random());
  const item={id,name,amount,date:dateISO()};
  if(persist([...records,item])){$('client').value='';$('amount').value='';$('client').focus();toast('Transferencia guardada ✓')}
 });
-$('copy-excel').addEventListener('click',async()=>{if(!records.length)return;const ok=await copy(excel());toast(ok?'Copiado: pega directamente en Excel.':'No se pudo copiar. Revisa los permisos del navegador.',!ok)});
+$('copy-excel').addEventListener('click',async()=>{if(!records.length)return;const ok=await copy(excel());toast(ok?'Nombre y monto copiados. Pega en la columna Nombre de Excel.':'No se pudo copiar. Revisa los permisos del navegador.',!ok)});
 $('send-wa').addEventListener('click',()=>{
  if(!records.length)return;
  const body=message();const link='https://wa.me/?text='+encodeURIComponent(body);
@@ -148,7 +200,7 @@ window.addEventListener('storage',e=>{if(allowed&&e.key===KEY){records=load();re
 })();
 </script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.18.2"></script>
+<script src="./gestark-updates.js?v=2026.11.19.5"></script>
 <script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body>
 </html>
