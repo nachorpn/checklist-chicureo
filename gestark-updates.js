@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   // Mantener igual a gestark-version.json en cada nueva publicación.
-  const VERSION = '2026.11.18.1';
+  const VERSION = '2026.11.18.2';
   const MANIFEST = './gestark-version.json';
   const CHECK_INTERVAL = 5 * 60 * 1000;
   let button;

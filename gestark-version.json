@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.18.1",
+  "version": "2026.11.18.2",
   "name": "Gestark",
-  "changes": "Solicitud de agua externa y registro de traslados para Stephanie"
+  "changes": "Libreta rápida de transferencias y compartir lista por WhatsApp, sin Firebase"
 }

@@ -92,6 +92,9 @@ footer{font-size:11px;color:#82948f;text-align:center;margin:27px 0 0}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 
+/* Registro de transferencias: acceso en Inicio exclusivo de CIBC. */
+.tool.notes .graphic{background:#e6f6eb;color:#17794f}
+.tool.notes .graphic svg{width:42px;height:42px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
 /* Acceso a traslados disponible únicamente para la cuenta SCMN. */
 .tool.transport .graphic{background:#e9f5f0;color:#176e58}
 .tool.transport .graphic svg{width:43px;height:43px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
@@ -155,6 +158,12 @@ footer{font-size:11px;color:#82948f;text-align:center;margin:27px 0 0}
       <div class="tool-copy"><div class="tool-tag">Cobranza rápida</div><h3>Cobrar transferencias</h3><p>Prepara la imagen de recordatorio para compartir por WhatsApp.</p><span class="cobro-note">Compartir aviso en un toque</span></div>
       <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
    </button>
+
+   <a class="tool notes" id="notes-shortcut" href="./notas-transferencias.html" aria-label="Abrir libreta de transferencias" style="display:none">
+      <div class="graphic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8m-8 4h5m-5 4h3M15 15l2 2 3-4"/></svg></div>
+      <div class="tool-copy"><div class="tool-tag">Registro personal</div><h3>Mis transferencias</h3><p>Anota nombre y monto, copia a Excel o envía la lista por WhatsApp.</p></div>
+      <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
+   </a>
 
    <a class="tool transport" id="transport-shortcut" href="./traslados.html" aria-label="Abrir Registro de traslados" style="display:none">
       <div class="graphic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="9" rx="2"/><path d="m5 8 2-4h10l2 4M7 17v2m10-2v2M7.5 12h.01m9 0h.01M4 15h16"/></svg></div>
@@ -240,6 +249,14 @@ footer{font-size:11px;color:#82948f;text-align:center;margin:27px 0 0}
 // El acceso se muestra solo para Stephanie (SCMN) al iniciar sesión.
 // Esto es visibilidad de interfaz, no autorización de seguridad en servidor.
 document.addEventListener('gestark:ready', function(event){
+  if(event.detail && event.detail.username === 'CIBC'){
+    const notes=document.getElementById('notes-shortcut');
+    if(notes)notes.style.display='flex';
+    const count=document.querySelector('.section-title .count');
+    if(count)count.textContent='5 accesos';
+    const summary=document.querySelector('.summary span:last-child');
+    if(summary)summary.textContent='5 herramientas disponibles';
+  }
   if(event.detail && event.detail.username === 'SCMN'){
     const tile=document.getElementById('transport-shortcut');
     if(tile)tile.style.display='flex';
@@ -260,7 +277,7 @@ document.addEventListener('gestark:ready', function(event){
 })();
 </script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.18.1"></script>
+<script src="./gestark-updates.js?v=2026.11.18.2"></script>
 <script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body>
 </html>

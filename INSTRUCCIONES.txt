@@ -1,17 +1,24 @@
-GESTARK · Actualización de Solicitud de agua y Registro de traslados
+GESTARK · Libreta de transferencias + WhatsApp (sin Firebase)
 
-CONTENIDO
-- index.html: nuevo acceso a Registro de traslados visible solo al usuario SCMN (Stephanie). Conserva el acceso al calendario.
-- repositorio.html: Solicitud de agua abre en pestaña/navegador externo; agrega Copiar enlace como respaldo. Conserva Registro de IND.
-- traslados.html: muestra Microsoft Forms dentro de Gestark para SCMN, con respaldo de apertura externa si Microsoft impide incrustarlo.
-- calendario.html + imagenes-calendario/: calendario anterior conservado e incluido por si aún no se había instalado.
-- gestark-updates.js y gestark-version.json: marca de versión para detectar novedades.
+ACTUALIZACIÓN BASADA EN LA VERSIÓN APROBADA:
+Gestark_Agua_Externa_Registro_Traslados.zip
+No incluye el piloto Firebase descartado.
 
-SUBIR A GITHUB
-Descomprimir el ZIP. Subir todos los archivos y la carpeta imagenes-calendario a la raíz del repositorio checklist-chicureo. Sobrescribir los archivos que GitHub solicite reemplazar. Confirmar con Commit changes.
+QUÉ CAMBIA
+1. Inicio: nuevo acceso «Mis transferencias» visible solo para la sesión CIBC.
+2. notas-transferencias.html: anotar nombre y monto, lista pendiente, total, copiar filas como tabla para Excel y compartir texto por WhatsApp.
+3. El registro es local (localStorage). Permanece aunque cierre Gestark o cambie de día, pero no sincroniza entre dispositivos y puede perderse si se borran datos del navegador. No se elimina automáticamente. Solo se vacía con confirmación tras el traspaso a Excel.
+4. Conserva calendario, Repositorio, solicitud externa de agua, traslados SCMN, checklist y cobranza previos.
 
-LIMITACIONES
-1. En iPhone/Android no existe una forma 100% garantizada desde HTML de obligar al sistema a abrir Safari/Chrome en vez de un navegador integrado. El enlace se lanza en nueva pestaña; si el sistema lo intercepta, usa Copiar enlace.
-2. Microsoft Forms puede bloquear la visualización en iframe según permisos, cookies y cabeceras de seguridad. En ese caso utiliza Abrir formulario en navegador.
-3. La visibilidad del acceso solo para SCMN es local en JavaScript, no permisos reales de servidor. No protege por sí sola el formulario ni oculta su URL a quien inspeccione el HTML público. Los accesos reales deben controlarse en Microsoft Forms.
-4. No se ha tocado la administración, checklist ni el resto de módulos del sitio.
+INSTALACIÓN EN GITHUB PAGES
+- Descomprime este ZIP.
+- En la raíz de github.com/nachorpn/checklist-chicureo, selecciona «Add file → Upload files».
+- Sube los archivos y la carpeta imagenes-calendario sin perder su estructura.
+- Confirma «Commit changes» en la rama publicada.
+- Recarga Gestark, inicia sesión como CIBC y abre «Mis transferencias».
+
+ADVERTENCIAS
+- GitHub Pages es público. El acceso oculto por usuario es solo una restricción visual de frontend, no seguridad de servidor. El contenido de la libreta se almacena en el dispositivo, no en GitHub.
+- No usar esta libreta como único respaldo de transferencias hasta haberlas traspasado a la planilla oficial.
+- Compartir por WhatsApp abre un mensaje prellenado que el usuario debe escoger y enviar manualmente.
+- La copia para Excel tiene tres columnas separadas por tabulaciones: Fecha, Cliente, Monto (número entero).

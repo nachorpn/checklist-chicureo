@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<style>html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}</style>
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#126b52">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gestark">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<title>Gestark | Mis transferencias</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#1b352e;background:#f3f7f5;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0}button,input{font:inherit}a{color:inherit;text-decoration:none}button{cursor:pointer}a,button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #48ab89;outline-offset:3px}
+.wrap{max-width:790px;margin:auto;padding:0 17px calc(112px + env(safe-area-inset-bottom))}
+.hero{background:linear-gradient(127deg,#0b4b44,#16815c);border-radius:0 0 27px 27px;color:#fff;padding:calc(18px + env(safe-area-inset-top)) 21px 24px;margin:0 -17px 20px}
+.back{font-weight:720;font-size:13px;color:#d5f9e9;display:inline-flex;align-items:center;gap:7px;min-height:34px}
+.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1.7px;color:#bee9d7;font-weight:750;margin:15px 0 6px}
+h1{font-size:29px;letter-spacing:-1px;line-height:1.15;margin:0 0 7px} .hero p{font-size:13px;line-height:1.45;color:#e1f6ec;margin:0}
+#workspace[hidden],#restricted[hidden],#empty[hidden]{display:none!important}
+.panel{background:#fff;border:1px solid #dbe8e1;border-radius:18px;padding:17px;margin-bottom:13px;box-shadow:0 3px 13px #1b4b3220}
+.title{margin:0 0 13px;font-size:17px;letter-spacing:-.35px}.subtitle{color:#718477;font-size:12px;margin:-8px 0 17px;line-height:1.5}
+.form{display:grid;gap:11px}.field{display:grid;gap:6px}.field label{font-size:12px;font-weight:750;color:#305747}.field input{width:100%;height:49px;border:1px solid #cbded2;border-radius:12px;padding:11px 13px;font-size:16px;outline-offset:1px;background:#fbfdfb;color:#163a2a}
+.field input::placeholder{color:#91a39a}
+.primary,.secondary,.subtle{border-radius:11px;min-height:46px;padding:11px 13px;border:0;font-size:14px;font-weight:780;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.primary{background:#138054;color:white}.primary:active{background:#0d6742}.secondary{background:#ebf5ed;color:#176746;border:1px solid #d2e8d8}.subtle{background:#f5f7f6;color:#49685b;border:1px solid #e0eae2}
+.full{width:100%}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.actions button{min-height:51px}
+.notice{font-size:12px;line-height:1.5;color:#5e7468;margin:11px 0 0}
+.stat{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border:1px solid #d9eae0;background:#edf8f1;padding:14px 15px;border-radius:13px}.stat strong{font-size:26px;color:#136c4a;white-space:nowrap}.stat span{color:#44665a;font-size:12px;font-weight:700}
+.list{list-style:none;margin:15px 0 0;padding:0}.entry{display:flex;gap:10px;align-items:center;padding:12px 1px;border-bottom:1px solid #edf2ee}.entry:last-child{border-bottom:0}.entry-info{flex:1;min-width:0}.entry-name{font-size:14px;font-weight:760;line-height:1.35;overflow-wrap:anywhere}.entry-date{font-size:11px;color:#788d80;margin-top:4px}.entry-amount{font-size:15px;font-weight:850;white-space:nowrap;color:#135d46;font-variant-numeric:tabular-nums}.remove{min-height:36px;min-width:36px;padding:6px;border:1px solid #f0d6d4;background:#fff8f8;color:#aa5c57;border-radius:10px;display:grid;place-items:center;font-size:20px}
+.empty{color:#708279;font-size:13px;text-align:center;padding:20px 10px;margin:0}.danger{margin:13px 0 0;padding:7px 0;background:transparent;border:0;color:#a54343;font-size:12px;text-decoration:underline;font-weight:700}
+#feedback{min-height:18px;margin:10px 0 0;color:#13754c;font-size:12px;font-weight:650}#feedback.error{color:#ac3535}
+#restricted{background:#fff;padding:20px;border-radius:15px;border:1px solid #e2eae3;font-size:14px;line-height:1.5}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#fffdfbef;border-top:1px solid #dde8e3;box-shadow:0 -9px 22px #193d3713;padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-around;gap:1px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}.bottom-nav a{flex:1;max-width:170px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0 4px;border-radius:12px;color:#738381;font-size:10px;font-weight:650;min-height:53px;justify-content:center}.bottom-nav a svg{height:21px;width:21px}.bottom-nav a.active{color:#087a66;background:#edf8f4}
+@media(min-width:670px){.form{grid-template-columns:1.5fr 1fr auto;align-items:end}.form .primary{height:49px}.actions{display:flex}.actions button{flex:1}.wrap{padding-left:25px;padding-right:25px}.hero{margin-left:-25px;margin-right:-25px;padding-left:29px;padding-right:29px}}
+@media(min-width:790px){.bottom-nav{max-width:790px;left:50%;transform:translateX(-50%);border-radius:18px 18px 0 0;border-left:1px solid #e1e9e6;border-right:1px solid #e1e9e6}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero"><a href="./" class="back">‹ Volver a Inicio</a><div class="eyebrow">Registro personal · Gestark</div><h1>Mis transferencias</h1><p>Anota nombre y monto en segundos. Todo queda en este dispositivo hasta que lo borres.</p></header>
+<section id="restricted" hidden aria-live="polite">Este registro es personal y aparece únicamente para la cuenta autorizada. <a href="./" style="text-decoration:underline;color:#136b4b">Volver a Inicio</a>.</section>
+<main id="workspace" hidden>
+ <section class="panel">
+   <h2 class="title">Nueva transferencia</h2>
+   <form id="note-form" class="form" autocomplete="off">
+     <div class="field"><label for="client">Nombre del cliente</label><input id="client" name="client" placeholder="Ej. Carlos Pérez" required maxlength="80" autocomplete="off" enterkeyhint="next"></div>
+     <div class="field"><label for="amount">Monto recibido ($)</label><input id="amount" name="amount" inputmode="numeric" placeholder="Ej. 12000" required maxlength="12" autocomplete="off" enterkeyhint="done"></div>
+     <button class="primary" type="submit">+ Guardar</button>
+   </form>
+   <p id="feedback" role="status" aria-live="polite"></p>
+ </section>
+ <section class="panel" aria-labelledby="pending-title">
+   <h2 class="title" id="pending-title">Pendientes de traspasar</h2>
+   <div class="stat"><span id="record-count">0 transferencias</span><strong id="record-total">$0</strong></div>
+   <div class="actions">
+     <button type="button" id="send-wa" class="primary">Enviar por WhatsApp</button>
+     <button type="button" id="copy-excel" class="secondary">Copiar para Excel</button>
+   </div>
+   <p class="notice">El reporte se envía como texto para que puedas copiarlo y revisarlo fácilmente. Ningún mensaje se envía sin tu confirmación en WhatsApp.</p>
+   <ul class="list" id="entries" aria-label="Transferencias pendientes"></ul>
+   <p id="empty" class="empty">Aún no hay transferencias. Agrega la primera arriba.</p>
+   <button type="button" id="clear" class="danger">Ya traspasé a Excel · Vaciar lista</button>
+   <p class="notice">Los registros permanecen guardados aunque cierres Gestark o cambie el día. Se borran únicamente cuando tú lo confirmas.</p>
+ </section>
+</main>
+</div>
+<nav class="bottom-nav" aria-label="Navegación principal">
+ <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-8h6v8"/></svg><span>Inicio</span></a>
+ <a href="./checklist.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="17" rx="2"/><path d="M9 5V3h6v2M8 11l1.5 1.5L12 10m-4 7 1.5 1.5L12 16m2-5h2m-2 6h2"/></svg><span>Checklist</span></a>
+ <a href="./repositorio.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="m8 14 3-3 3 3 3-3"/></svg><span>Repositorio</span></a>
+ <a class="active" aria-current="page" href="./notas-transferencias.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8m-8 4h5m-5 4h3"/></svg><span>Notas</span></a>
+</nav>
+<script>
+(() => {
+'use strict';
+const ALLOWED_USER='CIBC';
+const KEY='gestark:notas-transferencias:v1:'+ALLOWED_USER;
+const $=id=>document.getElementById(id);
+const fmt=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0});
+let records=[];
+let toastTimeout;
+let allowed=false;
+function toast(msg,error=false){const e=$('feedback');e.textContent=msg;e.classList.toggle('error',error);clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{e.textContent='';e.classList.remove('error')},3500)}
+function load(){try{const data=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(data)?data.filter(x=>x&&typeof x.name==='string'&&Number.isSafeInteger(x.amount)&&x.amount>0&&typeof x.date==='string'&&typeof x.id==='string').slice(-1500):[]}catch{return []}}
+function persist(next){try{localStorage.setItem(KEY,JSON.stringify(next));records=next;render();return true}catch{toast('No se pudo guardar. Revisa el espacio o los permisos de almacenamiento.',true);return false}}
+function dateISO(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function displayDate(d){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d);return m?m[3]+'/'+m[2]+'/'+m[1]:d}
+function numberString(n){return fmt.format(n).replace(/\s/g,' ')}
+function sum(){return records.reduce((a,x)=>a+x.amount,0)}
+function render(){
+ const n=records.length;$('record-count').textContent=n+' '+(n===1?'transferencia':'transferencias');
+ $('record-total').textContent=numberString(sum());
+ $('empty').hidden=n!==0;
+ for(const id of ['send-wa','copy-excel','clear'])$(id).disabled=!n;
+ $('entries').replaceChildren();
+ const frag=document.createDocumentFragment();
+ for(const item of [...records].reverse()){
+   const li=document.createElement('li');li.className='entry';
+   const info=document.createElement('div');info.className='entry-info';
+   const name=document.createElement('div');name.className='entry-name';name.textContent=item.name;
+   const date=document.createElement('div');date.className='entry-date';date.textContent=displayDate(item.date);
+   info.append(name,date);
+   const amount=document.createElement('span');amount.className='entry-amount';amount.textContent=numberString(item.amount);
+   const del=document.createElement('button');del.className='remove';del.type='button';del.textContent='×';del.title='Eliminar transferencia';del.setAttribute('aria-label','Eliminar transferencia de '+item.name);
+   del.addEventListener('click',()=>{if(confirm('¿Eliminar la transferencia de '+item.name+' por '+numberString(item.amount)+'?')){persist(records.filter(x=>x.id!==item.id));}});
+   li.append(info,amount,del);frag.append(li);
+ }
+ $('entries').append(frag);
+}
+function message(){const lines=['*Transferencias pendientes*',''];for(const item of records){lines.push('• '+item.name+' — '+numberString(item.amount)+' ('+displayDate(item.date)+')')}lines.push('','*Total: '+numberString(sum())+'*','Registros: '+records.length);return lines.join('\n')}
+function excel(){return 'Fecha\tCliente\tMonto\n'+records.map(x=>displayDate(x.date)+'\t'+x.name.replace(/[\t\r\n]+/g,' ')+'\t'+x.amount).join('\n')}
+async function copy(text){if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(text);return true}catch{}}
+ const area=document.createElement('textarea');area.value=text;area.style.cssText='position:fixed;left:-9999px;top:0';document.body.append(area);area.select();let ok=false;try{ok=document.execCommand('copy')}catch{}area.remove();return ok}
+function init(){if(allowed)return;allowed=true;records=load();$('workspace').hidden=false;render();}
+document.addEventListener('gestark:ready',e=>{if(e.detail?.username===ALLOWED_USER)init();else $('restricted').hidden=false});
+$('note-form').addEventListener('submit',e=>{
+ e.preventDefault();if(!allowed)return;
+ const name=$('client').value.replace(/\s+/g,' ').trim();const amountText=$('amount').value.trim();const digits=amountText.replace(/[^0-9]/g,'');const amount=Number(digits);
+ if(!name||name.length>80){toast('Escribe el nombre del cliente.',true);$('client').focus();return}
+ if(!/^[\d\s.$]+$/.test(amountText)||!digits||!Number.isSafeInteger(amount)||amount<1||amount>999999999){toast('Ingresa un monto válido en pesos.',true);$('amount').focus();return}
+ if(records.length>=1500){toast('Hay demasiados pendientes. Copia y traspasa la lista antes de seguir.',true);return}
+ const id=crypto.randomUUID?.()||String(Date.now())+'-'+String(Math.random());
+ const item={id,name,amount,date:dateISO()};
+ if(persist([...records,item])){$('client').value='';$('amount').value='';$('client').focus();toast('Transferencia guardada ✓')}
+});
+$('copy-excel').addEventListener('click',async()=>{if(!records.length)return;const ok=await copy(excel());toast(ok?'Copiado: pega directamente en Excel.':'No se pudo copiar. Revisa los permisos del navegador.',!ok)});
+$('send-wa').addEventListener('click',()=>{
+ if(!records.length)return;
+ const body=message();const link='https://wa.me/?text='+encodeURIComponent(body);
+ if(link.length>6000 && navigator.share){navigator.share({text:body,title:'Transferencias pendientes'}).catch(e=>{if(e.name!=='AbortError')toast('No se pudo compartir. Usa Copiar para Excel.',true)});return}
+ if(link.length>6000){copy(body).then(ok=>toast(ok?'Lista extensa copiada. Pégala en WhatsApp.':'No se pudo copiar.',!ok));return}
+ window.location.href=link;
+});
+$('clear').addEventListener('click',()=>{if(!records.length)return;
+ if(confirm('¿Ya traspasaste estas '+records.length+' transferencias a Excel?\n\nEsta acción borra la lista de este dispositivo y no se puede deshacer.')){if(persist([]))toast('Lista vaciada. Puedes comenzar una nueva jornada.');}
+});
+window.addEventListener('storage',e=>{if(allowed&&e.key===KEY){records=load();render();toast('Lista actualizada desde otra pestaña.')}});
+})();
+</script>
+<script>
+(() => {
+ const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();
+ u.onload=()=>{const auth=document.createElement('script');auth.src='./gestark-auth.js?v=2';document.body.appendChild(auth)};
+ u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<p style="padding:20px;background:white">No se pudo cargar la lista de usuarios de Gestark.</p>')};
+ document.body.appendChild(u);
+})();
+</script>
+<noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
+<script src="./gestark-updates.js?v=2026.11.18.2"></script>
+<script src="./gestark-pwa.js?v=2026.11.17.3"></script>
+</body>
+</html>
