@@ -1,5 +1,7 @@
 {
-  "version": "2026.11.21.6",
+  "version": "2026.11.21.7",
   "name": "Gestark",
-  "changes": "Laboratorio HD+: lectura adicional ZXing sobre fotograma Full HD para escaneo a distancia sin otra cámara; filtrado de O.F. y deduplicación conservados. Experimental."
+  "changes": "Laboratorio: etiqueta discreta con fecha/hora de última actualización en zona horaria de Chile y número de versión. Sin cambios de cámara, lector, QR ni módulos existentes.",
+  "labVersion": "2026.11.21.7",
+  "labUpdatedAt": "2026-11-21T16:42:00-03:00"
 }

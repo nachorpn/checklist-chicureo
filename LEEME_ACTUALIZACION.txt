@@ -1,0 +1,21 @@
+GESTARK | FECHA Y HORA DE LA ÚLTIMA ACTUALIZACIÓN
+Versión 2026.11.21.7
+Preparación del paquete: 21/11/2026 · 16:42 h (hora de Chile, America/Santiago)
+
+QUÉ CAMBIA
+- En la cabecera de Laboratorio aparece «Última actualización del Laboratorio» con día, mes, año, hora y versión.
+- La fecha/hora refleja cuándo se preparó esta versión; NO la última vez que el usuario abrió la app.
+- gestark-version.json conserva labUpdatedAt y labVersion. En futuras versiones del Laboratorio, actualizar ambos campos.
+- Si el archivo de versión no se puede consultar, se muestra el dato de esta versión que está incluido en laboratorio.html.
+- No hay modificaciones en el escáner, OCR, firma, QR ni otros módulos.
+
+INSTALACIÓN
+1. Descomprimir el ZIP.
+2. Subir los archivos laboratorio.html y gestark-version.json a la RAÍZ de:
+   https://github.com/nachorpn/checklist-chicureo
+3. Reemplazar los existentes y confirmar «Commit changes».
+4. Abrir Gestark > Laboratorio y pulsar «Nueva versión»/«Actualizar» si es necesario.
+
+IMPORTANTE
+- La fecha/hora de esta entrega corresponde a la preparación del cambio, no al momento exacto de publicación en GitHub.
+- Archivo de versión compartido por toda la app: al generar una nueva versión de cualquier módulo, conservar labUpdatedAt y labVersion si el Laboratorio no cambió.
