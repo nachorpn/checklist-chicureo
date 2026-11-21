@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.19.5",
+  "version": "2026.11.21.2",
   "name": "Gestark",
-  "changes": "Repositorio de Links: nuevo acceso Insumos especiales (Microsoft Forms). Mantiene Inicio compacto, transferencias y demás funciones anteriores."
+  "changes": "Nuevo Laboratorio (solo perfil CIBC): lectura rapida de dos codigos Starken, fotografia con OCR opcional, extraccion editable de comprobante, lista de ordenes y firma/constancia PDF de prueba. Conserva el escaner general, libreta, calendario, inicio compacto y repositorio."
 }

@@ -1,0 +1,26 @@
+GESTARK · ACTUALIZACIÓN ESCÁNER DE CÓDIGOS
+Versión: 2026.11.21.1
+
+NUEVA FUNCIÓN:
+- Botón "Escáner" en Inicio para los usuarios de Gestark.
+- Cámara trasera con detección de Code 128, Code 39, EAN, UPC, ITF, Codabar y QR.
+- Cada lectura se guarda inmediatamente en una lista local del dispositivo, separada por usuario Gestark.
+- No repite códigos idénticos, incluso si se vuelven a escanear.
+- Copiar lista genera una sola columna (una línea por código) para pegar en Excel móvil.
+- Ingreso manual, copia individual, eliminación individual, vaciado con confirmación.
+- No se borran registros automáticamente y no se usa Firebase.
+
+INSTALACIÓN:
+1. Descomprime el ZIP.
+2. En GitHub repo nachorpn/checklist-chicureo, usa Add file > Upload files.
+3. Sube los archivos de la carpeta descomprimida a la RAÍZ del repositorio.
+4. Confirma Commit changes; revisa que exista escaner.html.
+5. En la PWA, pulsa Actualizar y abre Escáner.
+
+REQUISITOS Y LIMITACIONES:
+- Gestark debe abrirse por HTTPS, se necesita permiso de cámara.
+- La primera apertura de la cámara precisa internet para cargar la biblioteca html5-qrcode desde jsDelivr (versión 2.3.8).
+- El escaneo depende del foco, la luz, el navegador y el tipo de código; usar entrada manual si falla.
+- Los datos solo quedan en localStorage del dispositivo/navegador; no se sincronizan ni respaldan.
+- El inicio de sesión local actual de Gestark NO proporciona seguridad de servidor.
+- No se han realizado pruebas de cámara en un iPhone real; probar después de publicar.

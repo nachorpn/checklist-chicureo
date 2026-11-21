@@ -1,0 +1,43 @@
+GESTARK · LABORATORIO DE ENTREGAS EN CONTINGENCIA
+Versión de actualización: 2026.11.21.2
+
+QUÉ INCLUYE
+- Nuevo acceso «Laboratorio» en el Inicio, visible solo para el usuario CIBC con rol administrador.
+- Página nueva laboratorio.html con lectura rápida de Code 128/Code 39/ITF/EAN/QR.
+- Identificación de O.F. tanto desde el código corto de nueve dígitos como desde un código largo con el patrón 920...[O.F. 9 dígitos][bulto 3 dígitos][ENT opcional].
+- Regla del código largo basada en dos ejemplos aportados por la agencia; validarla con más etiquetas antes de utilizarla operativamente.
+- Lectura de fotografías mediante OCR opcional (Tesseract.js en el dispositivo) para separar número de orden, destinatario, RUT, direcciones, fecha, hora, origen, entrega, monto y otros campos. La exactitud dependerá de la imagen.
+- Revisión y edición manual de TODOS los campos antes de generar documentos.
+- Validación matemática básica del dígito verificador de RUT (no autentica identidad).
+- Firma con el dedo y generación opcional de una constancia PDF claramente rotulada «DE PRUEBA / NO OFICIAL».
+- Lista local exclusiva del laboratorio que almacena SOLO O.F. y fecha/hora, detecta duplicados, copia una columna para Excel y permite eliminar.
+- Se preservan el escáner general, transferencias, inicio compacto, calendario, gestiones, repositorio e insumos especiales.
+
+INSTALACIÓN
+1. Descarga y descomprime Gestark_Laboratorio_Escaner_Inteligente.zip.
+2. Abre https://github.com/nachorpn/checklist-chicureo
+3. En Add file -> Upload files, sube TODO el contenido DESCOMPRIMIDO a la RAÍZ del repositorio (no la carpeta contenedora), incluyendo imagenes-calendario.
+4. Confirma Commit changes. Verifica que la raíz contiene index.html, laboratorio.html, laboratorio.js y laboratorio-core.js.
+5. Pulsa Actualizar en Gestark, cierra y abre la aplicación si fuera necesario, e inicia sesión CIBC.
+6. Prueba Laboratorio -> Introducir código manualmente con los números ficticios de abajo, luego prueba la cámara en un iPhone real.
+
+PRUEBAS MANUALES RECOMENDADAS (DATOS DE PRUEBA)
+- Código corto: 123456789 -> O.F. 123456789
+- Código largo artificial de estructura semejante: 92012345678901234567890001 -> la O.F. extraída sería 234567890 SI la estructura cumple la regla; antes de usar un código real, verifica con la O.F. impresa.
+- Si el escáner identifica el mismo pedido con dos códigos, la lista debe conservar solo una O.F.
+- La lectura de una fotografía puede tardar varios segundos, sobre todo la primera vez. Revisa RUT y destinatario.
+
+REQUISITOS Y LIMITACIONES
+- Debe abrirse desde HTTPS; la cámara requiere permiso.
+- El escaneo necesita internet la primera vez para cargar html5-qrcode desde jsDelivr.
+- El OCR es opcional y descarga un modelo de idioma y componentes WASM al primer uso; también requiere conexión inicial y memoria del dispositivo. No es instantáneo y puede cometer errores.
+- PDF: se descarga jsPDF al usarlo por primera vez.
+- No se envían fotografías ni formularios a un servidor de la app. Se ejecutan librerías descargadas de terceros; no se puede garantizar aislamiento fuerte de datos personales en el navegador.
+- Los nombres, RUT, firmas y fotos NO se guardan en el historial local del laboratorio. Solo la O.F., tipo de captura y hora en este dispositivo. No existe sincronización ni copia de seguridad.
+- El inicio de sesión de Gestark actual es local y NO es un verdadero control de acceso a nivel servidor. Ocultar este enlace a otros usuarios no protege una página pública.
+- Por estas razones, utilizar solo datos ficticios o anonimizados hasta incorporar autenticación real, políticas de privacidad, almacenamiento cifrado y controles aprobados para datos reales.
+- El PDF generado es una CONSTANCIA DE PRUEBA, no es el comprobante oficial de Starken, ni reemplaza la constancia de entrega de sus sistemas.
+- No se pudo probar el acceso a una cámara física de iPhone ni descargar las bibliotecas externas en este entorno. Se verificaron reglas de extracción y flujo sin cámara en un navegador de prueba.
+
+PUBLICACIÓN
+No se ha publicado automáticamente. Es necesario subir el contenido manualmente a GitHub.

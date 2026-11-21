@@ -1,7 +1,11 @@
 <!doctype html>
 <html lang="es-CL">
 <head>
-<style>html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}</style>
+<style>html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}.tool.scanner{background:#eff6ff;border-color:#bed6ed}
+.tool.scanner .graphic{background:#dceeff;color:#225e93}
+.tool.scanner .graphic svg{width:37px;height:37px}
+@media(max-width:649px){.tool.scanner .graphic svg{width:30px;height:30px}}
+</style>
 
 <meta name="robots" content="noindex, nofollow">
 <meta charset="utf-8">
@@ -135,6 +139,7 @@ main{padding-top:13px}
 .tool h3{font-size:13px;line-height:1.24;letter-spacing:-.15px;margin:0;overflow-wrap:break-word}
 .tool .tool-tag,.tool p,.tool .out-arrow,.tool .cobro-note{display:none}
 .tool.notes{background:#e9f8f0;border-color:#b9dfca}
+.tool.lab{background:#edf1ff;border-color:#ccdaee;color:#254268}.tool.lab .graphic{background:#dce9fb;color:#23619d}
 .tool-as-button{display:flex;text-align:center}
 .tip,main + footer{display:none}
 @media(min-width:650px){
@@ -174,14 +179,14 @@ main{padding-top:13px}
     <div class="eyebrow">Tu espacio de trabajo</div>
     <h1>Inicio</h1>
     <p class="header-desc">Accede al checklist, los enlaces de agencia, gestiones y WhatsApp desde un solo lugar.</p>
-    <div class="summary"><span class="dot"></span><span>4 herramientas disponibles</span></div>
+    <div class="summary"><span class="dot"></span><span>5 herramientas disponibles</span></div>
   </div>
 </header>
 <main>
  <div class="section-title">
    <h2>Accesos rápidos</h2>
    <div class="section-actions">
-     <span class="count">4 accesos</span>
+     <span class="count">5 accesos</span>
      <a class="calendar-shortcut" href="./calendario.html?v=20261118" aria-label="Abrir calendario chileno de Gestark"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v5M17 3v5M3 10h18M8 14h2M14 14h2"/></svg> Calendario</a>
    </div>
  </div>
@@ -193,6 +198,16 @@ main{padding-top:13px}
       <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
    </a>
 
+   <a class="tool scanner" href="./escaner.html" aria-label="Abrir escáner y lista de códigos">
+     <div class="graphic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3m8 0h3a1 1 0 0 1 1 1v3M4 16v3a1 1 0 0 0 1 1h3m8 0h3a1 1 0 0 0 1-1v-3"/><path d="M3 12h18M7 9v6m3-6v6m4-6v6m3-6v6"/></svg></div>
+     <div class="tool-copy"><div class="tool-tag">Cámara · códigos</div><h3>Escáner</h3><p>Lee códigos de barras y conserva una lista.</p></div>
+     <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
+   </a>
+    <a class="tool lab" id="lab-shortcut" href="./laboratorio.html" aria-label="Abrir Laboratorio Gestark" style="display:none">
+      <div class="graphic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6m-5 0v6l-5.9 9.3A2 2 0 0 0 5.8 21h12.4a2 2 0 0 0 1.7-2.7L14 9V3"/><path d="M8 15h8M10 18h4"/></svg></div>
+      <div class="tool-copy"><div class="tool-tag">Solo administrador · Pruebas</div><h3>Laboratorio</h3><p>Escanear etiquetas y comprobantes, revisar datos y probar firma.</p></div>
+      <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
+    </a>
    <a class="tool green" href="./checklist.html" aria-label="Abrir Checklist Chicureo">
       <div class="graphic"><img src="./icono-checklist.png" alt=""></div>
       <div class="tool-copy"><div class="tool-tag">Control diario</div><h3>Checklist Chicureo</h3><p>Actividades, OF, ventas y reporte por WhatsApp.</p></div>
@@ -310,20 +325,22 @@ document.addEventListener('gestark:ready', function(event){
   if(event.detail && event.detail.username === 'CIBC'){
     const notes=document.getElementById('notes-shortcut');
     if(notes)notes.style.display='flex';
+     const lab=document.getElementById('lab-shortcut');
+     if(lab && event.detail.role==='admin')lab.style.display='flex';
     document.querySelector('.tools')?.classList.add('cibc-grid');
     const count=document.querySelector('.section-title .count');
-    if(count)count.textContent='5 accesos';
+    if(count)count.textContent='6 accesos';
     const summary=document.querySelector('.summary span:last-child');
-    if(summary)summary.textContent='5 herramientas disponibles';
+    if(summary)summary.textContent='7 herramientas disponibles';
   }
   if(event.detail && event.detail.username === 'SCMN'){
     const tile=document.getElementById('transport-shortcut');
     if(tile)tile.style.display='flex';
     document.querySelector('.tools')?.classList.add('scmn-grid');
     const count=document.querySelector('.section-title .count');
-    if(count)count.textContent='5 accesos';
+    if(count)count.textContent='6 accesos';
     const summary=document.querySelector('.summary span:last-child');
-    if(summary)summary.textContent='5 herramientas disponibles';
+    if(summary)summary.textContent='6 herramientas disponibles';
   }
 });
 </script>
@@ -337,7 +354,7 @@ document.addEventListener('gestark:ready', function(event){
 })();
 </script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.19.5"></script>
+<script src="./gestark-updates.js?v=2026.11.21.2"></script>
 <script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body>
 </html>

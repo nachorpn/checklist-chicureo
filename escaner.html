@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#166747">
+<meta name="robots" content="noindex,nofollow">
+<title>Gestark | Escáner de códigos</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#18382f;background:#f2f7f4;--green:#137a58}
+*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button,a{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+header{background:linear-gradient(135deg,#115b3b,#228962);color:white;padding:21px 18px 22px;border-radius:0 0 21px 21px}
+.wrap{max-width:700px;margin:auto}.toplink{color:#e2f8ef;text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;margin-bottom:12px}
+.kicker{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#c7eedd;font-weight:750}h1{font-size:26px;letter-spacing:-.7px;line-height:1.1;margin:6px 0}header p{font-size:13px;color:#daf3e7;margin:0}
+main[hidden]{display:none}main{max-width:700px;margin:0 auto;padding:17px 14px calc(114px + env(safe-area-inset-bottom));display:grid;gap:13px}
+.card{background:#fff;border-radius:17px;border:1px solid #dce9e2;padding:17px;box-shadow:0 3px 13px #1235240a}
+.sectionhead{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;margin-bottom:11px}h2{font-size:16px;line-height:1.3;margin:0;color:#1a4937}.muted{font-size:12px;color:#647b70;margin:5px 0 0;line-height:1.4}
+.badge{font-size:12px;font-weight:750;padding:5px 9px;border-radius:22px;background:#e4f5eb;color:#23684b;white-space:nowrap}
+#reader{border-radius:13px;overflow:hidden;background:#10221f;min-height:130px;display:none}
+#reader video{width:100%!important;object-fit:cover;border-radius:10px}#reader img{max-width:100%}
+#camera-placeholder{border:1px dashed #bfd8c9;border-radius:13px;background:#edf6f0;color:#537466;min-height:116px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;font-size:12px;text-align:center;padding:20px}
+#camera-placeholder svg{width:40px;height:40px;color:#2a8762}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.btn{min-height:44px;border:0;border-radius:11px;padding:10px 14px;font-weight:750;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn.primary{background:#117653;color:#fff;flex:1}.btn.secondary{background:#eaf3ed;color:#20563c}.btn.outline{border:1px solid #c5ded0;background:#fff;color:#246b4d}.btn.danger{background:#fff1f0;color:#a62f32;border:1px solid #f2d3d0}.btn:disabled{opacity:.48;cursor:default}
+label{font-weight:750;font-size:12px;color:#3b614e;display:block;margin-bottom:6px}.entry{display:flex;gap:8px}.entry input{min-width:0;flex:1;border:1px solid #c9dacd;border-radius:10px;padding:12px 10px;font-size:16px;color:#213c31;background:white}
+#status{margin-top:10px;font-size:12px;color:#357357;min-height:20px}#status.bad{color:#a63335}
+.item{display:flex;gap:9px;align-items:center;padding:11px 0;border-bottom:1px solid #eaf0eb}.item:last-child{border-bottom:0}
+.itemcode{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere;word-break:break-word;font-size:14px;font-weight:750;color:#1e3f34;line-height:1.45}
+.itemmeta{font-size:11px;color:#71837a;margin-top:3px}.itembody{flex:1;min-width:0}.iconbtn{flex:0 0 auto;min-height:37px;border-radius:9px;border:1px solid #d7e6db;background:#f6fbf7;color:#286548;padding:7px 9px;font-size:12px;font-weight:750;cursor:pointer}.iconbtn.remove{color:#9d3438;background:#fff;border-color:#f1dada}
+.empty{padding:24px 8px;text-align:center;color:#70867a;font-size:13px}.hint{font-size:12px;line-height:1.5;color:#647d6c;margin:9px 0 0}
+#toast{position:fixed;z-index:1000;bottom:calc(90px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#1b4333;color:white;padding:11px 15px;font-size:13px;box-shadow:0 6px 22px #0002;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .15s;max-width:90%;text-align:center}#toast.show{opacity:1}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fffffff2;border-top:1px solid #deebe3;z-index:100;display:flex;align-items:center;justify-content:space-around;padding:7px 6px calc(7px + env(safe-area-inset-bottom));box-shadow:0 -5px 18px #1f493015;backdrop-filter:blur(16px)}
+.bottom-nav a{flex:1;max-width:150px;text-decoration:none;color:#658176;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;padding:7px 3px 5px;font-size:10px;font-weight:700;min-height:54px;text-align:center}
+.bottom-nav svg{width:21px;height:21px}.bottom-nav a.active{color:#167855;background:#eaf7ef;border-radius:12px}
+@media(min-width:700px){header{padding-top:26px}main{grid-template-columns:1fr 1fr;align-items:start}.full{grid-column:1/-1}}@media(max-width:430px){.card{padding:14px}.btn{font-size:13px;padding:9px 11px}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><a class="toplink" href="./">‹ Inicio</a><div class="kicker">Gestark · Agencia Chicureo</div><h1>Escáner de códigos</h1><p>Escanea, guarda y copia los códigos de tus encomiendas.</p></div></header>
+<main id="workspace" hidden>
+ <section class="card full" aria-labelledby="camera-title">
+  <div class="sectionhead"><div><h2 id="camera-title">Cámara</h2><p class="muted">Apunta al código de barras o QR. Se guarda automáticamente al detectarlo.</p></div><span class="badge" id="camera-state">Apagada</span></div>
+  <div id="camera-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5h4m8 0h4v4M4 16v3h4m8 0h4v-4M3 12h18M7 9v6m3-6v6m4-6v6m3-6v6"/></svg><span>Pulsa «Iniciar cámara» para comenzar</span></div>
+  <div id="reader" aria-label="Vista de la cámara para escanear"></div>
+  <div class="actions"><button class="btn primary" id="start" type="button">📷 Iniciar cámara</button><button class="btn secondary" id="stop" type="button" disabled>Detener</button></div>
+  <p id="status" role="status" aria-live="polite">La cámara se usa solo mientras esté activada.</p>
+ </section>
+ <section class="card" aria-labelledby="manual-title"><h2 id="manual-title">Añadir código manualmente</h2><p class="muted">Útil para etiquetas dañadas o cuando no haya cámara.</p>
+   <form id="manual" style="margin-top:14px"><label for="manual-code">Número o código</label><div class="entry"><input id="manual-code" type="text" maxlength="256" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" placeholder="Ej. 001234567890" required><button class="btn primary" type="submit">Agregar</button></div></form>
+ </section>
+ <section class="card" aria-labelledby="list-title"><div class="sectionhead"><div><h2 id="list-title">Códigos guardados</h2><p class="muted">Quedan almacenados en este dispositivo hasta que los borres.</p></div><span id="count" class="badge">0 códigos</span></div>
+  <div id="list"><div class="empty">Aún no hay códigos guardados.</div></div>
+  <div class="actions"><button id="copy-all" class="btn primary" type="button" disabled>Copiar lista</button><button id="clear-all" class="btn danger" type="button" disabled>Vaciar lista</button></div>
+  <p class="hint">Cada código se copia en una línea, listo para pegar en Excel o WhatsApp. La lista no se borra automáticamente.</p>
+ </section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<nav class="bottom-nav" aria-label="Navegación principal">
+<a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H3zM9 21v-8h6v8"/></svg><span>Inicio</span></a>
+<a href="./checklist.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="17" rx="2"/><path d="M9 5V3h6v2M8 11l1 1 2-2"/></svg><span>Checklist</span></a>
+<a href="./repositorio.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg><span>Repositorio</span></a>
+<a class="active" href="./escaner.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5h4m8 0h4v4M4 16v3h4m8 0h4v-4M3 12h18M7 9v6m3-6v6m4-6v6m3-6v6"/></svg><span>Escáner</span></a>
+</nav>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+let username=null,items=[],scanner=null,starting=false,stopping=false,visible=false,lastValue='',lastTime=0,noticeTimer;
+const MAX=2500, STORAGE_PREFIX='gestark:codigos:v1:';
+function key(){return STORAGE_PREFIX+username}
+function setStatus(msg,bad=false){$('status').textContent=msg;$('status').classList.toggle('bad',bad)}
+function toast(msg){const box=$('toast');box.textContent=msg;box.classList.add('show');clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>box.classList.remove('show'),2400)}
+function clean(v){return String(v??'').replace(/[\x00-\x1f\x7f]/g,'').trim().slice(0,256)}
+function load(){try{const a=JSON.parse(localStorage.getItem(key())||'[]');return Array.isArray(a)?a.filter(x=>x&&typeof x.code==='string'&&x.code.length<=256).slice(0,MAX):[]}catch{return []}}
+function persist(next){try{localStorage.setItem(key(),JSON.stringify(next));items=next;render();return true}catch(e){toast('No se pudo guardar. Revisa el almacenamiento del celular.');return false}}
+function formatDate(t){return new Date(t).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}
+function render(){const root=$('list');root.replaceChildren();$('count').textContent=items.length+' '+(items.length===1?'código':'códigos');$('copy-all').disabled=!items.length;$('clear-all').disabled=!items.length;
+ if(!items.length){const el=document.createElement('div');el.className='empty';el.textContent='Aún no hay códigos guardados.';root.append(el);return}
+ const fragment=document.createDocumentFragment();for(let i=items.length-1;i>=0;i--){const it=items[i],row=document.createElement('div');row.className='item';
+ const body=document.createElement('div');body.className='itembody';const code=document.createElement('div');code.className='itemcode';code.textContent=it.code;
+ const meta=document.createElement('div');meta.className='itemmeta';meta.textContent=formatDate(it.at);body.append(code,meta);
+ const copy=document.createElement('button');copy.className='iconbtn';copy.type='button';copy.textContent='Copiar';copy.dataset.action='copy';copy.dataset.id=it.id;copy.setAttribute('aria-label','Copiar '+it.code);
+ const del=document.createElement('button');del.className='iconbtn remove';del.type='button';del.textContent='×';del.dataset.action='remove';del.dataset.id=it.id;del.setAttribute('aria-label','Eliminar '+it.code);
+ row.append(body,copy,del);fragment.append(row)}root.append(fragment);
+}
+function addCode(raw){if(!username)return false;const code=clean(raw);if(!code){toast('Ingresa un código válido');return false}
+ if(items.some(x=>x.code.toUpperCase()===code.toUpperCase())){setStatus('Este código ya está en la lista.');toast('Código repetido: no se agregó otra vez');return false}
+ if(items.length>=MAX){toast('La lista alcanzó el máximo. Copia y vacía los códigos.');return false}
+ const item={id:(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random()),code,at:Date.now()};
+ if(!persist([...items,item]))return false;
+ setStatus('Código guardado: '+code);toast('Guardado ✓');try{if(navigator.vibrate)navigator.vibrate(70)}catch{}return true
+}
+function onDecoded(code){const value=clean(code),now=Date.now();if(!value)return;if(value===lastValue&&now-lastTime<2500)return;lastValue=value;lastTime=now;addCode(value)}
+async function copyText(value){try{await navigator.clipboard.writeText(value);return true}catch{}
+ const area=document.createElement('textarea');area.value=value;area.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';document.body.append(area);area.select();let ok=false;try{ok=document.execCommand('copy')}catch{}area.remove();return ok}
+function loadLibrary(){return new Promise((resolve,reject)=>{
+ if(typeof Html5Qrcode!=='undefined')return resolve();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';s.async=true;s.onload=()=>typeof Html5Qrcode!=='undefined'?resolve():reject(new Error('Biblioteca no disponible'));s.onerror=()=>reject(new Error('No se pudo descargar el lector'));document.head.append(s)
+})}
+function controls(on){visible=on;$('start').disabled=on||starting;$('stop').disabled=!on&& !starting;$('camera-state').textContent=on?'Escaneando':'Apagada';$('reader').style.display=on?'block':'none';$('camera-placeholder').style.display=on?'none':'flex'}
+async function start(){if(visible||starting||stopping)return;if(!navigator.mediaDevices?.getUserMedia){setStatus('Este navegador no permite usar la cámara. Abre Gestark en Safari o Chrome con HTTPS.',true);return}
+ starting=true;$('start').disabled=true;setStatus('Preparando la cámara…');
+ try{await loadLibrary();
+ const fmt=Html5QrcodeSupportedFormats;const supported=[fmt.CODE_128,fmt.CODE_39,fmt.EAN_13,fmt.EAN_8,fmt.UPC_A,fmt.UPC_E,fmt.ITF,fmt.CODABAR,fmt.QR_CODE].filter(x=>x!==undefined);
+ scanner=new Html5Qrcode('reader',{formatsToSupport:supported,verbose:false});
+ await scanner.start({facingMode:'environment'},{fps:9,qrbox:(w,h)=>({width:Math.max(1,Math.min(w-12,330,Math.floor(w*.86))),height:Math.max(1,Math.min(h-12,145,Math.floor(h*.43)))}),disableFlip:true},onDecoded,()=>{});
+ if(document.hidden){await stop();return}
+ controls(true);setStatus('Cámara activa. Enfoca una etiqueta; cada código se guarda una sola vez.');
+ }catch(e){console.warn('Escáner Gestark',e);const denied=e?.name==='NotAllowedError'||/permission|denied|notallowed/i.test(String(e));setStatus(denied?'Permiso de cámara denegado. Habilítalo en los ajustes del navegador.':'No se pudo iniciar la cámara. Comprueba el permiso, la conexión y que ninguna otra app la esté usando.',true);
+ if(scanner){try{await scanner.clear()}catch{}scanner=null}controls(false)
+ }finally{starting=false;$('start').disabled=visible;$('stop').disabled=!visible}
+}
+async function stop(){if(stopping)return;stopping=true;
+ try{if(scanner){try{await scanner.stop()}catch{}try{await scanner.clear()}catch{}scanner=null}}
+ finally{controls(false);starting=false;stopping=false;setStatus('Cámara detenida. Los códigos permanecen guardados.')}
+}
+$('start').addEventListener('click',start);$('stop').addEventListener('click',stop);
+$('manual').addEventListener('submit',e=>{e.preventDefault();if(addCode($('manual-code').value)){$('manual-code').value='';$('manual-code').focus()}});
+$('list').addEventListener('click',async e=>{const btn=e.target.closest('button[data-action]');if(!btn)return;const it=items.find(x=>x.id===btn.dataset.id);if(!it)return;
+ if(btn.dataset.action==='copy'){toast(await copyText(it.code)?'Código copiado':'No se pudo copiar');return}
+ if(btn.dataset.action==='remove'&&confirm('¿Eliminar este código de la lista?')){if(persist(items.filter(x=>x.id!==it.id)))toast('Código eliminado')}
+});
+$('copy-all').addEventListener('click',async()=>{if(!items.length)return;const ok=await copyText(items.map(x=>x.code).join('\n'));toast(ok?'Lista copiada: '+items.length+' códigos':'No se pudo copiar la lista')});
+$('clear-all').addEventListener('click',()=>{if(!items.length)return;if(confirm('¿Vaciar definitivamente la lista de '+items.length+' códigos?\n\nNo se podrá recuperar.')){if(persist([]))toast('Lista vaciada')}});
+document.addEventListener('gestark:ready',e=>{if(!e.detail?.username)return;username=e.detail.username;items=load();$('workspace').hidden=false;render()});
+window.addEventListener('storage',e=>{if(username&&e.key===key()){items=load();render()}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&visible)stop()});
+window.addEventListener('pagehide',()=>{if(visible||starting)stop()});
+})();
+</script>
+<script>
+(()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?v=2';a.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div style="padding:24px;background:white">No se pudo cargar el inicio de sesión de Gestark.</div>')};document.body.appendChild(a)};u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div style="padding:24px;background:white">No se pudieron cargar los usuarios de Gestark.</div>')};document.body.appendChild(u)})();
+</script>
+<noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
+<script src="./gestark-updates.js?v=2026.11.21.2"></script>
+<script src="./gestark-pwa.js?v=2026.11.17.3"></script>
+</body></html>
