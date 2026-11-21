@@ -1,20 +1,26 @@
-GESTARK - LABORATORIO 2026.11.21.4
+GESTARK | LABORATORIO - BOTÓN LIMPIAR PRUEBA
+Versión 2026.11.21.5
 
-CAMBIOS
-- Vista de la cámara ocupando el ancho disponible, sin bandas oscuras laterales.
-- Zoom inicial 1x (puede ajustarse manualmente si la cámara lo admite).
-- Si el comprobante muestra código corto y largo de la misma O.F., se registra una sola vez.
-- Los códigos no reconocidos durante la lectura en vivo no disparan errores rojos.
-- Sin cambios en el escáner general. No se habilita QR en laboratorio.
+NOVEDAD
+- Botón "Limpiar prueba" junto a Iniciar y Detener cámara en el Laboratorio.
+- Limpia los datos actuales, la O.F. reconocida, la fotografía, los campos manuales y la firma.
+- Conserva la lista e historial de O.F. y mantiene la cámara activa.
+- Espera 1,6 segundos tras limpiar para evitar releer inmediatamente la misma etiqueta.
+- Permite repetir pruebas con la misma O.F. sin duplicarla en el historial.
+- Protege frente a resultados tardíos de OCR y lectura de fotografía de la prueba anterior.
+- "Nueva prueba" sigue disponible y aplica el mismo reinicio con confirmación.
+- No cambia el escáner general ni incorpora QR al comprobante.
 
-INSTALACION
-Sube los tres archivos de este ZIP a la raíz de nachorpn/checklist-chicureo, reemplazando sus versiones previas. Abre Gestark -> CIBC -> Laboratorio y actualiza.
+INSTALACIÓN
+1. Descomprime este ZIP.
+2. Accede al repositorio https://github.com/nachorpn/checklist-chicureo
+3. Ve a Add file > Upload files.
+4. Sube laboratorio.html, laboratorio.js y gestark-version.json a la raíz del repositorio; acepta reemplazar los originales.
+5. Confirma los cambios (Commit changes).
+6. En Gestark, actualiza y entra con la cuenta administradora CIBC > Laboratorio.
+7. Pulsa Iniciar cámara, realiza una lectura, luego Limpiar prueba y vuelve a leer.
 
-PRUEBAS
-1. Comprueba la vista de cámara en iPhone.
-2. Lee los dos códigos del mismo comprobante; debe salir una sola O.F.
-3. Lee una O.F. diferente; debe registrarse como otra orden.
-4. Verifica que zoom/linterna y formulario continúan funcionando.
-
-LIMITES
-Sin prueba física con iPhone. Revisa la O.F. impresa. Entorno de pruebas no oficial. No incorporar datos de clientes al repositorio público.
+NOTAS
+- Paquete basado en archivos versión 2026.11.21.4 del repositorio principal, verificados por SHA de Git.
+- No se probó la cámara física del iPhone. Ambiente de pruebas, no un comprobante oficial de Starken.
+- No subas datos privados de clientes ni comprobantes reales al repositorio público.

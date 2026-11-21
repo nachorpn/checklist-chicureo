@@ -9,6 +9,7 @@
  let zoomTimer=null,zoomBusy=false,zoomPending=null,zoomLimits=null;
  let entries=[],imageFile=null,imageUrl=null,lastRaw='',lastAt=0,recognizedSource='manual';
  let lastCameraOf='',lastCameraAt=0; // Un evento de lectura por O.F. cuando hay dos códigos.
+ let resumeScanAt=0,testGeneration=0; // Protección al limpiar entre pruebas.
  let ocrWorker=null,ocrBusy=false,signatureCanvas=null,sigCtx=null,signed=false,penDown=false;
  let toastTimeout=null;
  function status(text,kind=''){const e=$('scan-status');e.textContent=text;e.className='stat '+kind}
@@ -19,6 +20,22 @@
  function values(){const r={};FIELDS.forEach(k=>r[k]=$('field-'+k)?.value.trim()||'');return r}
  function setField(key,val){const e=$('field-'+key);if(e)e.value=String(val||'').slice(0,e.maxLength>0?e.maxLength:180)}
  function clearData(){lastCameraAt=0;lastCameraOf='';for(const key of FIELDS)setField(key,'');$('ocr-text').value='';recognizedSource='manual';$('source-label').textContent='Sin datos reconocidos';$('lastread').style.display='none';if($('rut-warning'))$('rut-warning').textContent='';clearSign()}
+ function resetTest(confirmFirst=false){
+   if(confirmFirst&&!confirm('¿Comenzar otra prueba? Se limpiarán los datos actuales y la firma, pero no el historial de O.F.'))return;
+   testGeneration++;
+   // La pausa evita que se vuelva a capturar instantáneamente el código que sigue delante de la cámara.
+   resumeScanAt=Date.now()+1600;
+   clearData();lastRaw='';lastAt=0;
+   $('manual-code').value='';
+   if(imageUrl)URL.revokeObjectURL(imageUrl);
+   imageUrl=null;imageFile=null;
+   $('photo-preview').removeAttribute('src');
+   $('photo-area').style.display='none';
+   $('photo-file').value='';$('gallery-file').value='';
+   ocrStatus('Sin fotografía cargada.');pdfStatus('');
+   status(cameraOn?'Prueba limpia. Apunta a la siguiente etiqueta.':'Prueba limpia. Pulsa Iniciar cámara para continuar.','ok');
+   toast('Prueba limpia · historial conservado');
+ }
  function showSource(text){recognizedSource=text;$('source-label').textContent=text}
  function onValidCode(read,source='cámara'){
    if(!canUse())return;
@@ -37,7 +54,7 @@
  function loadEntries(){try{let a=JSON.parse(localStorage.getItem(STORAGE)||'[]');return Array.isArray(a)?a.filter(x=>/^\d{9}$/.test(x.of)).slice(-MAX):[]}catch{return []}}
  function storeEntries(arr){try{localStorage.setItem(STORAGE,JSON.stringify(arr));entries=arr;renderEntries();return true}catch(e){status('Sin espacio local: copia la lista y libéralo.', 'bad');return false}}
  function saveEntry(info,source){
-   const of=info.of;if(entries.some(x=>x.of===of)){toast('O.F. ya registrada: '+of);return}
+   const of=info.of;if(entries.some(x=>x.of===of)){toast('O.F. leída otra vez · ya está en historial');return}
    if(entries.length>=MAX){status('La lista está completa; copia y limpia las O.F. antiguas.','bad');return}
    const record={of,at:Date.now(),type:source};
    if(storeEntries([...entries,record]))toast('O.F. '+of+' guardada ✓');
@@ -72,6 +89,7 @@
    if(!on){$('torch').hidden=true;flashOn=false;$('zoom-controls').hidden=true;zoomLimits=null;zoomPending=null;clearTimeout(zoomTimer);$('camera-info').textContent=''}
  }
  function onDecode(raw){
+  if(Date.now()<resumeScanAt)return;
   const p=core.parseBarcode(raw);
   // Un comprobante puede mostrar dos códigos: ignorar formatos desconocidos
   // mientras se busca una O.F. válida, sin disparar un error rojo.
@@ -188,14 +206,15 @@
    imageFile=file;if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=URL.createObjectURL(file);
    $('photo-preview').src=imageUrl;$('photo-area').style.display='grid';$('photo-desc').textContent=file.name+' · La foto no se sube a Gestark';ocrStatus('Fotografía preparada. Puedes leer el código o solicitar OCR.');
  }
- async function readBarcodePhoto(){if(!canUse()||!imageFile)return;ocrStatus('Buscando códigos de barras en la imagen…');
+ async function readBarcodePhoto(){if(!canUse()||!imageFile)return;
+   const token=testGeneration,file=imageFile;ocrStatus('Buscando códigos de barras en la imagen…');
    let reader=null;
-   try{await loadScript(QR_LIB,'Html5Qrcode');const f=Html5QrcodeSupportedFormats;
+   try{await loadScript(QR_LIB,'Html5Qrcode');if(token!==testGeneration)return;const f=Html5QrcodeSupportedFormats;
      reader=new Html5Qrcode('image-reader',{formatsToSupport:[f.CODE_128,f.CODE_39,f.ITF,f.EAN_13,f.EAN_8,f.QR_CODE].filter(x=>x!==undefined),useBarCodeDetectorIfSupported:true,verbose:false});
-     const raw=await reader.scanFile(imageFile,true);const parsed=core.parseBarcode(raw);
+     const raw=await reader.scanFile(file,true);if(token!==testGeneration)return;const parsed=core.parseBarcode(raw);
      if(parsed.valid){onValidCode(parsed,'fotografía');ocrStatus('Código identificado. Puedes reconocer el resto del texto si lo necesitas.','ok')}
      else{ocrStatus('Se leyó un código, pero el patrón no permitió identificar la O.F.','bad');$('manual-code').value=raw}
-   }catch(e){ocrStatus('No se detectó un código legible en esta foto. Prueba con la cámara en vivo o con OCR.','bad')}
+   }catch(e){if(token===testGeneration)ocrStatus('No se detectó un código legible en esta foto. Prueba con la cámara en vivo o con OCR.','bad')}
    finally{try{await reader?.clear()}catch(_){} }
  }
  async function getImageCanvas(file){
@@ -213,16 +232,18 @@
    updateRutWarnings();ocrStatus('Extraídos '+parsed.found.length+' campos. Revisa y corrige nombres, RUT y fecha.','ok');toast('Extracción completada · revisar datos');
  }
  async function runOCR(){if(!canUse()||!imageFile||ocrBusy)return;ocrBusy=true;$('photo-ocr').disabled=true;
+   const token=testGeneration,file=imageFile;
    try{
      ocrStatus('Cargando motor OCR en el dispositivo. La primera vez puede tardar…');
-     const lib=await loadScript(OCR_LIB,'Tesseract');
-     if(!ocrWorker){ocrWorker=await lib.createWorker('spa',1,{logger:m=>{if(!m)return;const percent=typeof m.progress==='number'?' '+Math.round(m.progress*100)+'%':'';ocrStatus('OCR: '+String(m.status||'procesando')+percent)}})}
-     const canvas=await getImageCanvas(imageFile);
-     const ans=await ocrWorker.recognize(canvas);
+     const lib=await loadScript(OCR_LIB,'Tesseract');if(token!==testGeneration)return;
+     if(!ocrWorker){ocrWorker=await lib.createWorker('spa',1,{logger:m=>{if(!m||token!==testGeneration)return;const percent=typeof m.progress==='number'?' '+Math.round(m.progress*100)+'%':'';ocrStatus('OCR: '+String(m.status||'procesando')+percent)}})}
+     if(token!==testGeneration)return;
+     const canvas=await getImageCanvas(file);if(token!==testGeneration)return;
+     const ans=await ocrWorker.recognize(canvas);if(token!==testGeneration)return;
      const extracted=ans.data?.text||'';$('ocr-text').value=extracted;
      if(!extracted.trim()){ocrStatus('No se detectó texto. Acerca la cámara y evita reflejos.','bad');return}
      applyText(extracted);
-   }catch(e){console.error('OCR Gestark',e);ocrStatus('No se pudo completar el OCR. Conexión o memoria insuficiente; puedes ingresar datos a mano.','bad')}
+   }catch(e){console.error('OCR Gestark',e);if(token===testGeneration)ocrStatus('No se pudo completar el OCR. Conexión o memoria insuficiente; puedes ingresar datos a mano.','bad')}
    finally{ocrBusy=false;$('photo-ocr').disabled=false}
  }
  function updateRutWarnings(){const vals=values();const messages=[];for(const [key,label] of [['rut','RUT destinatario'],['rutRetriever','RUT quien retira']]){const check=core.validateRut(vals[key]);if(check===false)messages.push(label+': dígito verificador no válido o dato incompleto')}const el=$('rut-warning');el.textContent=messages.length?'⚠ '+messages.join('. '):'';el.style.color=messages.length?'#a23f38':'#6b8577'}
@@ -263,7 +284,7 @@
    finally{$('export-pdf').disabled=false}
  }
  function init(){if(active)return;active=true;entries=loadEntries();renderEntries();$('workspace').hidden=false;prepareSign();
-   $('start-cam').addEventListener('click',startCamera);$('stop-cam').addEventListener('click',stopCamera);$('torch').addEventListener('click',toggleTorch);
+   $('start-cam').addEventListener('click',startCamera);$('stop-cam').addEventListener('click',stopCamera);$('clear-test').addEventListener('click',()=>resetTest(false));$('torch').addEventListener('click',toggleTorch);
    $('zoom-range').addEventListener('input',e=>requestZoom(e.target.value));$('zoom-range').addEventListener('change',e=>requestZoom(e.target.value,true));$('zoom-reset').addEventListener('click',()=>{if(zoomLimits){const v=Math.max(zoomLimits.min,Math.min(zoomLimits.max,1));$('zoom-range').value=String(v);requestZoom(v,true)}});
    // Cargar el motor en momentos ociosos para reducir la espera al tocar 'Iniciar cámara'.
    const warm=()=>loadScript(QR_LIB,'Html5Qrcode').catch(()=>{});
@@ -275,7 +296,7 @@
    $('history').addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(!el)return;const of=el.dataset.of;if(el.dataset.action==='delete'){if(confirm('¿Eliminar la O.F. '+of+' de esta lista?'))storeEntries(entries.filter(x=>x.of!==of))}else if(el.dataset.action==='use'){if($('field-order').value&&$('field-order').value!==of)clearData();setField('order',of);toast('O.F. seleccionada')}});
    $('copy-history').addEventListener('click',async()=>toast(await copyText(entries.map(x=>x.of).join('\n'))?'Lista copiada para Excel':'No se pudo copiar'));
    $('clear-history').addEventListener('click',()=>{if(confirm('¿Borrar las '+entries.length+' O.F. de prueba almacenadas en este dispositivo?'))storeEntries([])});
-   $('clear-sign').addEventListener('click',clearSign);$('clear-form').addEventListener('click',()=>{if(confirm('¿Comenzar otra prueba? Se borrarán los datos del formulario y la firma, pero no la lista de O.F.')){clearData();if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;imageFile=null;$('photo-area').style.display='none';$('photo-file').value='';$('gallery-file').value=''}});
+   $('clear-sign').addEventListener('click',clearSign);$('clear-form').addEventListener('click',()=>resetTest(true));
    $('export-pdf').addEventListener('click',exportPdf);$('field-rut').addEventListener('input',updateRutWarnings);$('field-rutRetriever').addEventListener('input',updateRutWarnings);
  }
  document.addEventListener('gestark:ready',e=>{

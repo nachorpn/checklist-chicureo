@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.21.4",
+  "version": "2026.11.21.5",
   "name": "Gestark",
-  "changes": "Laboratorio: cámara a todo el ancho, zoom inicial 1×, lectura única por O.F. al detectar dos códigos y silencio ante formatos no reconocidos. Escáner general y QR sin cambios."
+  "changes": "Laboratorio: botón Limpiar prueba con reinicio de lectura, formulario, foto, firma y estados OCR; conserva historial y cámara. Escáner general sin cambios."
 }
