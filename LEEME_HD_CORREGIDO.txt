@@ -1,0 +1,24 @@
+GESTARK — CORRECCIÓN HD+ 2026.11.21.12
+
+Tu captura mostraba «HD+ no disponible». La cámara principal seguía activa a 1920×1080, pero el segundo lector se apagaba sin explicar la causa.
+
+CAMBIOS
+- La ausencia de códigos en el fotograma no desactiva HD+; se continúa buscando automáticamente.
+- Mensajes explicativos si realmente falla una biblioteca o el procesamiento, sin incluir datos del comprobante.
+- Un segundo origen de descarga de ZXing si jsDelivr no funciona.
+- Se usa BarcodeDetector cuando el navegador dispone de esa API; ZXing sigue como alternativa.
+- Se mantiene la búsqueda en cuatro regiones y el lector principal como respaldo.
+- No se modifica el beep doble, la deduplicación, el escáner general ni los demás módulos.
+
+INSTALACIÓN
+1. Descomprime este ZIP.
+2. Sube laboratorio.js, laboratorio.html y gestark-version.json a la RAÍZ de nachorpn/checklist-chicureo (reemplazar).
+3. Commit changes en GitHub; espera a que Pages actualice y pulsa «Nueva versión» o «Actualizar» en Gestark.
+4. En Laboratorio, inicia cámara y verifica que el mensaje muestre «HD+ activo» incluso sin un código delante.
+5. Pulsa «Limpiar prueba» y escanea a la misma distancia de la aplicación TeaCapps.
+6. Si HD+ muestra un error, anota el texto de la línea (no es necesario enviar comprobantes de clientes).
+
+IMPORTANTE
+- La reproducción en un iPhone real aún debe verificarse.
+- El laboratorio es experimental y no reemplaza sistemas ni comprobantes oficiales de Starken.
+- No subir fotografías, datos personales o documentos reales al repositorio público.

@@ -132,76 +132,107 @@
  const QR_LIB='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
  const OCR_LIB='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';
  const PDF_LIB='https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
- // Motor complementario HD: comparte la MISMA cámara, sin pedir un segundo permiso.
- // @zxing/library NO implementa BrowserMultiFormatReader.decodeFromCanvas.
- // Usamos directamente MultiFormatReader + BinaryBitmap del fotograma real.
- const ZX_LIB='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+ // HD+: una sola cámara y lector principal como respaldo permanente.
+ // Las ausencias de código son normales: no deben apagar el motor complementario.
+ const ZX_LIBS=[
+   'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js',
+   'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'
+ ];
  let farScanToken=0,farScanTimer=null,farScanReader=null,farScanCanvas=null;
- let farScanAttempts=0,farScanRegion='';
+ let farScanAttempts=0,farScanRegion='',farScanIssues=0;
  function hdMessage(message){const el=$('far-scan-info');if(el)el.textContent=message}
  function stopFarScan(){
    farScanToken++;
    if(farScanTimer!==null)clearTimeout(farScanTimer);
    farScanTimer=null;farScanReader=null;farScanCanvas=null;
-   farScanAttempts=0;farScanRegion='';
+   farScanAttempts=0;farScanRegion='';farScanIssues=0;
  }
- function isNoBarcode(error){
-   return /NotFound|Checksum|Format|ReaderException/.test(String(error?.name||''));
+ function decodeErrorLabel(err){
+   const name=String(err?.name||err?.constructor?.name||'Error');
+   const message=String(err?.message||'');
+   // Evitar imprimir datos del fotograma o valores del comprobante.
+   return (name==='Error'&&message?message:name).slice(0,110);
+ }
+ function isNoBarcode(err){
+   const parts=[err?.name,err?.constructor?.name,err?.message,err?.type].map(x=>String(x||'')).join(' ');
+   return /NotFound|Not Found|Checksum|FormatException|ReaderException|no (?:barcode|code|reader)|not detected|cannot find|not found/i.test(parts);
+ }
+ async function initNativeHD(){
+   const Native=window.BarcodeDetector;
+   if(typeof Native!=='function')return null;
+   try{
+     const all=typeof Native.getSupportedFormats==='function'?await Native.getSupportedFormats():['code_128','code_39','itf'];
+     const formats=['code_128','code_39','itf'].filter(f=>all.includes(f));
+     return formats.length?new Native({formats}):null;
+   }catch(e){console.info('Gestark: BarcodeDetector no disponible',decodeErrorLabel(e));return null}
+ }
+ async function initZXingHD(){
+   let lastError;
+   for(const url of ZX_LIBS){
+     try{
+       await loadScript(url,'ZXing');
+       const Z=window.ZXing;
+       if(!Z?.MultiFormatReader||!Z?.DecodeHintType||!Z?.BarcodeFormat||
+          !Z?.HTMLCanvasElementLuminanceSource||!Z?.BinaryBitmap||!Z?.HybridBinarizer){
+         throw Error('ZXing incompleto: faltan componentes de imagen');
+       }
+       const hints=new Map();
+       hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.CODE_128,Z.BarcodeFormat.CODE_39,Z.BarcodeFormat.ITF]);
+       hints.set(Z.DecodeHintType.TRY_HARDER,true);
+       const reader=new Z.MultiFormatReader();
+       reader.setHints(hints);
+       return {Z,reader,hints};
+     }catch(e){lastError=e;console.warn('Gestark HD+ biblioteca',decodeErrorLabel(e))}
+   }
+   throw lastError||Error('No se cargó ZXing');
  }
  async function startFarScan(){
    stopFarScan();
    const token=farScanToken;
-   hdMessage('HD+: cargando segundo motor de lectura…');
+   hdMessage('HD+: preparando lector adicional…');
+   let native=null,zxing=null;
    try{
-     await loadScript(ZX_LIB,'ZXing');
+     native=await initNativeHD();
      if(!cameraOn||token!==farScanToken)return;
-     const Z=window.ZXing;
-     if(!Z?.MultiFormatReader||!Z?.DecodeHintType||!Z?.BarcodeFormat||
-        !Z?.HTMLCanvasElementLuminanceSource||!Z?.BinaryBitmap||!Z?.HybridBinarizer){
-       throw new Error('Componentes ZXing de lectura sobre imagen no disponibles');
+     if(!native){
+       hdMessage('HD+: cargando ZXing (lector adicional)…');
+       zxing=await initZXingHD();
      }
-     const hints=new Map();
-     // Prioridad de lectura: Code 128; mantener alternativas por las dos etiquetas.
-     hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.CODE_128,Z.BarcodeFormat.CODE_39,Z.BarcodeFormat.ITF]);
-     hints.set(Z.DecodeHintType.TRY_HARDER,true);
-     farScanReader=new Z.MultiFormatReader();
-     farScanReader.setHints(hints);
+     if(!cameraOn||token!==farScanToken)return;
+     farScanReader=zxing?.reader||native;
      farScanCanvas=document.createElement('canvas');
      const ctx=farScanCanvas.getContext('2d',{willReadFrequently:true});
-     if(!ctx)throw new Error('Canvas 2D no disponible');
-     let regionIndex=0;
+     if(!ctx)throw Error('La cámara no permite analizar fotogramas');
      const regions=[
        {name:'zona central',top:.15,height:.70},
        {name:'imagen completa',top:0,height:1},
        {name:'parte superior',top:0,height:.62},
        {name:'parte inferior',top:.35,height:.65}
      ];
-     function decodeBitmap(bitmap){
-       try { return farScanReader.decode(bitmap,hints); }
-       finally { farScanReader.reset(); }
-     }
-     function decodeCurrentImage(){
+     let regionIndex=0;
+     function decodeZXing(){
+       const Z=zxing.Z;
        const luminance=new Z.HTMLCanvasElementLuminanceSource(farScanCanvas);
-       try {
-         return decodeBitmap(new Z.BinaryBitmap(new Z.HybridBinarizer(luminance)));
-       } catch(e) {
+       const decode=binarizer=>{
+         const bitmap=new Z.BinaryBitmap(new binarizer(luminance));
+         try{return zxing.reader.decode(bitmap,zxing.hints)}finally{zxing.reader.reset()}
+       };
+       try{return decode(Z.HybridBinarizer)}
+       catch(e){
          if(!isNoBarcode(e))throw e;
-         // Un umbral global ayuda en papel térmico de bajo contraste.
-         if(Z.GlobalHistogramBinarizer && farScanAttempts%4===0){
-           return decodeBitmap(new Z.BinaryBitmap(new Z.GlobalHistogramBinarizer(luminance)));
-         }
+         if(Z.GlobalHistogramBinarizer&&farScanAttempts%4===0)return decode(Z.GlobalHistogramBinarizer);
          throw e;
        }
      }
-     const tick=()=>{
+     async function tick(){
        if(!cameraOn||token!==farScanToken||document.hidden)return;
+       let pendingError=null;
        try{
          const video=document.querySelector('#camera video');
          if(video&&video.readyState>=2&&video.videoWidth>=640&&video.videoHeight>=360){
            const sw=video.videoWidth,sh=video.videoHeight;
            const region=regions[regionIndex++%regions.length];
            const sy=Math.round(sh*region.top),ch=Math.min(sh-sy,Math.round(sh*region.height));
-           // Nunca reducir a los píxeles CSS del visor ni ampliar artificialmente.
            const scale=Math.min(1,2048/sw);
            const w=Math.max(1,Math.round(sw*scale)),h=Math.max(1,Math.round(ch*scale));
            if(farScanCanvas.width!==w)farScanCanvas.width=w;
@@ -210,31 +241,40 @@
            farScanAttempts++;
            farScanRegion=region.name;
            try{
-             const result=decodeCurrentImage();
-             if(result){
-               const raw=typeof result.getText==='function'?result.getText():result.text;
-               onDecode(raw,'HD+ · '+region.name);
+             const results=native?await native.detect(farScanCanvas):[decodeZXing()];
+             for(const result of results){
+               const raw=typeof result.getText==='function'?result.getText():result.rawValue||result.text;
+               if(raw){onDecode(raw,(native?'HD+ nativo':'HD+ ZXing')+' · '+region.name);break}
              }
-           }catch(e){if(!isNoBarcode(e))throw e;}
-           if(farScanAttempts===1||farScanAttempts%4===0){
-             hdMessage('HD+ activo · vídeo '+sw+' × '+sh+' px · análisis '+w+' × '+h+' px ('+farScanRegion+') · '+farScanAttempts+' intentos');
+             farScanIssues=0;
+           }catch(e){
+             if(isNoBarcode(e)){farScanIssues=0}
+             else{farScanIssues++;pendingError=e;console.warn('Gestark HD+ fotograma',decodeErrorLabel(e))}
            }
-         }else if(farScanAttempts===0){
-           hdMessage('HD+: esperando fotogramas de la cámara…');
-         }
+           // Error real: contar fallos reiterados en vez de desactivar al primer fotograma.
+           if(farScanIssues>=6){
+             hdMessage('HD+ pausado: '+decodeErrorLabel(pendingError)+'; lector principal activo.');
+             stopFarScan();return;
+           }
+           if(pendingError){
+             hdMessage('HD+ comprobando lectura ('+farScanIssues+'/6): '+decodeErrorLabel(pendingError));
+           }else if(farScanAttempts===1||farScanAttempts%4===0){
+             hdMessage('HD+ activo ('+(native?'nativo':'ZXing')+') · vídeo '+sw+' × '+sh+' px · análisis '+w+' × '+h+' px · '+farScanRegion+' · '+farScanAttempts+' intentos');
+           }
+         }else if(farScanAttempts===0){hdMessage('HD+: esperando fotogramas de la cámara…')}
        }catch(e){
-         console.warn('Gestark HD+ pausado',e);
-         stopFarScan();
-         hdMessage('HD+ no disponible; lector principal sigue activo.');
-         return;
+         // Una excepción inesperada debe quedar diagnosticada, no ocultarse.
+         hdMessage('HD+ pausado: '+decodeErrorLabel(e)+'; lector principal activo.');
+         console.warn('Gestark HD+ interrumpido',e);
+         stopFarScan();return;
        }
-       if(token===farScanToken&&cameraOn)farScanTimer=setTimeout(tick,430);
-     };
-     hdMessage('HD+ activo · esperando primera imagen…');
+       if(token===farScanToken&&cameraOn)farScanTimer=setTimeout(tick,560);
+     }
+     hdMessage('HD+ activo ('+(native?'nativo':'ZXing')+') · esperando primera imagen…');
      farScanTimer=setTimeout(tick,220);
    }catch(e){
-     console.warn('Gestark HD+ no disponible',e);
-     if(token===farScanToken)hdMessage('HD+ no disponible; lector principal sigue activo.');
+     console.warn('Gestark HD+ inicio',e);
+     if(token===farScanToken)hdMessage('HD+ no cargó: '+decodeErrorLabel(e)+'; lector principal activo.');
    }
  }
  function showCamera(on){

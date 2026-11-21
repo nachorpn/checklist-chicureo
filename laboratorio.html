@@ -32,13 +32,13 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
 <header><div class="wrap">
  <div class="headrow"><a href="./" class="back">‹ Inicio Gestark</a><span class="pill">SOLO PRUEBAS</span></div>
  <h1>Laboratorio Gestark</h1><p class="headlead">Lector inteligente de etiquetas y comprobantes de entrega</p>
- <p class="lab-update-info" id="lab-last-update">Última actualización del Laboratorio: 21/11/2026 · 17:09 h (Chile) · v2026.11.21.11</p>
+ <p class="lab-update-info" id="lab-last-update">Última actualización del Laboratorio: 21/11/2026 · 17:17 h (Chile) · v2026.11.21.12</p>
 </div></header>
 <div id="gate" class="gate" hidden><h2>Acceso no habilitado</h2><p>Este laboratorio de pruebas se muestra únicamente en el perfil de administrador.</p><a href="./">Regresar al Inicio</a></div>
 <main id="workspace" hidden>
   <section class="notice full"><strong>Entorno de pruebas.</strong> No es un sistema oficial de Starken. Usa datos ficticios o anonimizados; el comprobante generado es una constancia de prueba, no sustituye el documento oficial. Los textos y fotografías permanecen en el navegador mientras trabajas; la lista local solo conserva números de orden.</section>
   <section class="card" aria-labelledby="scan-title">
-   <div class="cardhead"><div><h2 id="scan-title">1 · Escanear código de barras · HD</h2><p class="meta">Lectura en fotograma completo, Code 128 y análisis HD por regiones. Una sola O.F. por comprobante.</p></div><span id="cam-badge" class="badge">Apagada</span></div>
+   <div class="cardhead"><div><h2 id="scan-title">1 · Escanear código de barras · HD</h2><p class="meta">Lectura HD por regiones con diagnóstico y respaldo automático. Una sola O.F. por comprobante.</p></div><span id="cam-badge" class="badge">Apagada</span></div>
    <div class="barcode-viewport"><div class="empty-camera" id="cam-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7V4h4m8 0h4v3M4 17v3h4m8 0h4v-3M2 12h20M7 9v6m3-6v6m4-6v6m3-6v6"/></svg>Apunta al código de barras de la etiqueta o comprobante</div><div id="camera"></div></div>
    <div class="btnrow" style="margin-top:10px"><button id="start-cam" class="btn primary flex" type="button">Iniciar cámara</button><button id="stop-cam" class="btn soft" type="button" disabled>Detener</button><button id="clear-test" class="btn outline" type="button" aria-label="Limpiar prueba actual para escanear otra orden">↻ Limpiar prueba</button><button id="torch" class="btn outline" type="button" hidden>Linterna</button></div>
     <div class="btnrow" style="margin-top:8px"><button id="test-beep" class="btn soft" type="button" aria-label="Escuchar pitido de pistola escáner">♫ Probar bip de escáner</button></div>
@@ -133,11 +133,11 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
 })();
 </script>
 <script src="./laboratorio-core.js?v=2026.11.21.2"></script>
-<script src="./laboratorio.js?v=2026.11.21.11"></script>
+<script src="./laboratorio.js?v=2026.11.21.12"></script>
 <script>
 (()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?v=2';document.body.appendChild(a)};u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div style="padding:25px">No se pudo cargar acceso. Vuelve a Inicio.</div>')};document.body.appendChild(u)})();
 </script>
 <noscript>Gestark necesita JavaScript.</noscript>
-<script src="./gestark-updates.js?v=2026.11.21.11"></script>
+<script src="./gestark-updates.js?v=2026.11.21.12"></script>
 <script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body></html>
