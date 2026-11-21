@@ -25,6 +25,12 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
 .zoom-controls input[type=range]{width:100%;height:30px;accent-color:#127451;touch-action:auto;display:block;margin:8px 0 0;cursor:pointer}
 .zoom-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px;color:#708578}
 .zoom-foot button{padding:5px 9px;min-height:34px;font-size:11px}
+/* Prueba directa: cámara trasera manual con zoom 1×, sin cambiar ajustes permanentes. */
+.rear-1x-test{margin-top:10px;padding:10px;border:1px solid #c8e0d1;border-radius:12px;background:#f5faf7}
+.rear-1x-test button{width:100%;min-height:44px;color:#126245;font-weight:800}
+.rear-1x-status{margin:8px 2px 0;color:#526f5d;font-size:11px;line-height:1.5}
+.rear-1x-status[data-state=ready]{color:#136b49;font-weight:750}
+.rear-1x-status[data-state=attention]{color:#875c20}
 /* Diagnóstico opcional: no afecta el espacio de escaneo mientras permanece cerrado. */
 .lens-panel{margin-top:11px;border:1px solid #d5e5d9;border-radius:13px;background:#f7fbf8;padding:11px 12px}
 .lens-panel>summary{font-size:12px;font-weight:800;color:#236447;cursor:pointer;min-height:22px;line-height:1.45}
@@ -45,7 +51,7 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
 <header><div class="wrap">
  <div class="headrow"><a href="./" class="back">‹ Inicio Gestark</a><span class="pill">SOLO PRUEBAS</span></div>
  <h1>Laboratorio Gestark</h1><p class="headlead">Lector inteligente de etiquetas y comprobantes de entrega</p>
- <p class="lab-update-info" id="lab-last-update">Última actualización del Laboratorio: 21/11/2026 · 17:38 h (Chile) · v2026.11.21.14</p>
+ <p class="lab-update-info" id="lab-last-update">Última actualización del Laboratorio: 21/11/2026 · 17:58 h (Chile) · v2026.11.21.15</p>
 </div></header>
 <div id="gate" class="gate" hidden><h2>Acceso no habilitado</h2><p>Este laboratorio de pruebas se muestra únicamente en el perfil de administrador.</p><a href="./">Regresar al Inicio</a></div>
 <main id="workspace" hidden>
@@ -54,6 +60,10 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
    <div class="cardhead"><div><h2 id="scan-title">1 · Escanear código de barras · HD</h2><p class="meta">Lectura HD por regiones con diagnóstico y respaldo automático. Una sola O.F. por comprobante.</p></div><span id="cam-badge" class="badge">Apagada</span></div>
    <div class="barcode-viewport"><div class="empty-camera" id="cam-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7V4h4m8 0h4v3M4 17v3h4m8 0h4v-3M2 12h20M7 9v6m3-6v6m4-6v6m3-6v6"/></svg>Apunta al código de barras de la etiqueta o comprobante</div><div id="camera"></div></div>
    <div class="btnrow" style="margin-top:10px"><button id="start-cam" class="btn primary flex" type="button">Iniciar cámara</button><button id="stop-cam" class="btn soft" type="button" disabled>Detener</button><button id="clear-test" class="btn outline" type="button" aria-label="Limpiar prueba actual para escanear otra orden">↻ Limpiar prueba</button><button id="torch" class="btn outline" type="button" hidden>Linterna</button></div>
+    <div class="rear-1x-test" aria-label="Prueba de cámara trasera a uno por">
+      <button id="test-rear-1x" class="btn outline full" type="button">📷 Probar cámara trasera · 1×</button>
+      <p id="rear-1x-status" class="rear-1x-status" role="status" aria-live="polite">Selecciona la cámara trasera específica cuando Safari la identifique, aplica zoom 1× y limpia la prueba actual sin borrar el historial.</p>
+    </div>
     <div class="btnrow" style="margin-top:8px"><button id="test-beep" class="btn soft" type="button" aria-label="Escuchar pitido de pistola escáner">♫ Probar bip de escáner</button></div>
     <p class="fine" style="margin:8px 0 0">Limpia la lectura, el formulario, la foto y la firma. Conserva el historial de O.F. y la cámara encendida.</p>
    <p id="camera-info" class="camera-details" aria-live="polite"></p>
@@ -166,11 +176,11 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
 })();
 </script>
 <script src="./laboratorio-core.js?v=2026.11.21.2"></script>
-<script src="./laboratorio.js?v=2026.11.21.14"></script>
+<script src="./laboratorio.js?v=2026.11.21.15"></script>
 <script>
 (()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?v=2';document.body.appendChild(a)};u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div style="padding:25px">No se pudo cargar acceso. Vuelve a Inicio.</div>')};document.body.appendChild(u)})();
 </script>
 <noscript>Gestark necesita JavaScript.</noscript>
-<script src="./gestark-updates.js?v=2026.11.21.14"></script>
+<script src="./gestark-updates.js?v=2026.11.21.15"></script>
 <script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body></html>

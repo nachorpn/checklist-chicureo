@@ -1,0 +1,26 @@
+GESTARK · LABORATORIO · PRUEBA REAL CON CÁMARA TRASERA 1×
+Versión: 2026.11.21.15
+Última actualización: 21/11/2026 17:58 (Chile)
+
+INSTALACIÓN
+1. Descomprime el ZIP.
+2. En GitHub, abre el repositorio nachorpn/checklist-chicureo.
+3. Sube a la RAÍZ los tres archivos: laboratorio.html, laboratorio.js, gestark-version.json.
+4. Confirma el commit. Abre Gestark > Actualizar.
+5. Entra con CIBC al Laboratorio.
+
+PRUEBA
+- Pulsa «Probar cámara trasera · 1×».
+- Concede permiso para cámara si Safari lo pide.
+- Gestark intentará elegir el dispositivo identificado expresamente como cámara trasera.
+- Si Safari no puede identificar una cámara trasera única, abre «Diagnóstico de cámara y lentes», elige «Cámara trasera» manualmente y vuelve a pulsar el botón.
+- Cuando el mensaje indique que la prueba está preparada, mantén la etiqueta a una distancia fija y apunta a uno de sus dos códigos de barras.
+- Compara con 2× usando el botón existente del Diagnóstico.
+- Pulsar la prueba limpia el formulario actual, la foto y la firma, pero conserva el historial.
+- No se guarda el identificador de la cámara en memoria permanente.
+
+ALCANCE
+- Solo Laboratorio; escáner general, checklist, transferencias y demás módulos intactos.
+- Se mantiene ZXing HD+, beep, historial único por O.F., OCR y firma.
+- La lente física precisa y el zoom efectivamente aplicado dependen de lo que exponga Safari; el diagnóstico distingue valores solicitados de confirmados.
+- Herramienta experimental. No tratar como sistema oficial ni usar datos reales de clientes.

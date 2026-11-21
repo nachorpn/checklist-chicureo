@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.14",
+  "version": "2026.11.21.15",
   "name": "Gestark",
-  "changes": "Laboratorio: diagnóstico de cámara y lente reportadas por Safari, comparación rápida 1×/2× y selección experimental entre cámaras expuestas con retorno a automática si falla. Cámara, ZXing HD+, beep, OCR, firma, historial y escáner general preservados.",
-  "labVersion": "2026.11.21.14",
-  "labUpdatedAt": "2026-11-21T17:38:00-03:00"
+  "changes": "Laboratorio: botón de prueba a 1× con cámara trasera seleccionada manualmente cuando Safari permite identificarla; muestra diagnóstico y limpia solamente la prueba actual. Mantiene HD+, beep, historial, OCR, firma y escáner general sin cambios.",
+  "labVersion": "2026.11.21.15",
+  "labUpdatedAt": "2026-11-21T17:58:00-03:00"
 }

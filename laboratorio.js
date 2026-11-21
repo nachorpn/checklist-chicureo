@@ -8,6 +8,7 @@
  let active=false,scanner=null,working=false,cameraOn=false,stopping=false,flashOn=false;
  let zoomTimer=null,zoomBusy=false,zoomPending=null,zoomLimits=null;
  let selectedCameraId='',cameraDevices=[],cameraSwitching=false; // Solo en memoria, sin guardar identificadores.
+ let rearOneXBusy=false; // Prueba puntual de cámara trasera manual a zoom 1×.
  let entries=[],imageFile=null,imageUrl=null,lastRaw='',lastAt=0,recognizedSource='manual';
  let lastCameraOf='',lastCameraAt=0; // Un evento de lectura por O.F. cuando hay dos códigos.
  let resumeScanAt=0,testGeneration=0; // Protección al limpiar entre pruebas.
@@ -435,6 +436,82 @@
    $('lens-status').textContent='Comparando '+value.toFixed(1)+'×. Mantén el teléfono y el comprobante a la misma distancia.';
  }
 
+
+ // Prueba práctica a 1×: elegir una cámara TRASERA identificable por Safari.
+ // No se adivina un sensor si hay varias opciones posibles o nombres ocultos.
+ function preferredRearCameraForTest(){
+   const rear=cameraDevices.filter(d=>d.deviceId&&/\b(back|rear|trasera|posterior)\b/i.test(d.label||'')&&!isFrontCameraLabel(d.label));
+   const exact=rear.filter(d=>/^(?:back camera|rear camera|c[aá]mara trasera|c[aá]mara posterior)$/i.test((d.label||'').trim()));
+   if(exact.length===1)return exact[0];
+   if(exact.length>1)return null;
+   const specific=rear.filter(d=>!/(?:ultra[ -]?wide|gran angular|telephoto|teleobjetivo|macro|dual|triple)/i.test(d.label));
+   return specific.length===1?specific[0]:null;
+ }
+ function rearOneXStatus(message,kind=''){
+   const el=$('rear-1x-status');if(!el)return;
+   el.textContent=message;el.dataset.state=kind;
+ }
+ async function tryRearCameraOneX(){
+   if(!canUse()||rearOneXBusy||working||stopping||cameraSwitching)return;
+   // Activar audio en el gesto original del usuario: Safari puede exigirlo.
+   armScanBeep();
+   rearOneXBusy=true;cameraSwitching=true;
+   $('test-rear-1x').disabled=true;
+   rearOneXStatus('Preparando cámara trasera manual a 1×…');
+   try{
+     if(!cameraOn){
+       await startCamera();
+       if(!cameraOn)throw Error('No se pudo iniciar la cámara. Revisa los permisos.');
+     }
+     await refreshCameraList();
+     if(!selectedCameraId){
+       const rear=preferredRearCameraForTest();
+       if(!rear){
+         $('lens-panel').open=true;
+         rearOneXStatus('Safari no permitió identificar una única «Cámara trasera». Elígela en el selector del diagnóstico y vuelve a pulsar «Probar trasera · 1×».','attention');
+         return;
+       }
+       await stopCamera();
+       selectedCameraId=rear.deviceId;
+       await startCamera();
+       if(!cameraOn||!selectedCameraId){
+         throw Error('La cámara trasera elegida no se pudo abrir; se conservó o recuperó la selección automática.');
+       }
+     }
+     // No afirmar que la prueba es a 1× si Safari no permite aplicarlo.
+     if(!zoomLimits||zoomLimits.min>1||zoomLimits.max<1){
+       rearOneXStatus('Se seleccionó la cámara trasera, pero Safari no permite fijar el zoom a 1× en este dispositivo. Revisa el diagnóstico.','attention');
+       return;
+     }
+     clearTimeout(zoomTimer);zoomPending=null;
+     await applyZoom(1);
+     const appliedSettings=runningCameraSettings();
+     const actual=appliedSettings.zoom===undefined?NaN:Number(appliedSettings.zoom);
+     if(Number.isFinite(actual)&&actual>0&&Math.abs(actual-1)>.15){
+       rearOneXStatus('La cámara trasera está activa, pero Safari informa zoom '+actual.toFixed(1)+'×; no se logró fijar 1×.','attention');
+       return;
+     }
+     const zoomMessage=Number.isFinite(actual)&&actual>0?
+       'zoom aplicado '+actual.toFixed(1)+'×':
+       'zoom 1× solicitado (Safari no informa el valor aplicado)';
+     const settings=runningCameraSettings();
+     const label=cameraDevices.find(d=>d.deviceId===settings.deviceId)?.label||
+       cameraDevices.find(d=>d.deviceId===selectedCameraId)?.label||'cámara trasera seleccionada';
+     // Iniciar prueba nueva: la historia anterior NO se elimina.
+     resetTest(false);
+     rearOneXStatus('Prueba preparada · '+label+' · '+zoomMessage+'. Mantén el comprobante a la misma distancia y observa si reconoce la O.F.','ready');
+     $('lens-status').textContent='Prueba 1× en curso. Puedes comparar con 2× desde este panel sin mover el teléfono.';
+   }catch(e){
+     rearOneXStatus('No se pudo preparar la prueba: '+String(e?.message||e).slice(0,150),'attention');
+   }finally{
+     cameraSwitching=false;rearOneXBusy=false;
+     $('test-rear-1x').disabled=false;
+     updateLensDiagnostics();
+     // Mostrar el dispositivo realmente activo, también tras un fallback.
+     if(cameraOn)refreshCameraList().catch(()=>{});
+   }
+ }
+
  async function setupCameraAssist(){
    if(!scanner||!cameraOn)return;
    let capabilities={};let settings={};
@@ -596,6 +673,7 @@
    $('lens-device').addEventListener('change',switchCameraFromPanel);
    $('lens-zoom-1').addEventListener('click',()=>compareLensZoom(1));
    $('lens-zoom-2').addEventListener('click',()=>compareLensZoom(2));
+   $('test-rear-1x').addEventListener('click',tryRearCameraOneX);
    $('zoom-range').addEventListener('input',e=>requestZoom(e.target.value));$('zoom-range').addEventListener('change',e=>requestZoom(e.target.value,true));$('zoom-reset').addEventListener('click',()=>{if(zoomLimits){const v=Math.max(zoomLimits.min,Math.min(zoomLimits.max,1));$('zoom-range').value=String(v);requestZoom(v,true)}});
    // Cargar el motor en momentos ociosos para reducir la espera al tocar 'Iniciar cámara'.
    const warm=()=>loadScript(QR_LIB,'Html5Qrcode').catch(()=>{});
