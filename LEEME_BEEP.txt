@@ -1,0 +1,30 @@
+GESTARK — BEEP DE CONFIRMACIÓN EN LABORATORIO
+Versión: 2026.11.21.8
+Última actualización del Laboratorio: 21/11/2026 · 16:48 h (Chile)
+
+CAMBIO REALIZADO
+- Se añade un único beep corto (unos 130 ms) al identificar correctamente una O.F. nueva con la cámara del Laboratorio.
+- Funciona con el lector estándar y con el análisis HD+ (ZXing) porque ambos comparten la confirmación del número de O.F.
+- No suena al detectar un código inválido ni al repetir los códigos del mismo comprobante.
+- El sonido se prepara al pulsar "Iniciar cámara" para cumplir las restricciones habituales de audio en Safari/iPhone.
+- Se mantiene la vibración disponible. El sonido depende del volumen, restricciones de Safari y ajustes del teléfono.
+- No se cambia la distancia de escaneo, el zoom, la firma, el OCR ni el resto de Gestark.
+- Se actualiza fecha, hora de Chile y versión del Laboratorio.
+- No se incluyen nuevas funciones QR en el Laboratorio.
+
+INSTALACIÓN (MANUAL)
+1. Descomprime este ZIP.
+2. Entra al repositorio https://github.com/nachorpn/checklist-chicureo
+3. Abre "Add file > Upload files" y sube los 3 archivos a la RAÍZ del repositorio:
+   laboratorio.js, laboratorio.html y gestark-version.json
+4. Reemplaza los archivos previos y confirma "Commit changes".
+5. En tu iPhone abre Gestark, pulsa "Nueva versión" si aparece y entra a Laboratorio.
+6. Pulsa "Iniciar cámara" y prueba un código Starken legible: debe sonar una vez al registrar nueva O.F.
+7. Mantén el comprobante delante: si detecta el segundo código de la misma orden, no debe sonar nuevamente.
+8. Para repetir la prueba, retira el papel del visor, pulsa "Limpiar prueba" y vuelve a apuntar.
+
+LIMITACIONES
+- Requiere interacción directa del usuario para habilitar el sonido del navegador.
+- El iPhone puede silenciar el beep por volumen, modo silencio o restricciones del navegador.
+- El Laboratorio es experimental y no sustituye documentación ni sistemas oficiales de Starken.
+- No subas fotos, comprobantes reales ni datos personales al repositorio público.

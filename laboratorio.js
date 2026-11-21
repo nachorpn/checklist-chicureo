@@ -12,6 +12,39 @@
  let resumeScanAt=0,testGeneration=0; // Protección al limpiar entre pruebas.
  let ocrWorker=null,ocrBusy=false,signatureCanvas=null,sigCtx=null,signed=false,penDown=false;
  let toastTimeout=null;
+ // Un bip corto cuando la cámara confirma una O.F. nueva (también con ZXing).
+ // En iOS el audio se habilita al pulsar Iniciar cámara (gesto del usuario).
+ let scanAudio=null;
+ function armScanBeep(){
+   const AudioClass=window.AudioContext||window.webkitAudioContext;
+   if(!AudioClass)return;
+   try{
+     if(!scanAudio)scanAudio=new AudioClass();
+     if(scanAudio.state==='suspended')scanAudio.resume().catch(()=>{});
+     // Iniciar un sonido mudo durante la interacción ayuda a habilitar Web Audio en Safari.
+     const osc=scanAudio.createOscillator(),gain=scanAudio.createGain();
+     gain.gain.value=0;
+     osc.connect(gain);gain.connect(scanAudio.destination);
+     osc.start();osc.stop(scanAudio.currentTime+.015);
+     osc.onended=()=>{try{osc.disconnect();gain.disconnect()}catch(_){}};
+   }catch(_){/* Sin audio: conservar el escáner operativo. */}
+ }
+ function playScanBeep(){
+   if(!scanAudio||scanAudio.state!=='running')return;
+   try{
+     const t=scanAudio.currentTime;
+     const osc=scanAudio.createOscillator(),gain=scanAudio.createGain();
+     osc.type='sine';
+     osc.frequency.setValueAtTime(1050,t);
+     gain.gain.setValueAtTime(.0001,t);
+     gain.gain.exponentialRampToValueAtTime(.14,t+.012);
+     gain.gain.exponentialRampToValueAtTime(.0001,t+.125);
+     osc.connect(gain);gain.connect(scanAudio.destination);
+     osc.start(t);osc.stop(t+.13);
+     osc.onended=()=>{try{osc.disconnect();gain.disconnect()}catch(_){}};
+   }catch(_){/* El audio es opcional; la lectura sigue funcionando. */}
+ }
+ 
  function status(text,kind=''){const e=$('scan-status');e.textContent=text;e.className='stat '+kind}
  function ocrStatus(text,kind=''){const e=$('ocr-status');e.textContent=text;e.className='stat '+kind}
  function pdfStatus(text,kind=''){const e=$('pdf-status');e.textContent=text;e.className='stat '+kind}
@@ -48,6 +81,7 @@
    $('lastread').style.display='block';showSource('Escaneo · confirmar campos');
    saveEntry(read,source);
    status('O.F. '+read.of+' identificada. Verifica el número antes de usarlo.','ok');
+   if(source==='cámara')playScanBeep();
    try{if(navigator.vibrate)navigator.vibrate(50)}catch(_){ }
  }
  function keyFor(x){return x.of}
@@ -226,6 +260,7 @@
  async function startCamera(){
    if(!canUse()||cameraOn||working)return;
    if(!navigator.mediaDevices?.getUserMedia){status('Cámara no disponible. Abre Gestark en Safari o Chrome por HTTPS.','bad');return}
+   armScanBeep(); // Debe ejecutarse antes del primer await y dentro del toque del botón.
    working=true;$('start-cam').disabled=true;status('Preparando cámara HD…');
    try{
      await loadScript(QR_LIB,'Html5Qrcode');

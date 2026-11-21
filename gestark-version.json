@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.7",
+  "version": "2026.11.21.8",
   "name": "Gestark",
-  "changes": "Laboratorio: etiqueta discreta con fecha/hora de última actualización en zona horaria de Chile y número de versión. Sin cambios de cámara, lector, QR ni módulos existentes.",
-  "labVersion": "2026.11.21.7",
-  "labUpdatedAt": "2026-11-21T16:42:00-03:00"
+  "changes": "Laboratorio: beep breve al reconocer una O.F. nueva con cámara (incluida lectura HD+), sin sonar por duplicados. Inicio de audio desde toque Iniciar cámara para iPhone. Sin modificaciones en distancia, OCR, QR ni demás módulos.",
+  "labVersion": "2026.11.21.8",
+  "labUpdatedAt": "2026-11-21T16:48:00-03:00"
 }
