@@ -1,42 +1,25 @@
-GESTARK — ENTREGAS CONTINGENTES
-Versión: 2026.11.21.16
+GESTARK - ENTREGAS CONTINGENTES FASE 1
+Versión 2026.11.21.17
 
-ENTREGA
-Módulo independiente «Entregas contingentes», accesible desde Inicio para usuarios que inician sesión en Gestark.
-Conserva escáner principal, HD+, selección de cámara y zoom manual de la versión de referencia 2026.11.21.15.
-El Laboratorio, Escáner general, Checklist y Transferencias no se modifican.
+CAMBIOS
+- Interfaz operativa limpia sin diagnóstico, zoom, selector de lentes ni botón de sonidos/pruebas.
+- Retiradas cámara para fotografías, lectura automática de datos impresos y OCR. Segunda fase.
+- Se conserva el escaneo de O.F. con el motor de códigos de barras aprobado, doble beep, deduplicación y captura HD de respaldo.
+- Campos indispensables manuales: nombre y RUT del receptor; firma en pantalla y confirmación expresa.
+- Descarga de PDF interno después de confirmar; historial de pendientes de regularizar.
+- No se modifica Laboratorio, el escáner general ni otros módulos.
 
-INSTALACIÓN EN GITHUB PAGES
-1. Descomprime el ZIP.
-2. Abre https://github.com/nachorpn/checklist-chicureo
-3. Elige Add file > Upload files y sube los seis archivos de esta entrega a la RAÍZ del repositorio.
-4. Confirma Commit changes.
-5. Abre Gestark, pulsa Actualizar y entra a Entregas contingentes.
+INSTALAR
+1. Descomprimir ZIP.
+2. En GitHub nachorpn/checklist-chicureo subir los cinco archivos de esta carpeta a la raíz, reemplazando los anteriores.
+3. Commit changes; en Gestark pulsar Actualizar y abrir Entregas contingentes.
+4. Probar con una O.F. ficticia y RUT de prueba válido. Verificar PDF antes de cerrar.
 
-PASOS OPERATIVOS
-1. Iniciar cámara y reconocer O.F. (también ingreso manual y OCR opcional).
-2. Revisar número de orden, receptor y RUT de quien recibe. La validación de RUT es solo matemática.
-3. Capturar firma del receptor.
-4. Marcar confirmación de recepción física y pulsar «Confirmar entrega en contingencia».
-5. Descargar PDF local ANTES de cerrar o limpiar. La firma NO se almacena en el historial.
-6. Copiar pendientes a Excel para regularizar manualmente en el sistema Starken.
-7. Tras regularizar en Starken, marcar «Regularizada» manualmente en Gestark.
-
-REGLAS
-- Escanear una O.F. nunca la marca como entregada.
-- No registra una entrega sin OF válida, nombre, RUT con DV válido, firma y confirmación expresa.
-- No duplica entregas confirmadas de la misma O.F. en el mismo navegador y cuenta.
-- El historial técnico de lecturas no equivale al historial de entregas.
-- Los datos locales se separan por usuario de Gestark y navegador.
-- El historial de entregas guarda SOLO OF, ID de registro, hora, operador, lugar, motivo y estado. NO guarda RUT, nombre del receptor, fotografía ni firma.
-- La regularización en Starken NO es automática.
-- La página puede seguir operando sin sincronización, siempre que las dependencias del motor estén almacenadas en caché; no hay garantía de funcionamiento completo offline.
-
-SEGURIDAD Y ADVERTENCIAS
-- El inicio de sesión de GitHub Pages es LOCAL y no reemplaza autenticación/autorización en servidor.
-- Este despliegue es una primera versión funcional INTERNA, no una certificación ni sistema oficialmente habilitado por Starken.
-- El PDF es un REGISTRO INTERNO, NO el comprobante oficial Starken ni prueba suficiente de identidad.
-- Antes de utilizar nombres, RUT y firmas REALES, obtener aprobación corporativa, definir privacidad y retención, y disponer de backend seguro con trazabilidad, controles y respaldo.
-- No subir fotografías de comprobantes ni datos personales al repositorio público.
-- El pago por cobrar y la integración con Transferencias siguen EN PAUSA. El QR también permanece sin implementar.
-- Mantén los datos ficticios para la prueba de instalación.
+IMPORTANTES
+- Escanear NO equivale a confirmar entrega. Requiere confirmación expresa.
+- Solo se guarda localmente O.F., fecha, operador, motivo, lugar e ID; NO firma, RUT ni nombre.
+- Pendientes se regularizan manualmente en los sistemas autorizados; no hay sincronización.
+- No es un sistema corporativo certificado por Starken; GitHub Pages carece de seguridad de servidor.
+- No operar con datos reales sin autorización y controles de seguridad y respaldo aprobados.
+- El lector de datos/OCR se abordará únicamente en fase 2.
+- No se implementó QR ni integración de pagos o Transferencias.
