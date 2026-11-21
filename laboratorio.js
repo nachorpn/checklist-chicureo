@@ -34,13 +34,15 @@
    try{
      const t=scanAudio.currentTime;
      const osc=scanAudio.createOscillator(),gain=scanAudio.createGain();
+     // Señal con mayor presencia para el altavoz pequeño de iPhone.
+     // Una única nota de 200 ms por O.F.; ganancia 0.65 (antes 0.14).
      osc.type='sine';
-     osc.frequency.setValueAtTime(1050,t);
+     osc.frequency.setValueAtTime(1250,t);
      gain.gain.setValueAtTime(.0001,t);
-     gain.gain.exponentialRampToValueAtTime(.14,t+.012);
-     gain.gain.exponentialRampToValueAtTime(.0001,t+.125);
+     gain.gain.exponentialRampToValueAtTime(.65,t+.010);
+     gain.gain.exponentialRampToValueAtTime(.0001,t+.195);
      osc.connect(gain);gain.connect(scanAudio.destination);
-     osc.start(t);osc.stop(t+.13);
+     osc.start(t);osc.stop(t+.20);
      osc.onended=()=>{try{osc.disconnect();gain.disconnect()}catch(_){}};
    }catch(_){/* El audio es opcional; la lectura sigue funcionando. */}
  }

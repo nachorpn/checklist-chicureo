@@ -1,0 +1,24 @@
+GESTARK | LABORATORIO - BEEP MÁS AUDIBLE
+Versión: 2026.11.21.9
+Última actualización: 21/11/2026 · 16:52 h (Chile)
+
+CAMBIO
+- El beep de lectura correcta ahora tiene mayor ganancia interna (de 0,14 a 0,65).
+- El tono es un poco más agudo (1250 Hz) y algo más largo (200 ms) para percibirse mejor.
+- Suena una sola vez al identificar una nueva O.F. mediante la cámara, incluso si el documento contiene dos códigos.
+- No suena por formatos no reconocidos ni por el segundo código de la misma O.F.
+- No cambia la lectura a distancia, el zoom, la cámara, el OCR, la firma ni el PDF de prueba.
+- La fecha/hora visible del Laboratorio se actualiza a esta versión.
+
+INSTALACIÓN
+1. Descomprimir este archivo ZIP.
+2. En GitHub, abrir https://github.com/nachorpn/checklist-chicureo
+3. Elegir Add file > Upload files, y subir laboratorio.js, laboratorio.html y gestark-version.json directamente a la raíz del repositorio.
+4. Confirmar el reemplazo y Commit changes.
+5. En iPhone, pulsar Actualizar y volver a abrir Laboratorio. Si persiste el sonido anterior, cerrar y abrir la PWA.
+6. Pulsar Iniciar cámara y probar una O.F. nueva. Debe sonar un beep claro una vez, no dos.
+
+NOTAS
+- El volumen real está limitado por el nivel multimedia del iPhone, el altavoz y las restricciones del navegador: el código no puede subir el volumen físico del dispositivo.
+- Puede ser necesario subir el volumen multimedia mientras se reproduce audio.
+- Laboratorio experimental: no es un sistema oficial de Starken. No subir datos reales a un repositorio público.

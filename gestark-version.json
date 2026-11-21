@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.8",
+  "version": "2026.11.21.9",
   "name": "Gestark",
-  "changes": "Laboratorio: beep breve al reconocer una O.F. nueva con cámara (incluida lectura HD+), sin sonar por duplicados. Inicio de audio desde toque Iniciar cámara para iPhone. Sin modificaciones en distancia, OCR, QR ni demás módulos.",
-  "labVersion": "2026.11.21.8",
-  "labUpdatedAt": "2026-11-21T16:48:00-03:00"
+  "changes": "Laboratorio: beep de confirmación más fuerte y perceptible (ganancia interna de 0,14 a 0,65, tono de 1250 Hz y 200 ms), un solo aviso por O.F. No cambia cámara, distancia, OCR, firma, QR ni módulos restantes.",
+  "labVersion": "2026.11.21.9",
+  "labUpdatedAt": "2026-11-21T16:52:00-03:00"
 }
