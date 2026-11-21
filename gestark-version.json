@@ -1,9 +1,9 @@
 {
-  "version": "2026.11.21.21",
+  "version": "2026.11.21.23",
   "name": "Gestark",
-  "changes": "Entregas contingentes: correo del receptor, solicitud de factura desplegable (razón social, RUT, giro y dirección), validación y consulta local en historial. PDF 3 por A4 muestra factura solicitada. Base compartida desactivada; no se envían documentos por correo.",
+  "changes": "Entregas contingentes: informe interno diario de O.F. pendientes de cierre, PDF por fecha; cobros por pagar enlazados automáticamente al Registro de transferencias local (transferencia y efectivo diferenciados). Exportación a Excel: Nombre, Monto, No. Sin sincronización central activada.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
-  "contingencyVersion": "2026.11.21.21",
-  "contingencyUpdatedAt": "2026-11-21T20:02:52-03:00"
+  "contingencyVersion": "2026.11.21.23",
+  "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00"
 }

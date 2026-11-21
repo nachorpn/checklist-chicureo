@@ -1,0 +1,55 @@
+GESTARK · ACTUALIZACIÓN 2026.11.21.23
+Entregas contingentes + Registro de transferencias + Informe diario
+
+INSTALACIÓN
+1. Descomprime este ZIP.
+2. Sube los 8 archivos de aplicación enumerados abajo a la RAÍZ del repositorio GitHub Pages de Gestark y reemplaza los archivos con el mismo nombre.
+3. Abre Gestark, pulsa Actualizar y comprueba que muestre la versión 2026.11.21.23.
+4. Verifica con una entrega de prueba y sin datos reales: generar informe y copiar transferencia a Excel.
+
+ARCHIVOS DE APLICACIÓN
+- entregas-contingentes.html
+- entregas-contingentes.js
+- notas-transferencias.html
+- notas-transferencias.js (NUEVO)
+- gestark-updates.js
+- gestark-version.json
+- gestark-db-config.js (sin habilitar)
+- gestark-db.js (sin modificar)
+
+FUNCIONALIDADES
+A) En Entregas contingentes -> Historial -> Informe diario de cierre:
+   - Selecciona el día de contingencia en horario de Chile.
+   - Muestra solo las órdenes pendientes de regularización/cierre en sistema.
+   - Genera un PDF A4 de uso interno, con O.F., hora, usuario, forma de pago y monto.
+   - Advierte sobre O.F. repetidas y descarta del informe las regularizadas.
+   - En modo local, incorpora todas las cuentas con datos en el MISMO navegador/dispositivo.
+   - No incluye información de OTROS celulares hasta conectar la base central.
+
+B) Entregas por pagar:
+   - Transferencia: foto exigida; se envía un movimiento a Transferencias local.
+   - Efectivo: se envía un movimiento diferenciado en Transferencias local.
+   - Pagadas/sin cobro: no generan un movimiento nuevo.
+   - Los cobros se vinculan por O.F. e ID, evitando duplicar la misma orden.
+   - Las fotos NO equivalen a verificación bancaria.
+   - Se preservan los registros manuales CIBC del sistema anterior.
+
+C) Registro de transferencias:
+   - Pagos bancarios automáticos y manuales (solo CIBC para nueva entrada manual).
+   - Cobros en efectivo en una sección aparte, fuera de la copia a planilla bancaria.
+   - Copiar para Excel: NOMBRE[TAB]MONTO[TAB]no, SIN encabezados.
+   - El 'no' se incluye únicamente en el texto copiado, como valor predeterminado
+     de la columna '¿Transfirió?' de la planilla. No se necesita editarlo en Gestark.
+   - Las filas con igual nombre se suman en la exportación, conservando el detalle
+     en pantalla; el envío por WhatsApp también agrega importes por cliente.
+   - Los cobros automáticos son accesibles a las cuentas de Gestark EN EL MISMO
+     navegador; la lista manual previa CIBC sigue asociada a esa cuenta.
+
+NOTAS Y LÍMITES
+- No hay sincronización entre celulares ni base de datos central activada.
+- Los usuarios deben trabajar en el mismo navegador/dispositivo para compartir datos
+  locales; la base compartida se diseñará e implementará por separado.
+- El informe no cierra órdenes en el sistema de Starken: esa tarea es manual.
+- No se modificaron los motores de lectura ni las opciones del Laboratorio.
+- Evita guardar datos de clientes reales en dispositivos no autorizados.
+- La actualización no envía correos ni emite documentos tributarios.
