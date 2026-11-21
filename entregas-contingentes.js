@@ -1,0 +1,822 @@
+/* Gestark Entregas contingentes: escáner v15 intacto + confirmación explícita de entregas. */
+(()=>{
+ 'use strict';
+ const core=window.GestarkLabCore;
+ const $=id=>document.getElementById(id);
+ const FIELDS=['order','pieces','name','rut','retriever','address','rutRetriever','origin','destination','deliveryType','issued','delivered','time','payment','amount','weight'];
+ let STORAGE='gestark:contingency:reads:v1:unknown';
+ const DELIVERY_PREFIX='gestark:contingency:confirmed:v1:';
+ let DELIVERY_STORAGE=DELIVERY_PREFIX+'unknown';
+ let currentUser='',operatorName='',confirmedRecord=null,deliveryRecords=[];
+ const MAX=1000;
+ let active=false,scanner=null,working=false,cameraOn=false,stopping=false,flashOn=false;
+ let zoomTimer=null,zoomBusy=false,zoomPending=null,zoomLimits=null;
+ let selectedCameraId='',cameraDevices=[],cameraSwitching=false; // Solo en memoria, sin guardar identificadores.
+ let rearOneXBusy=false; // Prueba puntual de cámara trasera manual a zoom 1×.
+ let entries=[],imageFile=null,imageUrl=null,lastRaw='',lastAt=0,recognizedSource='manual';
+ let lastCameraOf='',lastCameraAt=0; // Un evento de lectura por O.F. cuando hay dos códigos.
+ let resumeScanAt=0,testGeneration=0; // Protección al limpiar entre pruebas.
+ let ocrWorker=null,ocrBusy=false,signatureCanvas=null,sigCtx=null,signed=false,penDown=false;
+ let toastTimeout=null;
+ // Un bip corto cuando la cámara confirma una O.F. nueva (también con ZXing).
+ // En iOS el audio se habilita al pulsar Iniciar cámara (gesto del usuario).
+ let scanAudio=null;
+ function armScanBeep(){
+   const AudioClass=window.AudioContext||window.webkitAudioContext;
+   if(!AudioClass)return;
+   try{
+     if(!scanAudio)scanAudio=new AudioClass();
+     if(scanAudio.state==='suspended')scanAudio.resume().catch(()=>{});
+     // Iniciar un sonido mudo durante la interacción ayuda a habilitar Web Audio en Safari.
+     const osc=scanAudio.createOscillator(),gain=scanAudio.createGain();
+     gain.gain.value=0;
+     osc.connect(gain);gain.connect(scanAudio.destination);
+     osc.start();osc.stop(scanAudio.currentTime+.015);
+     osc.onended=()=>{try{osc.disconnect();gain.disconnect()}catch(_){}};
+   }catch(_){/* Sin audio: conservar el escáner operativo. */}
+ }
+  // Doble bip agudo, con timbre rico en armónicos, como un lector portátil.
+  // Un solo EVENTO sonoro por O.F.; el par de pulsos es parte del mismo aviso.
+  function playScanBeep(){
+    if(!scanAudio||scanAudio.state!=='running')return;
+    try{
+      const start=scanAudio.currentTime+.006;
+      const notes=[
+        {offset:0, duration:.073, hz:1760, level:.48},
+        {offset:.101, duration:.096, hz:2110, level:.52}
+      ];
+      notes.forEach((note)=>{
+        const t=start+note.offset;
+        const osc=scanAudio.createOscillator(),gain=scanAudio.createGain();
+        osc.type='square'; // Onda más nítida que el seno anterior.
+        osc.frequency.setValueAtTime(note.hz,t);
+        osc.frequency.linearRampToValueAtTime(note.hz*1.025,t+note.duration*.7);
+        gain.gain.setValueAtTime(.0001,t);
+        gain.gain.linearRampToValueAtTime(note.level,t+.003);
+        gain.gain.setValueAtTime(note.level,t+note.duration-.017);
+        gain.gain.exponentialRampToValueAtTime(.0001,t+note.duration);
+        osc.connect(gain);gain.connect(scanAudio.destination);
+        osc.start(t);osc.stop(t+note.duration+.004);
+        osc.onended=()=>{try{osc.disconnect();gain.disconnect()}catch(_){}};
+      });
+    }catch(_){/* El sonido es opcional; la lectura sigue funcionando. */}
+  }
+  function testScanBeep(){
+    // Se llama desde un botón: Web Audio recibe una interacción directa del usuario.
+    armScanBeep();
+    if(!scanAudio){toast('Este navegador no admite sonido de escáner');return}
+    if(scanAudio.state==='running'){playScanBeep();return}
+    scanAudio.resume().then(()=>playScanBeep()).catch(()=>toast('No se pudo activar el sonido'));
+  }
+ function status(text,kind=''){const e=$('scan-status');e.textContent=text;e.className='stat '+kind}
+ function ocrStatus(text,kind=''){const e=$('ocr-status');e.textContent=text;e.className='stat '+kind}
+ function pdfStatus(text,kind=''){const e=$('pdf-status');e.textContent=text;e.className='stat '+kind}
+ function toast(str){const e=$('toast');e.textContent=str;e.classList.add('visible');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>e.classList.remove('visible'),2250)}
+ function canUse(){return active&&document.documentElement.classList.contains('gestark-unlocked')}
+ function values(){const r={};FIELDS.forEach(k=>r[k]=$('field-'+k)?.value.trim()||'');return r}
+ function setField(key,val){const e=$('field-'+key);if(e)e.value=String(val||'').slice(0,e.maxLength>0?e.maxLength:180)}
+ function clearData(){lastCameraAt=0;lastCameraOf='';resetConfirmation();for(const key of FIELDS)setField(key,'');$('ocr-text').value='';recognizedSource='manual';$('source-label').textContent='Sin datos reconocidos';$('lastread').style.display='none';if($('rut-warning'))$('rut-warning').textContent='';clearSign()}
+ function resetTest(confirmFirst=false){
+   if(confirmFirst&&!confirm('¿Comenzar otra orden? Se limpiarán los campos y la firma actuales, pero no los registros guardados.'))return;
+   testGeneration++;
+   // La pausa evita que se vuelva a capturar instantáneamente el código que sigue delante de la cámara.
+   resumeScanAt=Date.now()+1600;
+   clearData();lastRaw='';lastAt=0;
+   $('manual-code').value='';
+   if(imageUrl)URL.revokeObjectURL(imageUrl);
+   imageUrl=null;imageFile=null;
+   $('photo-preview').removeAttribute('src');
+   $('photo-area').style.display='none';
+   $('photo-file').value='';$('gallery-file').value='';
+   ocrStatus('Sin fotografía cargada.');pdfStatus('');
+   status(cameraOn?'Nueva orden. Apunta a otra etiqueta.':'Orden limpia. Pulsa Iniciar cámara para continuar.','ok');
+   toast('Nueva orden · historial conservado');
+ }
+ function showSource(text){recognizedSource=text;$('source-label').textContent=text}
+ function onValidCode(read,source='cámara'){
+   if(!canUse())return;
+   if(confirmedRecord){status('Entrega ya registrada. Descarga el PDF o pulsa Nueva orden antes de volver a escanear.','ok');return}
+   if(!read.valid){status('No se pudo obtener O.F. del código. Puedes revisarlo o ingresar el número manualmente.','bad');return}
+   const now=Date.now();if(read.raw===lastRaw && now-lastAt<1700)return;lastRaw=read.raw;lastAt=now;
+   const previous=$('field-order').value.trim();
+   if(previous&&previous!==read.of){clearData();resetConfirmation()}
+   setField('order',read.of);if(read.piece)setField('pieces',read.piece);
+   $('last-of').textContent=read.of;$('last-type').textContent=source+': '+read.detail;
+   $('lastread').style.display='block';showSource('Escaneo · confirmar campos');
+   saveEntry(read,source);
+   status('O.F. '+read.of+' identificada. Verifica el número antes de usarlo.','ok');
+   if(source==='cámara')playScanBeep();
+   try{if(navigator.vibrate)navigator.vibrate(50)}catch(_){ }
+ }
+ function keyFor(x){return x.of}
+ function loadEntries(){try{let a=JSON.parse(localStorage.getItem(STORAGE)||'[]');return Array.isArray(a)?a.filter(x=>/^\d{9}$/.test(x.of)).slice(-MAX):[]}catch{return []}}
+ function storeEntries(arr){try{localStorage.setItem(STORAGE,JSON.stringify(arr));entries=arr;renderEntries();return true}catch(e){status('Sin espacio local: copia la lista y libéralo.', 'bad');return false}}
+ function saveEntry(info,source){
+   const of=info.of;if(entries.some(x=>x.of===of)){toast('O.F. leída previamente · sin duplicarla');return}
+   if(entries.length>=MAX){status('La lista está completa; copia y limpia las O.F. antiguas.','bad');return}
+   const record={of,at:Date.now(),type:source};
+   if(storeEntries([...entries,record]))toast('O.F. '+of+' guardada ✓');
+ }
+ function renderEntries(){
+   $('total').textContent=String(entries.length);$('copy-history').disabled=!entries.length;$('clear-history').disabled=!entries.length;
+   const root=$('history');root.replaceChildren();if(!entries.length){const d=document.createElement('div');d.className='empty';d.textContent='No hay órdenes guardadas.';root.append(d);return}
+   const fragment=document.createDocumentFragment();entries.slice().reverse().forEach(entry=>{
+     const row=document.createElement('div');row.className='mini-row';const text=document.createElement('div');text.style.flex='1';
+     const num=document.createElement('span');num.className='code';num.textContent=entry.of;const meta=document.createElement('small');meta.textContent=new Date(entry.at).toLocaleString('es-CL')+' · '+entry.type;text.append(num,meta);
+     const use=document.createElement('button');use.type='button';use.className='micro';use.textContent='Usar';use.dataset.action='use';use.dataset.of=entry.of;
+     const del=document.createElement('button');del.type='button';del.className='micro';del.textContent='✕';del.dataset.action='delete';del.dataset.of=entry.of;del.setAttribute('aria-label','Eliminar '+entry.of);
+     row.append(text,use,del);fragment.append(row);
+   });root.append(fragment);
+ }
+ async function copyText(value){try{await navigator.clipboard.writeText(value);return true}catch{}
+   const t=document.createElement('textarea');t.value=value;t.style.cssText='position:fixed;left:-9999px;opacity:0';document.body.append(t);t.select();let ok=false;try{ok=document.execCommand('copy')}catch{}t.remove();return ok;
+ }
+ const scriptCache=new Map();
+ function loadScript(url,global){if(window[global])return Promise.resolve(window[global]);if(scriptCache.has(url))return scriptCache.get(url);
+   const p=new Promise((resolve,reject)=>{const el=document.createElement('script');el.src=url;el.async=true;el.onload=()=>window[global]?resolve(window[global]):reject(new Error('No se pudo cargar '+global));el.onerror=()=>reject(new Error('No se pudo descargar la biblioteca. Revisa internet.'));document.head.appendChild(el)});
+   scriptCache.set(url,p);p.catch(()=>scriptCache.delete(url));return p;
+ }
+ const QR_LIB='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
+ const OCR_LIB='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';
+ const PDF_LIB='https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
+ // HD+: una sola cámara y lector principal como respaldo permanente.
+ // Las ausencias de código son normales: no deben apagar el motor complementario.
+ const ZX_LIBS=[
+   'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js',
+   'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'
+ ];
+ let farScanToken=0,farScanTimer=null,farScanReader=null,farScanCanvas=null;
+ let farScanAttempts=0,farScanRegion='',farScanIssues=0;
+ function hdMessage(message){const el=$('far-scan-info');if(el)el.textContent=message}
+ function stopFarScan(){
+   farScanToken++;
+   if(farScanTimer!==null)clearTimeout(farScanTimer);
+   farScanTimer=null;farScanReader=null;farScanCanvas=null;
+   farScanAttempts=0;farScanRegion='';farScanIssues=0;
+ }
+ function decodeErrorLabel(err){
+   const name=String(err?.name||err?.constructor?.name||'Error');
+   const message=String(err?.message||'');
+   // Evitar imprimir datos del fotograma o valores del comprobante.
+   return (name==='Error'&&message?message:name).slice(0,110);
+ }
+ function isNoBarcode(err){
+   // ZXing UMD esta minificado: NotFoundException puede llegar como "N".
+   // Comparar por tipo real evita pausar el lector por un fotograma sin barras.
+   const Z=window.ZXing;
+   for(const type of ['NotFoundException','ChecksumException','FormatException','ReaderException']){
+     const Ctor=Z?.[type];
+     if(typeof Ctor==='function' && err instanceof Ctor)return true;
+   }
+   // Respaldo para errores de otras bibliotecas o builds no minificados.
+   const parts=[err?.name,err?.constructor?.name,err?.message,err?.type].map(x=>String(x||'')).join(' ');
+   return /NotFound|Not Found|Checksum|FormatException|ReaderException|no (?:barcode|code|reader)|not detected|cannot find|not found/i.test(parts);
+ }
+ async function initNativeHD(){
+   const Native=window.BarcodeDetector;
+   if(typeof Native!=='function')return null;
+   try{
+     const all=typeof Native.getSupportedFormats==='function'?await Native.getSupportedFormats():['code_128','code_39','itf'];
+     const formats=['code_128','code_39','itf'].filter(f=>all.includes(f));
+     return formats.length?new Native({formats}):null;
+   }catch(e){console.info('Gestark: BarcodeDetector no disponible',decodeErrorLabel(e));return null}
+ }
+ async function initZXingHD(){
+   let lastError;
+   for(const url of ZX_LIBS){
+     try{
+       await loadScript(url,'ZXing');
+       const Z=window.ZXing;
+       if(!Z?.MultiFormatReader||!Z?.DecodeHintType||!Z?.BarcodeFormat||
+          !Z?.HTMLCanvasElementLuminanceSource||!Z?.BinaryBitmap||!Z?.HybridBinarizer){
+         throw Error('ZXing incompleto: faltan componentes de imagen');
+       }
+       const hints=new Map();
+       hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.CODE_128,Z.BarcodeFormat.CODE_39,Z.BarcodeFormat.ITF]);
+       hints.set(Z.DecodeHintType.TRY_HARDER,true);
+       const reader=new Z.MultiFormatReader();
+       reader.setHints(hints);
+       return {Z,reader,hints};
+     }catch(e){lastError=e;console.warn('Gestark HD+ biblioteca',decodeErrorLabel(e))}
+   }
+   throw lastError||Error('No se cargó ZXing');
+ }
+ async function startFarScan(){
+   stopFarScan();
+   const token=farScanToken;
+   hdMessage('HD+: preparando lector adicional…');
+   let native=null,zxing=null;
+   try{
+     native=await initNativeHD();
+     if(!cameraOn||token!==farScanToken)return;
+     if(!native){
+       hdMessage('HD+: cargando ZXing (lector adicional)…');
+       zxing=await initZXingHD();
+     }
+     if(!cameraOn||token!==farScanToken)return;
+     farScanReader=zxing?.reader||native;
+     farScanCanvas=document.createElement('canvas');
+     const ctx=farScanCanvas.getContext('2d',{willReadFrequently:true});
+     if(!ctx)throw Error('La cámara no permite analizar fotogramas');
+     const regions=[
+       {name:'zona central',top:.15,height:.70},
+       {name:'imagen completa',top:0,height:1},
+       {name:'parte superior',top:0,height:.62},
+       {name:'parte inferior',top:.35,height:.65}
+     ];
+     let regionIndex=0;
+     function decodeZXing(){
+       const Z=zxing.Z;
+       const luminance=new Z.HTMLCanvasElementLuminanceSource(farScanCanvas);
+       const decode=binarizer=>{
+         const bitmap=new Z.BinaryBitmap(new binarizer(luminance));
+         try{return zxing.reader.decode(bitmap,zxing.hints)}finally{zxing.reader.reset()}
+       };
+       try{return decode(Z.HybridBinarizer)}
+       catch(e){
+         if(!isNoBarcode(e))throw e;
+         if(Z.GlobalHistogramBinarizer&&farScanAttempts%4===0)return decode(Z.GlobalHistogramBinarizer);
+         throw e;
+       }
+     }
+     async function tick(){
+       if(!cameraOn||token!==farScanToken||document.hidden)return;
+       let pendingError=null;
+       try{
+         const video=document.querySelector('#camera video');
+         if(video&&video.readyState>=2&&video.videoWidth>=640&&video.videoHeight>=360){
+           const sw=video.videoWidth,sh=video.videoHeight;
+           const region=regions[regionIndex++%regions.length];
+           const sy=Math.round(sh*region.top),ch=Math.min(sh-sy,Math.round(sh*region.height));
+           const scale=Math.min(1,2048/sw);
+           const w=Math.max(1,Math.round(sw*scale)),h=Math.max(1,Math.round(ch*scale));
+           if(farScanCanvas.width!==w)farScanCanvas.width=w;
+           if(farScanCanvas.height!==h)farScanCanvas.height=h;
+           ctx.drawImage(video,0,sy,sw,ch,0,0,w,h);
+           farScanAttempts++;
+           farScanRegion=region.name;
+           try{
+             const results=native?await native.detect(farScanCanvas):[decodeZXing()];
+             for(const result of results){
+               const raw=typeof result.getText==='function'?result.getText():result.rawValue||result.text;
+               if(raw){onDecode(raw,(native?'HD+ nativo':'HD+ ZXing')+' · '+region.name);break}
+             }
+             farScanIssues=0;
+           }catch(e){
+             if(isNoBarcode(e)){farScanIssues=0}
+             else{farScanIssues++;pendingError=e;console.warn('Gestark HD+ fotograma',decodeErrorLabel(e))}
+           }
+           // Error real: contar fallos reiterados en vez de desactivar al primer fotograma.
+           if(farScanIssues>=6){
+             hdMessage('HD+ pausado: '+decodeErrorLabel(pendingError)+'; lector principal activo.');
+             stopFarScan();return;
+           }
+           if(pendingError){
+             hdMessage('HD+ comprobando lectura ('+farScanIssues+'/6): '+decodeErrorLabel(pendingError));
+           }else if(farScanAttempts===1||farScanAttempts%4===0){
+             hdMessage('HD+ activo ('+(native?'nativo':'ZXing')+') · vídeo '+sw+' × '+sh+' px · análisis '+w+' × '+h+' px · '+farScanRegion+' · '+farScanAttempts+' intentos');
+           }
+         }else if(farScanAttempts===0){hdMessage('HD+: esperando fotogramas de la cámara…')}
+       }catch(e){
+         // Una excepción inesperada debe quedar diagnosticada, no ocultarse.
+         hdMessage('HD+ pausado: '+decodeErrorLabel(e)+'; lector principal activo.');
+         console.warn('Gestark HD+ interrumpido',e);
+         stopFarScan();return;
+       }
+       if(token===farScanToken&&cameraOn)farScanTimer=setTimeout(tick,560);
+     }
+     hdMessage('HD+ activo ('+(native?'nativo':'ZXing')+') · esperando primera imagen…');
+     farScanTimer=setTimeout(tick,220);
+   }catch(e){
+     console.warn('Gestark HD+ inicio',e);
+     if(token===farScanToken)hdMessage('HD+ no cargó: '+decodeErrorLabel(e)+'; lector principal activo.');
+   }
+ }
+ function showCamera(on){
+   cameraOn=on;
+   if(!on){lastCameraAt=0;lastCameraOf=''}
+   $('camera').style.display=on?'block':'none';$('cam-placeholder').style.display=on?'none':'flex';
+   $('start-cam').disabled=on;$('stop-cam').disabled=!on;$('cam-badge').textContent=on?'Escaneando':'Apagada';
+   if(!on){$('torch').hidden=true;flashOn=false;$('zoom-controls').hidden=true;zoomLimits=null;zoomPending=null;clearTimeout(zoomTimer);$('camera-info').textContent='';hdMessage('HD+: cámara apagada.')}
+   updateLensDiagnostics();
+ }
+ function onDecode(raw,engine='principal'){if(confirmedRecord)return;
+  if(Date.now()<resumeScanAt)return;
+  const p=core.parseBarcode(raw);
+  // Un comprobante puede mostrar dos códigos: ignorar formatos desconocidos
+  // mientras se busca una O.F. válida, sin disparar un error rojo.
+  if(!p.valid||!canUse())return;
+  const now=Date.now();
+  const current=$('field-order').value.trim();
+  // El código corto y el largo para la misma orden producen UN solo registro.
+  if(p.of===current)return;
+  // Evita saltar de orden por una lectura fugaz de otro código cercano.
+  if(lastCameraAt&&p.of!==lastCameraOf&&now-lastCameraAt<1500)return;
+  onValidCode(p,'cámara');
+  $('last-type').textContent='cámara ('+engine+'): '+p.detail;
+  lastCameraOf=p.of;lastCameraAt=now;
+ }
+ // Más detalle de barras desde lejos: capturar video HD (cuando el equipo lo permita),
+ // decodificar menos formatos y ampliar la zona horizontal de lectura.
+ const BARCODE_FORMATS=['CODE_128','CODE_39','ITF'];
+ function cameraFormats(){const f=window.Html5QrcodeSupportedFormats;return BARCODE_FORMATS.map(k=>f?.[k]).filter(x=>x!==undefined)}
+ // Sin qrbox: html5-qrcode analizará el fotograma completo, no una franja de 270 px.
+ function cameraScanConfig(hd,cameraId=''){const cfg={fps:14,disableFlip:true};
+   if(hd){const camera=cameraId?{deviceId:{exact:cameraId}}:{facingMode:'environment'};
+     cfg.videoConstraints={...camera,width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:24,max:30}};}
+   return cfg;
+ }
+ function isPermissionError(e){return /denied|permission|notallowed|not.allowed|securityerror/i.test(String(e?.name||'')+' '+String(e?.message||e))}
+ // El zoom es optativo: algunos iPhone/navegadores no exponen este control.
+ async function applyZoom(value){
+   if(!cameraOn||!scanner||!zoomLimits)return;
+   const v=Math.round(Math.min(zoomLimits.max,Math.max(zoomLimits.min,Number(value)))*10)/10;
+   if(zoomBusy){zoomPending=v;return}
+   zoomBusy=true;
+   try{
+     await scanner.applyVideoConstraints({advanced:[{zoom:v}]});
+     if(!cameraOn)return;
+     const actual=Number(scanner.getRunningTrackSettings?.()?.zoom);
+     const applied=Number.isFinite(actual)&&actual>0?actual:v;
+     $('zoom-range').value=String(applied);
+     $('zoom-value').textContent=applied.toFixed(1)+'×';
+     updateLensDiagnostics();
+   }catch(e){
+     if(cameraOn){$('camera-info').textContent='El zoom no está disponible en esta cámara; continúa con lectura HD.';}
+     $('zoom-controls').hidden=true;zoomLimits=null;
+     updateLensDiagnostics();
+   }finally{
+     zoomBusy=false;
+     if(zoomPending!==null){const next=zoomPending;zoomPending=null;if(zoomLimits&&cameraOn)applyZoom(next)}
+   }
+ }
+ function requestZoom(value,immediate=false){
+   if(!cameraOn||!zoomLimits)return;
+   const val=Math.min(zoomLimits.max,Math.max(zoomLimits.min,Number(value)));
+   $('zoom-value').textContent=val.toFixed(1)+'×';
+   clearTimeout(zoomTimer);
+   zoomTimer=setTimeout(()=>{applyZoom(val)},immediate?0:170);
+ }
+
+ // Safari puede exponer una cámara virtual (por ejemplo, una combinación de lentes).
+ // Estos datos describen la pista de video, no certifican qué sensor físico está activo.
+ function runningCameraSettings(){try{return scanner?.getRunningTrackSettings?.()||{}}catch(_){return {}}}
+ function runningCameraCapabilities(){try{return scanner?.getRunningTrackCapabilities?.()||{}}catch(_){return {}}}
+ function updateLensDiagnostics(){
+   const active=$('lens-active'),resolution=$('lens-resolution'),zoom=$('lens-zoom'),focus=$('lens-focus');
+   if(!active)return;
+   if(!cameraOn||!scanner){
+     active.textContent='Cámara detenida';resolution.textContent='—';zoom.textContent='—';focus.textContent='—';
+     $('lens-zoom-1').disabled=true;$('lens-zoom-2').disabled=true;return;
+   }
+   const settings=runningCameraSettings(),caps=runningCameraCapabilities();
+   const video=document.querySelector('#camera video');
+   const track=video?.srcObject?.getVideoTracks?.()?.[0];
+   const listed=cameraDevices.find(d=>d.deviceId&&d.deviceId===settings.deviceId);
+   active.textContent=listed?.label||track?.label||'Cámara trasera (Safari no indicó el nombre)';
+   const w=settings.width||video?.videoWidth||0,h=settings.height||video?.videoHeight||0;
+   resolution.textContent=(w&&h?w+' × '+h+' px':'Resolución no informada')+
+     (Number.isFinite(settings.frameRate)?' · '+Math.round(settings.frameRate)+' fps':'');
+   const actualZoom=Number(settings.zoom);
+   const hasActual=settings.zoom!==undefined&&Number.isFinite(actualZoom)&&actualZoom>0;
+   const requested=Number($('zoom-range').value)||1;
+   zoom.textContent=(hasActual?'Aplicado '+actualZoom.toFixed(1)+'×':'Solicitado '+requested.toFixed(1)+'× (Safari no confirma valor)')+
+     (zoomLimits?' · rango '+zoomLimits.min.toFixed(1)+'–'+zoomLimits.max.toFixed(1)+'×':' · control no disponible');
+   const modes=Array.isArray(caps.focusMode)?caps.focusMode.join(', '):'';
+   focus.textContent=String(settings.focusMode||'Modo no informado')+(modes?' · admite: '+modes:'');
+   $('lens-zoom-1').disabled=!zoomLimits||zoomLimits.min>1||zoomLimits.max<1||cameraSwitching;
+   $('lens-zoom-2').disabled=!zoomLimits||zoomLimits.min>2||zoomLimits.max<2||cameraSwitching;
+ }
+ function isFrontCameraLabel(label){return /(?:front|facetime|selfie|frontal|delantera|user-facing)/i.test(label||'')}
+ async function refreshCameraList(){
+   const select=$('lens-device');
+   if(!navigator.mediaDevices?.enumerateDevices){
+     $('lens-status').textContent='Safari no permite enumerar cámaras en este contexto.';return;
+   }
+   try{
+     const found=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'&&d.deviceId);
+     // No ofrecer expresamente la cámara frontal; las entradas sin etiqueta son inciertas.
+     const candidates=found.filter(d=>!isFrontCameraLabel(d.label));
+     cameraDevices=candidates.map(d=>({deviceId:d.deviceId,label:d.label||''}));
+     const selected=selectedCameraId;
+     select.replaceChildren();
+     const automatic=document.createElement('option');automatic.value='';automatic.textContent='Automática · cámara trasera';select.append(automatic);
+     cameraDevices.forEach((d,i)=>{
+       const option=document.createElement('option');option.value=d.deviceId;
+       option.textContent=d.label||'Cámara '+(i+1)+' (nombre no informado)';select.append(option);
+     });
+     select.value=selected&&cameraDevices.some(d=>d.deviceId===selected)?selected:'';
+     select.disabled=cameraSwitching||!cameraDevices.length;
+     $('lens-status').textContent=!cameraDevices.length?
+       'Safari no expone otras cámaras; mantén la selección automática.':
+       cameraDevices.length+' cámara(s) disponible(s) para probar. Selecciona otra para reiniciar solo el lector del Laboratorio.'+
+       (cameraDevices.some(d=>!d.label)?' Algunas no tienen nombre; podrían incluir una lente frontal.':'');
+     updateLensDiagnostics();
+   }catch(e){$('lens-status').textContent='No se pudo consultar la lista. Inicia la cámara y acepta el permiso antes de reintentar.'}
+ }
+ async function switchCameraFromPanel(){
+   if(cameraSwitching||working||stopping)return;
+   const next=$('lens-device').value;
+   if(next===selectedCameraId)return;
+   if(!cameraOn){selectedCameraId=next;$('lens-status').textContent='Cámara elegida. Se usará cuando pulses Iniciar cámara.';return}
+   cameraSwitching=true;
+   $('lens-device').disabled=true;$('lens-refresh').disabled=true;
+   $('lens-zoom-1').disabled=true;$('lens-zoom-2').disabled=true;
+   $('lens-status').textContent='Cambiando cámara… la lectura se reanudará sin borrar los datos.';
+   try{
+     await stopCamera();
+     selectedCameraId=next;
+     await startCamera();
+     if(!cameraOn)$('lens-status').textContent='La cámara seleccionada no pudo iniciarse. Usa Automática e intenta de nuevo.';
+   }finally{
+     cameraSwitching=false;
+     $('lens-refresh').disabled=false;
+     await refreshCameraList();
+     updateLensDiagnostics();
+   }
+ }
+ function compareLensZoom(value){
+   if(!cameraOn||!zoomLimits||value<zoomLimits.min||value>zoomLimits.max)return;
+   $('zoom-range').value=String(value);requestZoom(value,true);
+   $('lens-status').textContent='Comparando '+value.toFixed(1)+'×. Mantén el teléfono y el comprobante a la misma distancia.';
+ }
+
+
+ // Prueba práctica a 1×: elegir una cámara TRASERA identificable por Safari.
+ // No se adivina un sensor si hay varias opciones posibles o nombres ocultos.
+ function preferredRearCameraForTest(){
+   const rear=cameraDevices.filter(d=>d.deviceId&&/\b(back|rear|trasera|posterior)\b/i.test(d.label||'')&&!isFrontCameraLabel(d.label));
+   const exact=rear.filter(d=>/^(?:back camera|rear camera|c[aá]mara trasera|c[aá]mara posterior)$/i.test((d.label||'').trim()));
+   if(exact.length===1)return exact[0];
+   if(exact.length>1)return null;
+   const specific=rear.filter(d=>!/(?:ultra[ -]?wide|gran angular|telephoto|teleobjetivo|macro|dual|triple)/i.test(d.label));
+   return specific.length===1?specific[0]:null;
+ }
+ function rearOneXStatus(message,kind=''){
+   const el=$('rear-1x-status');if(!el)return;
+   el.textContent=message;el.dataset.state=kind;
+ }
+ async function tryRearCameraOneX(){
+   if(!canUse()||rearOneXBusy||working||stopping||cameraSwitching)return;
+   // Activar audio en el gesto original del usuario: Safari puede exigirlo.
+   armScanBeep();
+   rearOneXBusy=true;cameraSwitching=true;
+   $('test-rear-1x').disabled=true;
+   rearOneXStatus('Preparando cámara trasera manual a 1×…');
+   try{
+     if(!cameraOn){
+       await startCamera();
+       if(!cameraOn)throw Error('No se pudo iniciar la cámara. Revisa los permisos.');
+     }
+     await refreshCameraList();
+     if(!selectedCameraId){
+       const rear=preferredRearCameraForTest();
+       if(!rear){
+         $('lens-panel').open=true;
+         rearOneXStatus('Safari no permitió identificar una única «Cámara trasera». Elígela en el selector del diagnóstico y vuelve a pulsar «Probar trasera · 1×».','attention');
+         return;
+       }
+       await stopCamera();
+       selectedCameraId=rear.deviceId;
+       await startCamera();
+       if(!cameraOn||!selectedCameraId){
+         throw Error('La cámara trasera elegida no se pudo abrir; se conservó o recuperó la selección automática.');
+       }
+     }
+     // No afirmar que la prueba es a 1× si Safari no permite aplicarlo.
+     if(!zoomLimits||zoomLimits.min>1||zoomLimits.max<1){
+       rearOneXStatus('Se seleccionó la cámara trasera, pero Safari no permite fijar el zoom a 1× en este dispositivo. Revisa el diagnóstico.','attention');
+       return;
+     }
+     clearTimeout(zoomTimer);zoomPending=null;
+     await applyZoom(1);
+     const appliedSettings=runningCameraSettings();
+     const actual=appliedSettings.zoom===undefined?NaN:Number(appliedSettings.zoom);
+     if(Number.isFinite(actual)&&actual>0&&Math.abs(actual-1)>.15){
+       rearOneXStatus('La cámara trasera está activa, pero Safari informa zoom '+actual.toFixed(1)+'×; no se logró fijar 1×.','attention');
+       return;
+     }
+     const zoomMessage=Number.isFinite(actual)&&actual>0?
+       'zoom aplicado '+actual.toFixed(1)+'×':
+       'zoom 1× solicitado (Safari no informa el valor aplicado)';
+     const settings=runningCameraSettings();
+     const label=cameraDevices.find(d=>d.deviceId===settings.deviceId)?.label||
+       cameraDevices.find(d=>d.deviceId===selectedCameraId)?.label||'cámara trasera seleccionada';
+     // Iniciar prueba nueva: la historia anterior NO se elimina.
+     resetTest(false);
+     rearOneXStatus('Prueba preparada · '+label+' · '+zoomMessage+'. Mantén el comprobante a la misma distancia y observa si reconoce la O.F.','ready');
+     $('lens-status').textContent='Prueba 1× en curso. Puedes comparar con 2× desde este panel sin mover el teléfono.';
+   }catch(e){
+     rearOneXStatus('No se pudo preparar la prueba: '+String(e?.message||e).slice(0,150),'attention');
+   }finally{
+     cameraSwitching=false;rearOneXBusy=false;
+     $('test-rear-1x').disabled=false;
+     updateLensDiagnostics();
+     // Mostrar el dispositivo realmente activo, también tras un fallback.
+     if(cameraOn)refreshCameraList().catch(()=>{});
+   }
+ }
+
+ async function setupCameraAssist(){
+   if(!scanner||!cameraOn)return;
+   let capabilities={};let settings={};
+   try{capabilities=scanner.getRunningTrackCapabilities?.()||{};settings=scanner.getRunningTrackSettings?.()||{}}catch(_){ }
+   const video=document.querySelector('#camera video');
+   const width=settings.width||video?.videoWidth||0, height=settings.height||video?.videoHeight||0;
+   $('camera-info').textContent=width&&height?'Cámara: '+width+' × '+height+' píxeles · apunta al código completo.':'Lectura de barras optimizada · apunta al código completo.';
+   $('torch').hidden=!capabilities.torch;
+   // Intentar enfoque continuo solamente si la cámara declara soportarlo.
+   if(Array.isArray(capabilities.focusMode)&&capabilities.focusMode.includes('continuous')){
+     try{await scanner.applyVideoConstraints({advanced:[{focusMode:'continuous'}]})}catch(_){ }
+   }
+   const zoom=capabilities.zoom;
+   if(zoom&&Number.isFinite(zoom.min)&&Number.isFinite(zoom.max)&&zoom.max-zoom.min>=.2){
+     const minimum=Math.max(.5,zoom.min),maximum=Math.min(4,zoom.max);
+     if(maximum>minimum){
+       zoomLimits={min:minimum,max:maximum};
+       const control=$('zoom-range');control.min=String(minimum);control.max=String(maximum);control.step='0.1';
+       control.value=String(Math.min(maximum,Math.max(minimum,1)));
+       $('zoom-value').textContent=Number(control.value).toFixed(1)+'×';
+       $('zoom-controls').hidden=false;
+       // Encuadre amplio al iniciar: zoom 1× (o mínimo admitido), con ajuste manual opcional.
+       await applyZoom(Number(control.value));
+     }
+   }
+   updateLensDiagnostics();
+ }
+ async function startCamera(){
+   if(!canUse()||cameraOn||working)return;
+   if(!navigator.mediaDevices?.getUserMedia){status('Cámara no disponible. Abre Gestark en Safari o Chrome por HTTPS.','bad');return}
+   armScanBeep(); // Debe ejecutarse antes del primer await y dentro del toque del botón.
+   working=true;$('start-cam').disabled=true;status('Preparando cámara HD…');
+   try{
+     await loadScript(QR_LIB,'Html5Qrcode');
+     let lastError=null;scanner=null;
+     // Probar la cámara elegida y, si el dispositivo cambió o ya no existe, volver a la trasera automática.
+     const requestIds=selectedCameraId?[selectedCameraId,'']:[''];
+     let automaticFallback=false;
+     cameraSearch:for(const cameraId of requestIds){
+       for(const hd of [true,false]){
+         const candidate=new Html5Qrcode('camera',{formatsToSupport:cameraFormats(),useBarCodeDetectorIfSupported:true,verbose:false});
+         try{
+           const camera=cameraId?{deviceId:{exact:cameraId}}:{facingMode:'environment'};
+           await candidate.start(camera,cameraScanConfig(hd,cameraId),raw=>onDecode(raw,'principal'),()=>{});
+           scanner=candidate;
+           if(selectedCameraId&&!cameraId){selectedCameraId='';automaticFallback=true}
+           break cameraSearch;
+         }catch(e){
+           lastError=e;
+           try{await candidate.clear()}catch(_){ }
+           if(isPermissionError(e))break cameraSearch;
+         }
+       }
+     }
+     if(!scanner)throw lastError||new Error('No hay cámara disponible');
+     if(document.hidden){await stopCamera();return}
+     showCamera(true);
+     status(automaticFallback?'No se pudo utilizar la cámara elegida; se reanudó con la trasera automática.':'Escaneando · mantén las barras completas dentro de la guía.','ok');
+     await setupCameraAssist();
+     // La lista de dispositivos no debe retrasar ni detener la lectura HD+.
+     startFarScan();
+     refreshCameraList().catch(()=>{});
+   }catch(e){
+     console.warn('Lab scan',e);
+     status(isPermissionError(e)?'Permiso de cámara denegado. Revisa Ajustes.':'No fue posible abrir la cámara. Puedes ingresar un código o usar una foto.','bad');
+     stopFarScan();try{await scanner?.stop()}catch(_){ }try{await scanner?.clear()}catch(_){ }scanner=null;showCamera(false);
+   }finally{working=false;$('start-cam').disabled=cameraOn}
+ }
+ async function stopCamera(){
+   if(stopping)return;stopping=true;stopFarScan();clearTimeout(zoomTimer);zoomPending=null;
+   try{if(scanner){try{await scanner.stop()}catch(_){}try{await scanner.clear()}catch(_){}scanner=null}}finally{showCamera(false);stopping=false;status('Cámara apagada. La lista se conserva.')}
+ }
+ async function toggleTorch(){if(!cameraOn||!scanner)return;try{await scanner.applyVideoConstraints({advanced:[{torch:!flashOn}]});flashOn=!flashOn;$('torch').textContent=flashOn?'Apagar luz':'Linterna'}catch(_){toast('Linterna no disponible en esta cámara');$('torch').hidden=true}}
+ async function setPhoto(file){if(!file)return;if(!file.type.startsWith('image/')){ocrStatus('Selecciona una fotografía válida.','bad');return}
+   imageFile=file;if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=URL.createObjectURL(file);
+   $('photo-preview').src=imageUrl;$('photo-area').style.display='grid';$('photo-desc').textContent=file.name+' · La foto no se sube a Gestark';ocrStatus('Fotografía preparada. Puedes leer el código o solicitar OCR.');
+ }
+ async function readBarcodePhoto(){if(!canUse()||!imageFile)return;
+   const token=testGeneration,file=imageFile;ocrStatus('Buscando códigos de barras en la imagen…');
+   let reader=null;
+   try{await loadScript(QR_LIB,'Html5Qrcode');if(token!==testGeneration)return;const f=Html5QrcodeSupportedFormats;
+     reader=new Html5Qrcode('image-reader',{formatsToSupport:[f.CODE_128,f.CODE_39,f.ITF,f.EAN_13,f.EAN_8].filter(x=>x!==undefined),useBarCodeDetectorIfSupported:true,verbose:false});
+     const raw=await reader.scanFile(file,true);if(token!==testGeneration)return;const parsed=core.parseBarcode(raw);
+     if(parsed.valid){onValidCode(parsed,'fotografía');ocrStatus('Código identificado. Puedes reconocer el resto del texto si lo necesitas.','ok')}
+     else{ocrStatus('Se leyó un código, pero el patrón no permitió identificar la O.F.','bad');$('manual-code').value=raw}
+   }catch(e){if(token===testGeneration)ocrStatus('No se detectó un código legible en esta foto. Prueba con la cámara en vivo o con OCR.','bad')}
+   finally{try{await reader?.clear()}catch(_){} }
+ }
+ async function getImageCanvas(file){
+   const blobUrl=URL.createObjectURL(file);let img;
+   try{img=new Image();img.decoding='async';img.src=blobUrl;await img.decode();const scale=Math.min(1,1850/Math.max(img.naturalWidth,img.naturalHeight));const w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);return c}
+   finally{URL.revokeObjectURL(blobUrl)}
+ }
+ function applyText(text){const parsed=core.parseText(text);const fields=parsed.fields;
+   if(fields.order && $('field-order').value && fields.order!==$('field-order').value){
+     if(!confirm('El texto indica una O.F. diferente a la escaneada. ¿Deseas reemplazar los datos del formulario?')){const p=fields.order;fields.order='';ocrStatus('O.F. diferente: no se aplicó la información de esa fotografía.','bad');return}else clearData();
+   }
+   for(const k of FIELDS){if(fields[k])setField(k,fields[k])}
+   showSource('Texto '+fields.source+' · revisar');
+   if(fields.order)saveEntry({of:fields.order},'texto OCR');
+   updateRutWarnings();ocrStatus('Extraídos '+parsed.found.length+' campos. Revisa y corrige nombres, RUT y fecha.','ok');toast('Extracción completada · revisar datos');
+ }
+ async function runOCR(){if(!canUse()||!imageFile||ocrBusy)return;ocrBusy=true;$('photo-ocr').disabled=true;
+   const token=testGeneration,file=imageFile;
+   try{
+     ocrStatus('Cargando motor OCR en el dispositivo. La primera vez puede tardar…');
+     const lib=await loadScript(OCR_LIB,'Tesseract');if(token!==testGeneration)return;
+     if(!ocrWorker){ocrWorker=await lib.createWorker('spa',1,{logger:m=>{if(!m||token!==testGeneration)return;const percent=typeof m.progress==='number'?' '+Math.round(m.progress*100)+'%':'';ocrStatus('OCR: '+String(m.status||'procesando')+percent)}})}
+     if(token!==testGeneration)return;
+     const canvas=await getImageCanvas(file);if(token!==testGeneration)return;
+     const ans=await ocrWorker.recognize(canvas);if(token!==testGeneration)return;
+     const extracted=ans.data?.text||'';$('ocr-text').value=extracted;
+     if(!extracted.trim()){ocrStatus('No se detectó texto. Acerca la cámara y evita reflejos.','bad');return}
+     applyText(extracted);
+   }catch(e){console.error('OCR Gestark',e);if(token===testGeneration)ocrStatus('No se pudo completar el OCR. Conexión o memoria insuficiente; puedes ingresar datos a mano.','bad')}
+   finally{ocrBusy=false;$('photo-ocr').disabled=false}
+ }
+ function updateRutWarnings(){const vals=values();const messages=[];for(const [key,label] of [['rut','RUT destinatario'],['rutRetriever','RUT quien retira']]){const check=core.validateRut(vals[key]);if(check===false)messages.push(label+': dígito verificador no válido o dato incompleto')}const el=$('rut-warning');el.textContent=messages.length?'⚠ '+messages.join('. '):'';el.style.color=messages.length?'#a23f38':'#6b8577'}
+ function prepareSign(){signatureCanvas=$('signature');const resize=()=>{
+   const url=signed?signatureCanvas.toDataURL('image/png'):null;
+   const rect=signatureCanvas.getBoundingClientRect();const scale=Math.min(window.devicePixelRatio||1,2.5);
+   signatureCanvas.width=Math.round(rect.width*scale);signatureCanvas.height=Math.round(rect.height*scale);
+   sigCtx=signatureCanvas.getContext('2d');sigCtx.setTransform(scale,0,0,scale,0,0);sigCtx.lineWidth=2.1;sigCtx.lineCap='round';sigCtx.lineJoin='round';sigCtx.strokeStyle='#174b3b';
+   if(url){const im=new Image();im.onload=()=>sigCtx.drawImage(im,0,0,rect.width,rect.height);im.src=url}
+ };
+   requestAnimationFrame(resize);
+   let rr;window.addEventListener('resize',()=>{clearTimeout(rr);rr=setTimeout(resize,220)});
+   function pos(e){const r=signatureCanvas.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
+   signatureCanvas.addEventListener('pointerdown',e=>{if(!canUse())return;penDown=true;signed=true;signatureCanvas.setPointerCapture(e.pointerId);const p=pos(e);sigCtx.beginPath();sigCtx.moveTo(p.x,p.y);sigCtx.lineTo(p.x+.02,p.y+.02);sigCtx.stroke()});
+   signatureCanvas.addEventListener('pointermove',e=>{if(!penDown)return;const p=pos(e);sigCtx.lineTo(p.x,p.y);sigCtx.stroke()});
+   ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>signatureCanvas.addEventListener(ev,()=>penDown=false));
+ }
+ function clearSign(){if(signatureCanvas&&sigCtx){sigCtx.clearRect(0,0,signatureCanvas.width,signatureCanvas.height)}signed=false}
+ async function hashString(s){if(!crypto.subtle)return '';const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+ async function exportPdf(){const data=values();
+   if(!confirmedRecord||confirmedRecord.of!==data.order||!signed){pdfStatus('Primero confirma la entrega con firma y descarga el PDF antes de limpiar los campos.','bad');return}
+   if(!/^\d{9}$/.test(data.order)){pdfStatus('Ingresa una O.F. de 9 dígitos antes de generar el PDF.','bad');$('field-order').focus();return}
+   pdfStatus('Preparando registro interno de contingencia…');$('export-pdf').disabled=true;
+   try{await loadScript(PDF_LIB,'jspdf');const PDF=window.jspdf?.jsPDF;if(!PDF)throw new Error('No hay PDF');
+     const doc=new PDF({unit:'mm',format:'a4',compress:true});const gray=[74,94,83],green=[15,97,69];const now=new Date();
+     doc.setFillColor(...green);doc.rect(0,0,210,39,'F');doc.setFont('helvetica','bold');doc.setFontSize(17);doc.setTextColor(255);doc.text('Gestark | Entregas contingentes',15,16);doc.setFontSize(10);doc.text('REGISTRO INTERNO - NO OFICIAL STARKEN',15,25);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('Entrega local: '+fmtDate(confirmedRecord.at),15,32);
+     doc.setTextColor(20,45,35);doc.setFont('helvetica','bold');doc.setFontSize(13);doc.text('Orden / receptor / firma',15,51);
+     let y=61;doc.setFontSize(9);const lab={order:'Orden de flete',pieces:'Bultos / encargos',name:'Destinatario / receptor',rut:'RUT destinatario',retriever:'Persona que retira',rutRetriever:'RUT de quien retira',address:'Dirección',destination:'Destino',origin:'Origen',deliveryType:'Tipo de entrega',issued:'Fecha de emisión',delivered:'Fecha de entrega impresa',time:'Hora impresa',payment:'Tipo de pago',amount:'Monto',weight:'Peso'};
+     const clip=(x)=>doc.splitTextToSize(String(x),115);
+     for(const k of FIELDS){if(!data[k])continue;if(y>232){doc.addPage();y=24}doc.setTextColor(...gray);doc.setFont('helvetica','normal');doc.text(lab[k]+':',16,y);doc.setTextColor(17,50,34);doc.setFont('helvetica','bold');const lines=clip(data[k]);doc.text(lines,79,y);y+=Math.max(7,lines.length*5+2)}
+     if(y>223){doc.addPage();y=24}y+=5;doc.setDrawColor(200,218,207);doc.line(15,y,195,y);y+=10;
+     doc.setFontSize(9);doc.setTextColor(...gray);doc.setFont('helvetica','bold');doc.text('Firma declarada por receptor',15,y);y+=5;
+     if(signed){const png=signatureCanvas.toDataURL('image/png');doc.addImage(png,'PNG',15,y,88,35)}else{doc.setFont('helvetica','normal');doc.text('Sin firma',15,y+10)}
+     if(y+43>250){doc.addPage();y=24}
+     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...gray);
+     doc.text('Registro: '+confirmedRecord.id,15,y+36);
+     doc.text('Operador: '+(operatorName||currentUser)+'  |  Lugar: '+confirmedRecord.site.slice(0,50),15,y+41);
+     doc.text('Motivo: '+confirmedRecord.reason+'  |  Estado: PENDIENTE DE REGULARIZAR',15,y+46);
+     const digest=await hashString(JSON.stringify(data)+confirmedRecord.id+new Date(confirmedRecord.at).toISOString()+(signed?signatureCanvas.toDataURL('image/png'):''));
+     if(y+68>271){doc.addPage();y=24}
+     doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(90);doc.text('Huella de datos capturados (no certifica el PDF ni la identidad):',15,y+58);doc.text(digest||'No disponible',15,y+63);
+     doc.setFillColor(245,247,243);doc.rect(12,276,186,12,'F');doc.setTextColor(105,61,32);doc.setFontSize(8);doc.text('REGISTRO INTERNO. PENDIENTE DE REGULARIZAR EN EL SISTEMA AUTORIZADO.',16,283);
+     doc.save('Gestark_entrega_contingencia_OF_'+data.order+'.pdf');pdfStatus('PDF interno descargado. Debe regularizarse en Starken.','ok');toast('PDF descargado ✓');
+   }catch(e){console.error('PDF Gestark',e);pdfStatus('No se pudo generar PDF. Comprueba la conexión y vuelve a intentar.','bad')}
+   finally{$('export-pdf').disabled=false}
+ }
+
+ // IMPORTANTE: una lectura de código NO equivale a una entrega.
+ // El historial persistido nunca contiene nombres, RUT, fotos ni firmas.
+ function resetConfirmation(){
+   confirmedRecord=null;
+   const check=$('reg-physical');if(check)check.checked=false;
+   const feedback=$('reg-feedback');if(feedback){feedback.className='stat';feedback.textContent='Aún no se ha confirmado una entrega.'}
+   const button=$('export-pdf');if(button)button.disabled=true;
+ }
+ function loadDeliveryRecords(){
+   try{const a=JSON.parse(localStorage.getItem(DELIVERY_STORAGE)||'[]');
+     return Array.isArray(a)?a.filter(x=>x&&/^\d{9}$/.test(x.of)&&typeof x.id==='string'&&Number.isFinite(x.at)&&typeof x.status==='string').slice(-MAX):[]}
+   catch(_){return []}
+ }
+ function persistDeliveryRecords(next){
+   try{localStorage.setItem(DELIVERY_STORAGE,JSON.stringify(next));deliveryRecords=next;renderDeliveryRecords();return true}
+   catch(_){$('reg-feedback').textContent='No fue posible guardar localmente. Libera espacio antes de continuar.';$('reg-feedback').className='stat bad';return false}
+ }
+ function fmtDate(t){return new Date(t).toLocaleString('es-CL',{timeZone:'America/Santiago'})}
+ function makeRecordId(){
+   try{if(crypto.randomUUID)return 'CONT-'+crypto.randomUUID().toUpperCase()}
+   catch(_){}
+   const b=new Uint8Array(12);crypto.getRandomValues(b);
+   return 'CONT-'+Array.from(b,x=>x.toString(16).padStart(2,'0')).join('').toUpperCase();
+ }
+ function validReceiver(){
+   const data=values();const name=(data.retriever||data.name).trim();const rut=(data.rutRetriever||data.rut).trim();
+   return {data,name,rut,hasValidRut:core.validateRut(rut)===true};
+ }
+ function registerDelivery(){
+   if(!canUse())return;
+   const of=$('field-order').value.trim();
+   if(!/^\d{9}$/.test(of)){regStatus('Primero identifica y verifica una O.F. de nueve dígitos.','bad');$('field-order').focus();return}
+   const {name,rut,hasValidRut}=validReceiver();
+   if(!name){regStatus('Completa el nombre de quien recibe la encomienda.','bad');$('field-name').focus();return}
+   if(!rut||!hasValidRut){regStatus('Revisa el RUT de quien recibe: debe contener un dígito verificador válido.','bad');$('field-rut').focus();return}
+   if(!signed){regStatus('Se requiere la firma del receptor para confirmar el registro.','bad');$('signature').scrollIntoView({behavior:'smooth',block:'center'});return}
+   if(!$('reg-site').value.trim()){regStatus('Indica el punto de entrega.','bad');$('reg-site').focus();return}
+   if(!$('reg-reason').value){regStatus('Selecciona el motivo de contingencia.','bad');return}
+   if($('reg-reason').value==='Otro'&&!$('reg-notes').value.trim()){
+     regStatus('Para el motivo «Otro», explica brevemente la contingencia.','bad');$('reg-notes').focus();return;
+   }
+   if(!$('reg-physical').checked){regStatus('Debes confirmar expresamente la entrega física.','bad');return}
+   if(deliveryRecords.some(x=>x.of===of)){
+     regStatus('La O.F. '+of+' ya tiene un registro de entrega en este dispositivo; revisa el historial antes de continuar.','bad');return;
+   }
+   const newRecord={id:makeRecordId(),of,at:Date.now(),user:currentUser,status:'pending',reason:$('reg-reason').value,site:$('reg-site').value.trim().slice(0,90)};
+   if(!persistDeliveryRecords([...deliveryRecords,newRecord]))return;
+   confirmedRecord=newRecord;$('export-pdf').disabled=false;
+   regStatus('Registrada localmente: O.F. '+of+' · '+fmtDate(newRecord.at)+' · pendiente de regularización. Descarga el PDF ahora.','ok');
+   toast('Entrega registrada localmente ✓');
+ }
+ function regStatus(message,kind=''){const el=$('reg-feedback');if(el){el.textContent=message;el.className='stat '+kind}}
+ function renderDeliveryRecords(){
+   const root=$('reg-history'),pending=deliveryRecords.filter(r=>r.status==='pending');
+   $('reg-count').textContent=String(pending.length);
+   $('reg-copy').disabled=!pending.length;
+   $('reg-clear').disabled=!deliveryRecords.some(r=>r.status==='regularized');
+   root.replaceChildren();
+   if(!deliveryRecords.length){const div=document.createElement('div');div.className='empty';div.textContent='No hay entregas confirmadas en este dispositivo.';root.append(div);return}
+   const fragment=document.createDocumentFragment();
+   for(const entry of [...deliveryRecords].reverse()){
+     const row=document.createElement('div');row.className='mini-row';
+     const detail=document.createElement('div');detail.style.flex='1';
+     const of=document.createElement('span');of.className='code';of.textContent=entry.of;
+     const meta=document.createElement('small');meta.textContent=fmtDate(entry.at)+' · '+entry.user;
+     const state=document.createElement('span');state.className='delivery-status'+(entry.status==='regularized'?' done':'');
+     state.textContent=entry.status==='regularized'?'Regularizada manualmente':'Pendiente de regularizar';
+     detail.append(of,meta,state);row.append(detail);
+     if(entry.status==='pending'){
+       const mark=document.createElement('button');mark.className='micro';mark.type='button';mark.textContent='Regularizada';
+       mark.dataset.action='regularize';mark.dataset.id=entry.id;mark.setAttribute('aria-label','Marcar O.F. '+entry.of+' como regularizada');row.append(mark)
+     }
+     fragment.append(row)
+   }
+   root.append(fragment);
+ }
+ async function copyPendingDeliveries(){
+   const pending=deliveryRecords.filter(x=>x.status==='pending');
+   if(!pending.length)return;
+   const content=['OF\tFecha y hora (Chile)\tUsuario\tIdentificador local\tEstado']
+     .concat(pending.map(x=>[x.of,fmtDate(x.at),x.user,x.id,'Pendiente de regularización'].join('\t'))).join('\n');
+   toast(await copyText(content)?'Pendientes copiados para Excel':'No se pudo copiar');
+ }
+ function markRegularized(id){
+   const rec=deliveryRecords.find(x=>x.id===id&&x.status==='pending');if(!rec)return;
+   if(!confirm('¿Confirmas que la O.F. '+rec.of+' YA fue regularizada en el sistema oficial de Starken? Gestark no envía ni verifica estos datos.'))return;
+   const next=deliveryRecords.map(x=>x.id===id?{...x,status:'regularized',regularizedAt:Date.now()}:x);
+   if(persistDeliveryRecords(next))toast('Marcada como regularizada manualmente');
+ }
+
+ function init(){if(active)return;active=true;
+   entries=loadEntries();deliveryRecords=loadDeliveryRecords();renderEntries();renderDeliveryRecords();
+   $('workspace').hidden=false;prepareSign();resetConfirmation();
+   $('reg-operator').value=operatorName||currentUser;
+   $('reg-save').addEventListener('click',registerDelivery);
+   $('reg-copy').addEventListener('click',copyPendingDeliveries);
+   $('reg-history').addEventListener('click',e=>{const action=e.target.closest('[data-action="regularize"]');if(action)markRegularized(action.dataset.id)});
+   $('reg-clear').addEventListener('click',()=>{
+      if(!confirm('¿Eliminar solamente los registros ya marcados como regularizados? No podrán recuperarse.'))return;
+      if(persistDeliveryRecords(deliveryRecords.filter(x=>x.status!=='regularized')))toast('Regularizadas eliminadas del dispositivo');
+   });
+   $('test-beep').addEventListener('click',testScanBeep);
+    $('start-cam').addEventListener('click',startCamera);$('stop-cam').addEventListener('click',stopCamera);$('clear-test').addEventListener('click',()=>resetTest(false));$('torch').addEventListener('click',toggleTorch);
+   $('lens-refresh').addEventListener('click',refreshCameraList);
+   $('lens-device').addEventListener('change',switchCameraFromPanel);
+   $('lens-zoom-1').addEventListener('click',()=>compareLensZoom(1));
+   $('lens-zoom-2').addEventListener('click',()=>compareLensZoom(2));
+   $('test-rear-1x').addEventListener('click',tryRearCameraOneX);
+   $('zoom-range').addEventListener('input',e=>requestZoom(e.target.value));$('zoom-range').addEventListener('change',e=>requestZoom(e.target.value,true));$('zoom-reset').addEventListener('click',()=>{if(zoomLimits){const v=Math.max(zoomLimits.min,Math.min(zoomLimits.max,1));$('zoom-range').value=String(v);requestZoom(v,true)}});
+   // Cargar el motor en momentos ociosos para reducir la espera al tocar 'Iniciar cámara'.
+   const warm=()=>loadScript(QR_LIB,'Html5Qrcode').catch(()=>{});
+   if('requestIdleCallback' in window)window.requestIdleCallback(warm,{timeout:2400});else setTimeout(warm,500);
+   $('manual-form').addEventListener('submit',e=>{e.preventDefault();const p=core.parseBarcode($('manual-code').value);if(!p.valid){status('Código no reconocido. Verifica su longitud (O.F.: nueve dígitos).','bad');return}onValidCode(p,'manual');$('manual-code').value=''});
+   $('take-photo').addEventListener('click',()=>$('photo-file').click());$('choose-photo').addEventListener('click',()=>$('gallery-file').click());$('photo-file').addEventListener('change',e=>setPhoto(e.target.files?.[0]));$('gallery-file').addEventListener('change',e=>setPhoto(e.target.files?.[0]));
+   $('photo-barcode').addEventListener('click',readBarcodePhoto);$('photo-ocr').addEventListener('click',runOCR);
+   $('parse-text').addEventListener('click',()=>{const str=$('ocr-text').value;if(!str.trim()){ocrStatus('Primero añade o reconoce texto.','bad');return}applyText(str)});
+   $('history').addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(!el)return;const of=el.dataset.of;if(el.dataset.action==='delete'){if(confirm('¿Eliminar la O.F. '+of+' de esta lista?'))storeEntries(entries.filter(x=>x.of!==of))}else if(el.dataset.action==='use'){if($('field-order').value&&$('field-order').value!==of)clearData();setField('order',of);toast('O.F. seleccionada')}});
+   $('copy-history').addEventListener('click',async()=>toast(await copyText(entries.map(x=>x.of).join('\n'))?'Lista copiada para Excel':'No se pudo copiar'));
+   $('clear-history').addEventListener('click',()=>{if(confirm('¿Borrar las '+entries.length+' O.F. leídas de este dispositivo? Esto no elimina las entregas confirmadas.'))storeEntries([])});
+   $('clear-sign').addEventListener('click',clearSign);$('clear-form').addEventListener('click',()=>resetTest(true));
+   $('export-pdf').addEventListener('click',exportPdf);$('field-rut').addEventListener('input',updateRutWarnings);$('field-rutRetriever').addEventListener('input',updateRutWarnings);
+ }
+ document.addEventListener('gestark:ready',e=>{
+    const u=e.detail||{};
+    if(u.username){
+      currentUser=String(u.username).slice(0,30);
+      operatorName=String(u.name||u.username).slice(0,70);
+      STORAGE='gestark:contingency:reads:v1:'+currentUser;
+      DELIVERY_STORAGE=DELIVERY_PREFIX+currentUser;
+      init();
+    }
+    else{$('gate').hidden=false;$('workspace').hidden=true}
+ });
+ window.addEventListener('storage',e=>{
+     if(!active)return;
+     if(e.key===STORAGE){entries=loadEntries();renderEntries()}
+     if(e.key===DELIVERY_STORAGE){deliveryRecords=loadDeliveryRecords();renderDeliveryRecords()}
+ });
+ document.addEventListener('visibilitychange',()=>{if(document.hidden&&cameraOn)stopCamera()});
+ window.addEventListener('pagehide',()=>{if(cameraOn||scanner)stopCamera();if(imageUrl)URL.revokeObjectURL(imageUrl);if(ocrWorker)ocrWorker.terminate().catch(()=>{})});
+})();

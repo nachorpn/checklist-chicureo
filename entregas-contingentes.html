@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#116b4b">
+<meta name="robots" content="noindex,nofollow">
+<title>Gestark · Entregas contingentes</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#193b30;background:#f4f7f5;--green:#127451;--line:#dde9e1;--muted:#678073}*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}button,input,textarea,select{font:inherit}button,a{-webkit-tap-highlight-color:transparent;touch-action:manipulation}button{cursor:pointer}button:disabled{opacity:.5;cursor:default}
+header{background:linear-gradient(125deg,#0c4c3e 0%,#137d58 100%);color:white;border-radius:0 0 22px 22px;padding:15px 16px 20px}.wrap{max-width:850px;margin:0 auto}.back{font-size:12px;color:#d9f9ec;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:5px;min-height:31px}.headrow{display:flex;align-items:center;justify-content:space-between;gap:8px}h1{font-size:25px;line-height:1.16;margin:7px 0 4px;letter-spacing:-.5px}.headlead{font-size:13px;line-height:1.5;color:#def2e8;margin:0}.pill{display:inline-flex;background:#e7f0ff;color:#254c86;font-weight:800;font-size:10px;padding:6px 8px;border-radius:9px;white-space:nowrap}.badge{font-size:11px;font-weight:800;color:#176348;background:#e4f4e8;padding:5px 9px;border-radius:99px}.tag{font-size:11px;color:#5d7369;font-weight:700}.notice{font-size:12px;line-height:1.5;background:#fffbea;border:1px solid #f0df9e;border-radius:12px;padding:11px 12px;color:#70591c}.notice strong{color:#4b3b11}
+main{padding:15px 13px calc(102px + env(safe-area-inset-bottom));max-width:850px;margin:auto;display:grid;gap:12px}main[hidden]{display:none!important}.columns{display:grid;gap:12px}.card{background:white;border:1px solid var(--line);border-radius:17px;padding:15px;box-shadow:0 3px 14px #113b2909}.card h2{font-size:16px;margin:0;line-height:1.35;letter-spacing:-.15px}.card h3{font-size:13px;margin:0 0 10px}.meta{font-size:12px;color:var(--muted);line-height:1.5;margin:5px 0 0}.cardhead{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:12px}.btnrow{display:flex;gap:8px;flex-wrap:wrap}.btn{min-height:42px;border:0;border-radius:11px;padding:10px 13px;font-size:13px;font-weight:760;display:inline-flex;align-items:center;justify-content:center;gap:7px;line-height:1.25}.btn.primary{background:var(--green);color:white}.btn.soft{background:#e9f4ed;color:#246449}.btn.outline{background:#fff;color:#256a51;border:1px solid #cadfd2}.btn.danger{background:#fff0f0;color:#a43c3c}.btn.flex{flex:1}.btn.full{width:100%}.barcode-viewport{border:1px dashed #accbb9;border-radius:13px;background:#f2f8f4;min-height:220px;overflow:hidden;position:relative;display:block;text-align:center;color:#5a7968}.barcode-viewport .empty-camera{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:12px;padding:13px;min-height:220px}.barcode-viewport svg{width:48px;height:48px}.barcode-viewport #camera{width:100%;min-height:240px;display:none;background:#10251b;overflow:hidden}.barcode-viewport #camera>div{max-width:100%!important}.barcode-viewport #camera video{display:block;width:100%!important;height:clamp(245px,65vw,410px)!important;min-height:0!important;max-height:none!important;object-fit:cover!important;object-position:center center;background:#10251b}.barcode-viewport #camera canvas{max-width:100%}#image-reader{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}.lastread{margin-top:11px;border:1px solid #d3e8da;border-radius:11px;background:#f2fbf5;padding:11px;display:none}.lastread strong{font:800 22px ui-monospace,monospace;letter-spacing:1px}.lastread small{display:block;margin-top:4px;color:#47745c;font-size:11px}.stat{font-size:12px;color:#547665;min-height:20px;margin:10px 0 0;line-height:1.5}.stat.bad{color:#aa3c36}.stat.ok{color:#157a53}
+label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5px}.fieldgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fieldgrid .wide{grid-column:1/-1}input[type=text],input[type=tel],input[type=number],textarea{display:block;width:100%;min-width:0;border:1px solid #c9dbd0;border-radius:10px;background:#fcfdfc;padding:10px 11px;min-height:43px;color:#203e2f;font-size:16px;outline-offset:2px}textarea{resize:vertical;min-height:105px;font-size:13px;line-height:1.5}input:focus,textarea:focus{border-color:#248c63}details>summary{font-size:13px;font-weight:800;cursor:pointer;padding:9px 0;color:#255941}details>.fieldgrid{padding-top:8px}.fine{font-size:11px;color:#73897b;line-height:1.45}.source{font-size:11px;color:#41695a;font-weight:760}.preview-box{background:#f5f8f6;padding:10px;border:1px dashed #cbdad0;border-radius:11px;display:none;gap:8px}#photo-preview{display:block;max-width:100%;max-height:250px;margin:auto;object-fit:contain;border-radius:9px}.photodesc{font-size:11px;color:var(--muted)}.mini-list{margin:9px 0 0;display:grid;gap:0}.mini-row{display:flex;align-items:center;gap:8px;justify-content:space-between;border-bottom:1px solid #eef2ee;padding:9px 0}.mini-row:last-child{border-bottom:0}.mini-row .code{font:800 14px ui-monospace,monospace;word-break:break-word}.mini-row small{display:block;color:#769082;margin-top:3px;font-size:10px}.micro{font-size:11px;min-height:34px;padding:6px 8px;border:1px solid #d5e6d9;border-radius:8px;background:#fafdfa;color:#285842;font-weight:750}.empty{padding:17px 7px;text-align:center;color:#80958b;font-size:12px}.signature{border:1px solid #d2dfd6;border-radius:11px;overflow:hidden;background:#fff;position:relative;touch-action:none}#signature{display:block;width:100%;height:160px;touch-action:none;cursor:crosshair}.line{position:absolute;left:12px;right:12px;bottom:24px;border-top:1px solid #e4ebe5;pointer-events:none}.sig-note{font-size:11px;color:var(--muted);margin:7px 0 10px}.toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#194334;color:white;border-radius:11px;padding:10px 16px;opacity:0;z-index:1000;pointer-events:none;transition:opacity .15s;font-size:12px;white-space:nowrap;max-width:90vw;text-overflow:ellipsis;overflow:hidden}.toast.visible{opacity:1}.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:99;background:#ffffffeb;border-top:1px solid #dce9e1;backdrop-filter:blur(16px);display:flex;align-items:stretch;justify-content:space-around;padding:6px 8px calc(6px + env(safe-area-inset-bottom));gap:5px}.bottom-nav a{min-height:53px;display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;font-weight:700;color:#667e70;font-size:10px;border-radius:12px}.bottom-nav a.current{background:#e7f4ec;color:#137951}.bottom-nav svg{height:20px;width:20px}.gate{padding:38px 18px;text-align:center}.gate[hidden]{display:none}
+@media(min-width:720px){main{grid-template-columns:1fr 1fr}.full{grid-column:1/-1}.columns{grid-template-columns:1fr 1fr}.span{grid-column:1/-1}}@media(min-width:850px){.bottom-nav{max-width:850px;left:50%;transform:translateX(-50%);border-radius:15px 15px 0 0}}
+@media(max-width:360px){.card{padding:12px}.fieldgrid{gap:7px}.btn{padding:9px 10px;font-size:12px}}
+
+.camera-details{font-size:11px;color:#557668;line-height:1.45;margin:8px 0 0;min-height:15px}
+.zoom-controls{border:1px solid #d4e5d9;border-radius:12px;background:#f5faf6;padding:12px;margin-top:10px}
+.zoom-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.zoom-head label{margin:0;font-size:12px}.zoom-head output{font-size:13px;color:#136c4c;font-weight:800;font-variant-numeric:tabular-nums}
+.zoom-controls input[type=range]{width:100%;height:30px;accent-color:#127451;touch-action:auto;display:block;margin:8px 0 0;cursor:pointer}
+.zoom-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px;color:#708578}
+.zoom-foot button{padding:5px 9px;min-height:34px;font-size:11px}
+/* Prueba directa: cámara trasera manual con zoom 1×, sin cambiar ajustes permanentes. */
+.rear-1x-test{margin-top:10px;padding:10px;border:1px solid #c8e0d1;border-radius:12px;background:#f5faf7}
+.rear-1x-test button{width:100%;min-height:44px;color:#126245;font-weight:800}
+.rear-1x-status{margin:8px 2px 0;color:#526f5d;font-size:11px;line-height:1.5}
+.rear-1x-status[data-state=ready]{color:#136b49;font-weight:750}
+.rear-1x-status[data-state=attention]{color:#875c20}
+/* Diagnóstico opcional: no afecta el espacio de escaneo mientras permanece cerrado. */
+.lens-panel{margin-top:11px;border:1px solid #d5e5d9;border-radius:13px;background:#f7fbf8;padding:11px 12px}
+.lens-panel>summary{font-size:12px;font-weight:800;color:#236447;cursor:pointer;min-height:22px;line-height:1.45}
+.lens-panel[open]>summary{margin-bottom:9px}
+.lens-note{margin:6px 0 9px;color:#667f70;font-size:11px;line-height:1.5}
+.lens-panel select{display:block;width:100%;max-width:100%;padding:10px;border:1px solid #c8dcd0;border-radius:10px;background:#fff;color:#173e2e;font-size:14px;min-height:44px}
+.lens-grid{display:grid;grid-template-columns:1fr;gap:6px;background:#fff;border:1px solid #dbe7df;border-radius:9px;padding:10px;font-size:11px;line-height:1.5}
+.lens-grid strong{font-weight:750;color:#254e3c}
+.lens-grid span{overflow-wrap:anywhere;color:#4f6a5b}
+.lens-actions{margin-top:10px;gap:7px}
+.lens-actions .btn{min-height:38px;padding:7px 10px;font-size:11px}
+.lens-status{font-size:11px;line-height:1.5;color:#4e6f5c;margin:8px 0 0;min-height:17px}
+
+.lab-update-info{display:inline-block;margin:10px 0 0;color:#d9f2e7;font-size:11px;font-weight:650;letter-spacing:.08px;line-height:1.5;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.09);padding:6px 9px;border-radius:9px}
+
+
+/* Confirmación explícita de entregas; preserva estilos de cámara del laboratorio v15. */
+#reg-reason{width:100%;min-height:43px;border:1px solid #c9dbd0;border-radius:10px;background:#fcfdfc;color:#203e2f;padding:10px;font-size:14px}
+#reg-operator{background:#f2f6f3;color:#527260}
+.confirm-check{display:flex;align-items:flex-start;gap:11px;margin:15px 0;padding:13px;border:1px solid #c6dfd0;background:#f4faf6;border-radius:12px;color:#255340;font-size:13px;font-weight:620;line-height:1.5;cursor:pointer}
+.confirm-check input{width:19px;height:19px;flex:0 0 19px;margin:0;accent-color:#167a52}
+#reg-save{min-height:51px;font-size:14px}
+.delivery-status{display:inline-block;border-radius:7px;padding:3px 6px;background:#fff1df;color:#945a18;font-size:10px;font-weight:750}
+.delivery-status.done{background:#e8f7ec;color:#126748}
+@media(max-width:400px){.confirm-check{font-size:12px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+ <div class="headrow"><a href="./" class="back">‹ Inicio Gestark</a><span class="pill">REGISTRO INTERNO</span></div>
+ <h1>Entregas contingentes</h1><p class="headlead">Registro de recepción física durante una contingencia del sistema</p>
+ <p class="lab-update-info" id="lab-last-update">Última actualización de Entregas contingentes: 21/11/2026 · 18:08 h (Chile) · v2026.11.21.16</p>
+</div></header>
+<div id="gate" class="gate" hidden><h2>Acceso no habilitado</h2><p>Accede desde una cuenta habilitada de Gestark para utilizar este registro interno.</p><a href="./">Regresar al Inicio</a></div>
+<main id="workspace" hidden>
+  <section class="notice full"><strong>Registro interno de contingencia.</strong> El escaneo no confirma la entrega: primero deben revisarse los datos, la firma y la recepción física. Este módulo <strong>no está integrado con Starken</strong> y los registros pendientes deben regularizarse manualmente. Su uso con datos reales y el formato definitivo requieren autorización de la empresa. No reemplaza el comprobante oficial.</section>
+  <section class="card" aria-labelledby="scan-title">
+   <div class="cardhead"><div><h2 id="scan-title">1 · Identificar orden de flete</h2><p class="meta">Lectura HD por regiones con diagnóstico y respaldo automático. Una sola O.F. por comprobante.</p></div><span id="cam-badge" class="badge">Apagada</span></div>
+   <div class="barcode-viewport"><div class="empty-camera" id="cam-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7V4h4m8 0h4v3M4 17v3h4m8 0h4v-3M2 12h20M7 9v6m3-6v6m4-6v6m3-6v6"/></svg>Apunta al código de barras de la etiqueta o comprobante</div><div id="camera"></div></div>
+   <div class="btnrow" style="margin-top:10px"><button id="start-cam" class="btn primary flex" type="button">Iniciar cámara</button><button id="stop-cam" class="btn soft" type="button" disabled>Detener</button><button id="clear-test" class="btn outline" type="button" aria-label="Limpiar lectura actual para escanear otra orden">↻ Nueva lectura</button><button id="torch" class="btn outline" type="button" hidden>Linterna</button></div>
+    <div class="btnrow" style="margin-top:8px"><button id="test-beep" class="btn soft" type="button" aria-label="Escuchar pitido de pistola escáner">♫ Probar bip de escáner</button></div>
+    <p class="fine" style="margin:8px 0 0">Limpia la lectura, el formulario, la foto y la firma. Conserva el historial de O.F. y la cámara encendida.</p>
+   <p id="camera-info" class="camera-details" aria-live="polite"></p>
+   <p id="far-scan-info" class="camera-details" role="status" aria-live="polite">HD+: inicia la cámara para comprobar resolución y motor de lectura.</p>
+   <section class="zoom-controls" id="zoom-controls" aria-label="Ajustar zoom de cámara" hidden>
+     <div class="zoom-head"><label for="zoom-range">Acercar imagen sin mover el celular</label><output for="zoom-range" id="zoom-value">1.0×</output></div>
+     <input id="zoom-range" type="range" min="1" max="3" step="0.1" value="1" aria-label="Zoom de la cámara">
+     <div class="zoom-foot"><span>Prueba primero 1× para encuadrar ambos códigos; aumenta el zoom solo si es necesario.</span><button id="zoom-reset" class="btn outline" type="button">Restablecer</button></div>
+   </section>
+   <details id="lens-panel" class="lens-panel">
+     <summary>Configuración y diagnóstico de cámara</summary>
+    <div class="rear-1x-test" aria-label="Prueba de cámara trasera a uno por">
+      <button id="test-rear-1x" class="btn outline full" type="button">📷 Probar cámara trasera · 1×</button>
+      <p id="rear-1x-status" class="rear-1x-status" role="status" aria-live="polite">Selecciona la cámara trasera específica cuando Safari la identifique, aplica zoom 1× y limpia la prueba actual sin borrar el historial.</p>
+    </div>
+
+     <p class="lens-note">Esta herramienta identifica las cámaras que Safari permite seleccionar. El nombre mostrado puede corresponder a una cámara virtual: no confirma qué sensor físico ni si se activó macro.</p>
+     <div class="lens-grid" aria-live="polite">
+       <div><strong>Cámara activa: </strong><span id="lens-active">Inicia la cámara para ver los datos.</span></div>
+       <div><strong>Captura: </strong><span id="lens-resolution">—</span></div>
+       <div><strong>Zoom: </strong><span id="lens-zoom">—</span></div>
+       <div><strong>Enfoque: </strong><span id="lens-focus">—</span></div>
+     </div>
+     <label for="lens-device" style="margin-top:12px">Seleccionar cámara disponible (experimental)</label>
+     <select id="lens-device" aria-label="Cámara para probar">
+       <option value="">Automática · cámara trasera</option>
+     </select>
+     <div class="btnrow lens-actions">
+       <button id="lens-refresh" class="btn outline" type="button">Actualizar lista</button>
+       <button id="lens-zoom-1" class="btn soft" type="button" disabled>Probar 1×</button>
+       <button id="lens-zoom-2" class="btn soft" type="button" disabled>Probar 2×</button>
+     </div>
+     <p id="lens-status" class="lens-status" role="status" aria-live="polite">Primero inicia la cámara y concede el permiso. No se guardan identificadores de dispositivos.</p>
+   </details>
+   <div id="lastread" class="lastread"><span class="tag">ORDEN IDENTIFICADA</span><br><strong id="last-of"></strong><small id="last-type"></small></div>
+   <p id="scan-status" class="stat" role="status" aria-live="polite">Aún no se ha activado la cámara.</p>
+   <form id="manual-form" style="margin-top:10px"><label for="manual-code">Introducir código manualmente</label><div class="btnrow"><input id="manual-code" type="text" placeholder="O.F. de 9 dígitos o código largo" autocomplete="off" spellcheck="false" style="flex:1;min-width:150px"><button type="submit" class="btn soft">Identificar</button></div></form>
+  </section>
+  <section class="card" aria-labelledby="photo-title">
+   <div class="cardhead"><div><h2 id="photo-title">2 · Leer datos impresos</h2><p class="meta">Fotografía de la etiqueta o del comprobante. OCR opcional, más lento que el escáner.</p></div><span class="badge">En dispositivo</span></div>
+   <div class="btnrow"><button id="take-photo" type="button" class="btn primary flex">Abrir cámara de foto</button><button id="choose-photo" type="button" class="btn outline flex">Elegir imagen</button><input type="file" accept="image/*" capture="environment" id="photo-file" hidden><input type="file" accept="image/*" id="gallery-file" hidden></div>
+   <div id="photo-area" class="preview-box" style="margin-top:10px"><img id="photo-preview" alt="Vista previa de la fotografía seleccionada"><div class="photodesc" id="photo-desc">Foto cargada</div><div class="btnrow"><button id="photo-barcode" type="button" class="btn soft flex">Leer código de la foto</button><button id="photo-ocr" type="button" class="btn primary flex">Reconocer texto (OCR)</button></div></div>
+   <p id="ocr-status" class="stat" role="status" aria-live="polite">El OCR solo se ejecuta cuando lo solicitas; requiere descargar el motor la primera vez.</p>
+   <details style="margin-top:5px"><summary>Ver o corregir texto reconocido</summary><label for="ocr-text">Texto bruto de la fotografía</label><textarea id="ocr-text" placeholder="Aquí aparecerá el texto detectado. Puedes corregirlo o pegar texto manualmente."></textarea><button class="btn soft" id="parse-text" type="button" style="margin-top:8px">Extraer campos del texto</button></details>
+  </section>
+  <section class="card full" aria-labelledby="fields-title">
+   <div class="cardhead"><div><h2 id="fields-title">3 · Revisar datos del receptor</h2><p class="meta">Comprueba la O.F., la identidad y los datos de quien recibe antes de confirmar una entrega.</p></div><span class="source" id="source-label">Sin datos reconocidos</span></div>
+   <form id="data-form" autocomplete="off">
+    <div class="fieldgrid">
+      <div><label for="field-order">N.º orden de flete (O.F.) *</label><input id="field-order" name="order" type="text" inputmode="numeric" maxlength="9" placeholder="282189108" required></div>
+      <div><label for="field-pieces">Bulto / encargos</label><input id="field-pieces" name="pieces" type="text" maxlength="25" placeholder="001 / 001"></div>
+      <div class="wide"><label for="field-name">Nombre destinatario / receptor</label><input id="field-name" name="name" type="text" maxlength="95" placeholder="Nombre según documento"></div>
+      <div><label for="field-rut">RUT destinatario</label><input id="field-rut" name="rut" type="text" maxlength="17" placeholder="12.345.678-5"></div>
+      <div><label for="field-retriever">Persona que retira</label><input id="field-retriever" name="retriever" type="text" maxlength="95" placeholder="Si es diferente"></div>
+      <div class="wide"><label for="field-address">Dirección</label><input id="field-address" name="address" type="text" maxlength="120" placeholder="Dirección impresa"></div>
+    </div>
+    <p id="rut-warning" class="fine" style="margin:8px 0 0" aria-live="polite"></p>
+    <details><summary>Más datos del comprobante</summary><div class="fieldgrid">
+      <div><label for="field-rutRetriever">RUT de quien retira</label><input id="field-rutRetriever" name="rutRetriever" type="text"></div>
+      <div><label for="field-origin">Origen</label><input id="field-origin" name="origin" type="text"></div>
+      <div><label for="field-destination">Destino</label><input id="field-destination" name="destination" type="text"></div>
+      <div><label for="field-deliveryType">Tipo de entrega</label><input id="field-deliveryType" name="deliveryType" type="text"></div>
+      <div><label for="field-issued">Fecha emisión</label><input id="field-issued" name="issued" type="text"></div>
+      <div><label for="field-delivered">Fecha entrega impresa</label><input id="field-delivered" name="delivered" type="text"></div>
+      <div><label for="field-time">Hora entrega impresa</label><input id="field-time" name="time" type="text"></div>
+      <div><label for="field-payment">Tipo de pago</label><input id="field-payment" name="payment" type="text"></div>
+      <div><label for="field-amount">Monto</label><input id="field-amount" name="amount" type="text"></div>
+      <div><label for="field-weight">Peso</label><input id="field-weight" name="weight" type="text"></div>
+    </div></details>
+   </form>
+   <p class="fine">La fecha y la identidad no se verifican automáticamente con el sistema central. El texto leído por OCR puede contener errores.</p>
+  </section>
+  <section class="card" aria-labelledby="sign-title">
+   <div class="cardhead"><div><h2 id="sign-title">4 · Firma de recepción</h2><p class="meta">La persona que recibe firma en pantalla después de verificar la O.F.</p></div></div>
+   <div class="signature"><canvas id="signature" aria-label="Área de firma con el dedo"></canvas><div class="line"></div></div>
+   <p class="sig-note">La firma es necesaria para confirmar el registro. Por sí sola no acredita identidad ni sustituye los controles corporativos.</p>
+   <div class="btnrow"><button id="clear-sign" class="btn soft flex" type="button">Limpiar firma</button><button id="clear-form" class="btn outline flex" type="button">Nueva orden</button></div>
+  </section>
+
+  <section class="card full" aria-labelledby="confirm-title">
+    <div class="cardhead"><div><h2 id="confirm-title">5 · Confirmar entrega física</h2><p class="meta">Acción expresa: escanear una O.F. no registra una entrega.</p></div></div>
+    <div class="fieldgrid">
+      <div class="wide"><label for="reg-site">Punto de entrega</label><input id="reg-site" type="text" value="Sucursal Chicureo" maxlength="90" required></div>
+      <div><label for="reg-reason">Motivo de contingencia</label>
+        <select id="reg-reason" required><option value="Sistema no disponible">Sistema no disponible</option><option value="Falla de conectividad">Falla de conectividad</option><option value="Otro">Otro (detallar)</option></select></div>
+      <div><label for="reg-operator">Operador de Gestark</label><input id="reg-operator" type="text" readonly aria-readonly="true"></div>
+      <div class="wide"><label for="reg-notes">Observación de contingencia (no incluir datos sensibles)</label><input id="reg-notes" type="text" maxlength="100" placeholder="Opcional; no se guarda en historial"></div>
+    </div>
+    <label class="confirm-check" for="reg-physical"><input id="reg-physical" type="checkbox"> Confirmo que la encomienda identificada fue entregada físicamente a la persona indicada, que revisé su identidad mediante el procedimiento autorizado y que aceptó firmar.</label>
+    <button id="reg-save" class="btn primary full" type="button">Confirmar entrega en contingencia</button>
+    <p id="reg-feedback" class="stat" role="status" aria-live="polite">Aún no se ha confirmado una entrega.</p>
+    <p class="fine">El registro solo queda en este dispositivo. No se comunica ni acredita automáticamente la entrega en los sistemas de Starken.</p>
+  </section>
+  <section class="card" aria-labelledby="export-title">
+   <div class="cardhead"><div><h2 id="export-title">6 · Descargar registro interno</h2><p class="meta">Disponible después de confirmar la entrega. Descarga el PDF antes de cerrar: la firma no se guarda en el historial.</p></div></div>
+   <button class="btn primary full" id="export-pdf" type="button" disabled>Descargar constancia interna PDF</button>
+   <p id="pdf-status" class="stat" role="status" aria-live="polite"></p>
+   <p class="notice"><strong>Documento interno:</strong> se genera localmente y no sustituye el comprobante oficial ni garantiza por sí solo la identidad o entrega. La fotografía original no se adjunta al PDF.</p>
+  </section>
+
+  <section class="card full" aria-labelledby="reg-history-title">
+    <div class="cardhead"><div><h2 id="reg-history-title">7 · Entregas pendientes de regularizar</h2><p class="meta">Solo números de O.F., fecha, usuario e identificador local. La regularización en Starken se realiza por separado.</p></div><span id="reg-count" class="badge">0</span></div>
+    <div id="reg-history" class="mini-list"><div class="empty">No hay entregas confirmadas en este dispositivo.</div></div>
+    <div class="btnrow" style="margin-top:12px"><button id="reg-copy" class="btn primary flex" type="button" disabled>Copiar pendientes a Excel</button><button id="reg-clear" class="btn danger" type="button" disabled>Eliminar regularizadas</button></div>
+    <p class="fine">«Regularizada» se marca manualmente después de verificar la gestión en el sistema autorizado; Gestark no la sincroniza.</p>
+  </section>
+  <section class="card full" aria-labelledby="history-title">
+    <div class="cardhead"><div><h2 id="history-title">O.F. leídas (no entregadas)</h2><p class="meta">Historial técnico de escaneos. Una O.F. leída NO significa que se haya entregado.</p></div><span class="badge" id="total">0</span></div>
+    <div id="history" class="mini-list"><div class="empty">No hay órdenes guardadas.</div></div>
+    <div class="btnrow" style="margin-top:12px"><button id="copy-history" class="btn primary flex" disabled>Copiar O.F. para Excel</button><button id="clear-history" class="btn danger" disabled>Borrar lista</button></div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<nav class="bottom-nav" aria-label="Navegación Gestark">
+<a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 10 9-7 9 7v10H3zM9 21v-8h6v8"/></svg>Inicio</a>
+<a href="./escaner.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8V4h4m8 0h4v4M4 16v4h4m8 0h4v-4M2 12h20"/></svg>Escáner</a>
+<a class="current" href="./entregas-contingentes.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6m-5 0v6L5 18a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3L14 9V3M8 15h8"/></svg>Entregas</a>
+</nav>
+<script>
+(()=>{
+  const el=document.getElementById('lab-last-update');
+  if(!el)return;
+  fetch('./gestark-version.json?consulta='+Date.now(),{cache:'no-store'})
+    .then(response=>{if(!response.ok)throw new Error('Versión no disponible');return response.json()})
+    .then(data=>{
+      const stamp=data.contingencyUpdatedAt;
+      if(typeof stamp!=='string')return;
+      const date=new Date(stamp);
+      if(!Number.isFinite(date.getTime()))return;
+      const formatted=new Intl.DateTimeFormat('es-CL',{
+        timeZone:'America/Santiago',day:'2-digit',month:'2-digit',year:'numeric',
+        hour:'2-digit',minute:'2-digit',hour12:false
+      }).format(date);
+      const version=String(data.contingencyVersion||data.version||'').replace(/[^0-9.]/g,'');
+      el.textContent='Última actualización de Entregas contingentes: '+formatted+' h (Chile)'+(version?' · v'+version:'');
+    }).catch(()=>{/* Sin conexión: mantener la fecha de publicación incluida en esta versión. */});
+})();
+</script>
+<script src="./laboratorio-core.js?v=2026.11.21.2"></script>
+<script src="./entregas-contingentes.js?v=2026.11.21.16"></script>
+<script>
+(()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?v=2';document.body.appendChild(a)};u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div style="padding:25px">No se pudo cargar acceso. Vuelve a Inicio.</div>')};document.body.appendChild(u)})();
+</script>
+<noscript>Gestark necesita JavaScript.</noscript>
+<script src="./gestark-updates.js?v=2026.11.21.16"></script>
+<script src="./gestark-pwa.js?v=2026.11.17.3"></script>
+</body></html>

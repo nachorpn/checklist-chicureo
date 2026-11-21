@@ -1,7 +1,9 @@
 {
-  "version": "2026.11.21.15",
+  "version": "2026.11.21.16",
   "name": "Gestark",
-  "changes": "Laboratorio: botón de prueba a 1× con cámara trasera seleccionada manualmente cuando Safari permite identificarla; muestra diagnóstico y limpia solamente la prueba actual. Mantiene HD+, beep, historial, OCR, firma y escáner general sin cambios.",
+  "changes": "Nuevo módulo Entregas contingentes: escáner aprobado v15, lectura de O.F., revisión, firma, confirmación explícita de recepción y registro local pendiente de regularización. Sin integración oficial Starken ni sincronización. Laboratorio y escáner general intactos.",
   "labVersion": "2026.11.21.15",
-  "labUpdatedAt": "2026-11-21T17:58:00-03:00"
+  "labUpdatedAt": "2026-11-21T17:58:00-03:00",
+  "contingencyVersion": "2026.11.21.16",
+  "contingencyUpdatedAt": "2026-11-21T18:08:00-03:00"
 }
