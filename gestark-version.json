@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.10",
+  "version": "2026.11.21.11",
   "name": "Gestark",
-  "changes": "Laboratorio: doble bip tipo pistola escáner (dos tonos agudos cortos), botón para escuchar una muestra, y una sola confirmación por O.F. sin duplicados. No modifica cámara, distancia, OCR, QR ni otros módulos.",
-  "labVersion": "2026.11.21.10",
-  "labUpdatedAt": "2026-11-21T16:58-03:00"
+  "changes": "Laboratorio: corrección del motor HD+ ZXing (API compatible), análisis a resolución real en cuatro regiones, lector principal sin recorte de 270 px y diagnóstico visible. Se conservan beep, deduplicación, OCR y firma. No modifica escáner general ni incorpora QR al Laboratorio.",
+  "labVersion": "2026.11.21.11",
+  "labUpdatedAt": "2026-11-21T17:09-03:00"
 }

@@ -1,0 +1,34 @@
+GESTARK · LABORATORIO · HD+ LECTURA A DISTANCIA
+Versión: 2026.11.21.11
+Preparado: 21/11/2026 · 17:09 h, horario de Chile
+
+MEJORAS INCLUIDAS
+- CORRECCIÓN IMPORTANTE: el HD+ anterior llamaba un método no disponible en @zxing/library.
+  La nueva versión decodifica utilizando MultiFormatReader y BinaryBitmap, API compatible.
+- El lector principal ahora escanea la imagen completa (sin caja de altura 270 px).
+- El lector HD+ analiza el vídeo de la cámara nativa, hasta 2048 píxeles de ancho,
+  alternando cuatro zonas: central, completa, superior e inferior.
+- Prioriza Code 128 y conserva Code 39 e ITF para los códigos Starken.
+- Diagnóstico: indica si HD+ está activo, resolución original y región procesada.
+- El lector anterior sigue funcionando si HD+ no carga o no está disponible.
+- Las lecturas válidas muestran qué motor identificó la orden.
+- Beep doble, vibración, historial, protección contra duplicados, OCR, firma y PDF permanecen.
+- No se ha añadido QR al Laboratorio. Escáner general sin cambios.
+
+INSTALACIÓN
+1. Descomprime el ZIP.
+2. En https://github.com/nachorpn/checklist-chicureo abre Add file > Upload files.
+3. Sube laboratorio.js, laboratorio.html y gestark-version.json a la RAÍZ del repositorio.
+4. Confirma Commit changes, deja que GitHub Pages publique y pulsa Actualizar en Gestark.
+5. Abre Laboratorio con CIBC, toca Limpiar prueba, Iniciar cámara y prueba a la
+   misma distancia que la aplicación TeaCapps; compara con el mismo comprobante.
+6. Revisa la línea «HD+ activo» y el texto de la O.F. que indica el motor.
+
+OBSERVACIONES
+- Esta actualización se basa en el último paquete 2026.11.21.10 que preparó Gestark.
+- La funcionalidad ha sido sometida a pruebas de sintaxis y estructura, no al hardware de un iPhone.
+- La distancia de reconocimiento depende del foco, del software de Apple y de la etiqueta;
+  no se promete igualar exactamente una aplicación nativa.
+- La biblioteca ZXing se obtiene por internet al cargar por primera vez el motor HD+.
+- USAR DATOS FICTICIOS O ANONIMIZADOS. El Laboratorio no tiene autenticación de servidor
+  ni es una constancia oficial de Starken.

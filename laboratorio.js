@@ -132,70 +132,119 @@
  const QR_LIB='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
  const OCR_LIB='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';
  const PDF_LIB='https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
-// Segunda pasada: lectura del fotograma nativo sin volver a abrir la cámara.
- // Esta prueba experimental no depende de BarcodeDetector (no garantizado en iOS).
+ // Motor complementario HD: comparte la MISMA cámara, sin pedir un segundo permiso.
+ // @zxing/library NO implementa BrowserMultiFormatReader.decodeFromCanvas.
+ // Usamos directamente MultiFormatReader + BinaryBitmap del fotograma real.
  const ZX_LIB='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
  let farScanToken=0,farScanTimer=null,farScanReader=null,farScanCanvas=null;
+ let farScanAttempts=0,farScanRegion='';
+ function hdMessage(message){const el=$('far-scan-info');if(el)el.textContent=message}
  function stopFarScan(){
    farScanToken++;
    if(farScanTimer!==null)clearTimeout(farScanTimer);
    farScanTimer=null;farScanReader=null;farScanCanvas=null;
+   farScanAttempts=0;farScanRegion='';
+ }
+ function isNoBarcode(error){
+   return /NotFound|Checksum|Format|ReaderException/.test(String(error?.name||''));
  }
  async function startFarScan(){
    stopFarScan();
    const token=farScanToken;
+   hdMessage('HD+: cargando segundo motor de lectura…');
    try{
      await loadScript(ZX_LIB,'ZXing');
      if(!cameraOn||token!==farScanToken)return;
      const Z=window.ZXing;
-     if(!Z?.BrowserMultiFormatReader||!Z?.DecodeHintType||!Z?.BarcodeFormat)throw Error('ZXing no disponible');
+     if(!Z?.MultiFormatReader||!Z?.DecodeHintType||!Z?.BarcodeFormat||
+        !Z?.HTMLCanvasElementLuminanceSource||!Z?.BinaryBitmap||!Z?.HybridBinarizer){
+       throw new Error('Componentes ZXing de lectura sobre imagen no disponibles');
+     }
      const hints=new Map();
+     // Prioridad de lectura: Code 128; mantener alternativas por las dos etiquetas.
      hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.CODE_128,Z.BarcodeFormat.CODE_39,Z.BarcodeFormat.ITF]);
      hints.set(Z.DecodeHintType.TRY_HARDER,true);
-     farScanReader=new Z.BrowserMultiFormatReader(hints,500);
+     farScanReader=new Z.MultiFormatReader();
+     farScanReader.setHints(hints);
      farScanCanvas=document.createElement('canvas');
      const ctx=farScanCanvas.getContext('2d',{willReadFrequently:true});
-     if(!ctx)throw Error('Canvas no disponible');
-     const info=$('camera-info');
-     info.textContent+=' · segunda lectura HD';
+     if(!ctx)throw new Error('Canvas 2D no disponible');
+     let regionIndex=0;
+     const regions=[
+       {name:'zona central',top:.15,height:.70},
+       {name:'imagen completa',top:0,height:1},
+       {name:'parte superior',top:0,height:.62},
+       {name:'parte inferior',top:.35,height:.65}
+     ];
+     function decodeBitmap(bitmap){
+       try { return farScanReader.decode(bitmap,hints); }
+       finally { farScanReader.reset(); }
+     }
+     function decodeCurrentImage(){
+       const luminance=new Z.HTMLCanvasElementLuminanceSource(farScanCanvas);
+       try {
+         return decodeBitmap(new Z.BinaryBitmap(new Z.HybridBinarizer(luminance)));
+       } catch(e) {
+         if(!isNoBarcode(e))throw e;
+         // Un umbral global ayuda en papel térmico de bajo contraste.
+         if(Z.GlobalHistogramBinarizer && farScanAttempts%4===0){
+           return decodeBitmap(new Z.BinaryBitmap(new Z.GlobalHistogramBinarizer(luminance)));
+         }
+         throw e;
+       }
+     }
      const tick=()=>{
        if(!cameraOn||token!==farScanToken||document.hidden)return;
        try{
          const video=document.querySelector('#camera video');
          if(video&&video.readyState>=2&&video.videoWidth>=640&&video.videoHeight>=360){
-           // Analiza hasta 1920px del fotograma original, no el tamaño reducido del visor.
            const sw=video.videoWidth,sh=video.videoHeight;
-           const sy=Math.floor(sh*.08),ch=Math.floor(sh*.84);
-           const scale=Math.min(1,1920/sw);
+           const region=regions[regionIndex++%regions.length];
+           const sy=Math.round(sh*region.top),ch=Math.min(sh-sy,Math.round(sh*region.height));
+           // Nunca reducir a los píxeles CSS del visor ni ampliar artificialmente.
+           const scale=Math.min(1,2048/sw);
            const w=Math.max(1,Math.round(sw*scale)),h=Math.max(1,Math.round(ch*scale));
            if(farScanCanvas.width!==w)farScanCanvas.width=w;
            if(farScanCanvas.height!==h)farScanCanvas.height=h;
            ctx.drawImage(video,0,sy,sw,ch,0,0,w,h);
+           farScanAttempts++;
+           farScanRegion=region.name;
            try{
-             const result=farScanReader.decodeFromCanvas(farScanCanvas);
-             if(result)onDecode(typeof result.getText==='function'?result.getText():result.text);
-           }catch(err){
-             // No encontrar barras en un fotograma es habitual, no un error para el usuario.
-             const name=String(err?.name||'');
-             if(!/NotFound|Checksum|Format|ReaderException/.test(name)){
-               console.warn('Gestark HD+ no disponible',err);stopFarScan();return;
+             const result=decodeCurrentImage();
+             if(result){
+               const raw=typeof result.getText==='function'?result.getText():result.text;
+               onDecode(raw,'HD+ · '+region.name);
              }
+           }catch(e){if(!isNoBarcode(e))throw e;}
+           if(farScanAttempts===1||farScanAttempts%4===0){
+             hdMessage('HD+ activo · vídeo '+sw+' × '+sh+' px · análisis '+w+' × '+h+' px ('+farScanRegion+') · '+farScanAttempts+' intentos');
            }
+         }else if(farScanAttempts===0){
+           hdMessage('HD+: esperando fotogramas de la cámara…');
          }
-       }catch(e){console.warn('Gestark HD+ frame',e);stopFarScan();return;}
-       if(token===farScanToken&&cameraOn)farScanTimer=setTimeout(tick,580);
+       }catch(e){
+         console.warn('Gestark HD+ pausado',e);
+         stopFarScan();
+         hdMessage('HD+ no disponible; lector principal sigue activo.');
+         return;
+       }
+       if(token===farScanToken&&cameraOn)farScanTimer=setTimeout(tick,430);
      };
+     hdMessage('HD+ activo · esperando primera imagen…');
      farScanTimer=setTimeout(tick,220);
-   }catch(e){console.warn('Gestark HD+ biblioteca',e);}
+   }catch(e){
+     console.warn('Gestark HD+ no disponible',e);
+     if(token===farScanToken)hdMessage('HD+ no disponible; lector principal sigue activo.');
+   }
  }
  function showCamera(on){
    cameraOn=on;
    if(!on){lastCameraAt=0;lastCameraOf=''}
    $('camera').style.display=on?'block':'none';$('cam-placeholder').style.display=on?'none':'flex';
    $('start-cam').disabled=on;$('stop-cam').disabled=!on;$('cam-badge').textContent=on?'Escaneando':'Apagada';
-   if(!on){$('torch').hidden=true;flashOn=false;$('zoom-controls').hidden=true;zoomLimits=null;zoomPending=null;clearTimeout(zoomTimer);$('camera-info').textContent=''}
+   if(!on){$('torch').hidden=true;flashOn=false;$('zoom-controls').hidden=true;zoomLimits=null;zoomPending=null;clearTimeout(zoomTimer);$('camera-info').textContent='';hdMessage('HD+: cámara apagada.')}
  }
- function onDecode(raw){
+ function onDecode(raw,engine='principal'){
   if(Date.now()<resumeScanAt)return;
   const p=core.parseBarcode(raw);
   // Un comprobante puede mostrar dos códigos: ignorar formatos desconocidos
@@ -208,14 +257,15 @@
   // Evita saltar de orden por una lectura fugaz de otro código cercano.
   if(lastCameraAt&&p.of!==lastCameraOf&&now-lastCameraAt<1500)return;
   onValidCode(p,'cámara');
+  $('last-type').textContent='cámara ('+engine+'): '+p.detail;
   lastCameraOf=p.of;lastCameraAt=now;
  }
  // Más detalle de barras desde lejos: capturar video HD (cuando el equipo lo permita),
  // decodificar menos formatos y ampliar la zona horizontal de lectura.
  const BARCODE_FORMATS=['CODE_128','CODE_39','ITF'];
  function cameraFormats(){const f=window.Html5QrcodeSupportedFormats;return BARCODE_FORMATS.map(k=>f?.[k]).filter(x=>x!==undefined)}
- function frameBox(w,h){return {width:Math.max(50,Math.min(w-10,Math.round(w*.97))),height:Math.max(45,Math.min(h-10,Math.round(h*.64),270))}}
- function cameraScanConfig(hd){const cfg={fps:16,qrbox:frameBox,disableFlip:true};
+ // Sin qrbox: html5-qrcode analizará el fotograma completo, no una franja de 270 px.
+ function cameraScanConfig(hd){const cfg={fps:14,disableFlip:true};
    if(hd)cfg.videoConstraints={facingMode:'environment',width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:24,max:30}};
    return cfg;
  }
@@ -286,7 +336,7 @@
      for(const hd of [true,false]){
        const candidate=new Html5Qrcode('camera',{formatsToSupport:cameraFormats(),useBarCodeDetectorIfSupported:true,verbose:false});
        try{
-         await candidate.start({facingMode:'environment'},cameraScanConfig(hd),onDecode,()=>{});
+         await candidate.start({facingMode:'environment'},cameraScanConfig(hd),raw=>onDecode(raw,'principal'),()=>{});
          scanner=candidate;break;
        }catch(e){
          lastError=e;
