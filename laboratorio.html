@@ -36,7 +36,7 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
 <main id="workspace" hidden>
   <section class="notice full"><strong>Entorno de pruebas.</strong> No es un sistema oficial de Starken. Usa datos ficticios o anonimizados; el comprobante generado es una constancia de prueba, no sustituye el documento oficial. Los textos y fotografías permanecen en el navegador mientras trabajas; la lista local solo conserva números de orden.</section>
   <section class="card" aria-labelledby="scan-title">
-   <div class="cardhead"><div><h2 id="scan-title">1 · Escanear código de barras · HD</h2><p class="meta">Visor ampliado a todo el ancho. Lee uno de los dos códigos por O.F., sin duplicarla.</p></div><span id="cam-badge" class="badge">Apagada</span></div>
+   <div class="cardhead"><div><h2 id="scan-title">1 · Escanear código de barras · HD</h2><p class="meta">Visor HD con lectura adicional a distancia. Reconoce la O.F. desde cualquiera de los dos códigos, sin duplicarla.</p></div><span id="cam-badge" class="badge">Apagada</span></div>
    <div class="barcode-viewport"><div class="empty-camera" id="cam-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7V4h4m8 0h4v3M4 17v3h4m8 0h4v-3M2 12h20M7 9v6m3-6v6m4-6v6m3-6v6"/></svg>Apunta al código de barras de la etiqueta o comprobante</div><div id="camera"></div></div>
    <div class="btnrow" style="margin-top:10px"><button id="start-cam" class="btn primary flex" type="button">Iniciar cámara</button><button id="stop-cam" class="btn soft" type="button" disabled>Detener</button><button id="clear-test" class="btn outline" type="button" aria-label="Limpiar prueba actual para escanear otra orden">↻ Limpiar prueba</button><button id="torch" class="btn outline" type="button" hidden>Linterna</button></div>
     <p class="fine" style="margin:8px 0 0">Limpia la lectura, el formulario, la foto y la firma. Conserva el historial de O.F. y la cámara encendida.</p>
@@ -109,11 +109,11 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
 <a class="current" href="./laboratorio.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6m-5 0v6L5 18a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3L14 9V3M8 15h8"/></svg>Laboratorio</a>
 </nav>
 <script src="./laboratorio-core.js?v=2026.11.21.2"></script>
-<script src="./laboratorio.js?v=2026.11.21.5"></script>
+<script src="./laboratorio.js?v=2026.11.21.6"></script>
 <script>
 (()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?v=2';document.body.appendChild(a)};u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div style="padding:25px">No se pudo cargar acceso. Vuelve a Inicio.</div>')};document.body.appendChild(u)})();
 </script>
 <noscript>Gestark necesita JavaScript.</noscript>
-<script src="./gestark-updates.js?v=2026.11.21.5"></script>
+<script src="./gestark-updates.js?v=2026.11.21.6"></script>
 <script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body></html>

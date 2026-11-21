@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.21.5",
+  "version": "2026.11.21.6",
   "name": "Gestark",
-  "changes": "Laboratorio: botón Limpiar prueba con reinicio de lectura, formulario, foto, firma y estados OCR; conserva historial y cámara. Escáner general sin cambios."
+  "changes": "Laboratorio HD+: lectura adicional ZXing sobre fotograma Full HD para escaneo a distancia sin otra cámara; filtrado de O.F. y deduplicación conservados. Experimental."
 }

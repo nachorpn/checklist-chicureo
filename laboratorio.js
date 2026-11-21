@@ -81,6 +81,62 @@
  const QR_LIB='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
  const OCR_LIB='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';
  const PDF_LIB='https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
+// Segunda pasada: lectura del fotograma nativo sin volver a abrir la cámara.
+ // Esta prueba experimental no depende de BarcodeDetector (no garantizado en iOS).
+ const ZX_LIB='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+ let farScanToken=0,farScanTimer=null,farScanReader=null,farScanCanvas=null;
+ function stopFarScan(){
+   farScanToken++;
+   if(farScanTimer!==null)clearTimeout(farScanTimer);
+   farScanTimer=null;farScanReader=null;farScanCanvas=null;
+ }
+ async function startFarScan(){
+   stopFarScan();
+   const token=farScanToken;
+   try{
+     await loadScript(ZX_LIB,'ZXing');
+     if(!cameraOn||token!==farScanToken)return;
+     const Z=window.ZXing;
+     if(!Z?.BrowserMultiFormatReader||!Z?.DecodeHintType||!Z?.BarcodeFormat)throw Error('ZXing no disponible');
+     const hints=new Map();
+     hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.CODE_128,Z.BarcodeFormat.CODE_39,Z.BarcodeFormat.ITF]);
+     hints.set(Z.DecodeHintType.TRY_HARDER,true);
+     farScanReader=new Z.BrowserMultiFormatReader(hints,500);
+     farScanCanvas=document.createElement('canvas');
+     const ctx=farScanCanvas.getContext('2d',{willReadFrequently:true});
+     if(!ctx)throw Error('Canvas no disponible');
+     const info=$('camera-info');
+     info.textContent+=' · segunda lectura HD';
+     const tick=()=>{
+       if(!cameraOn||token!==farScanToken||document.hidden)return;
+       try{
+         const video=document.querySelector('#camera video');
+         if(video&&video.readyState>=2&&video.videoWidth>=640&&video.videoHeight>=360){
+           // Analiza hasta 1920px del fotograma original, no el tamaño reducido del visor.
+           const sw=video.videoWidth,sh=video.videoHeight;
+           const sy=Math.floor(sh*.08),ch=Math.floor(sh*.84);
+           const scale=Math.min(1,1920/sw);
+           const w=Math.max(1,Math.round(sw*scale)),h=Math.max(1,Math.round(ch*scale));
+           if(farScanCanvas.width!==w)farScanCanvas.width=w;
+           if(farScanCanvas.height!==h)farScanCanvas.height=h;
+           ctx.drawImage(video,0,sy,sw,ch,0,0,w,h);
+           try{
+             const result=farScanReader.decodeFromCanvas(farScanCanvas);
+             if(result)onDecode(typeof result.getText==='function'?result.getText():result.text);
+           }catch(err){
+             // No encontrar barras en un fotograma es habitual, no un error para el usuario.
+             const name=String(err?.name||'');
+             if(!/NotFound|Checksum|Format|ReaderException/.test(name)){
+               console.warn('Gestark HD+ no disponible',err);stopFarScan();return;
+             }
+           }
+         }
+       }catch(e){console.warn('Gestark HD+ frame',e);stopFarScan();return;}
+       if(token===farScanToken&&cameraOn)farScanTimer=setTimeout(tick,580);
+     };
+     farScanTimer=setTimeout(tick,220);
+   }catch(e){console.warn('Gestark HD+ biblioteca',e);}
+ }
  function showCamera(on){
    cameraOn=on;
    if(!on){lastCameraAt=0;lastCameraOf=''}
@@ -191,14 +247,15 @@
      showCamera(true);
      status('Escaneando · mantén las barras completas dentro de la guía.','ok');
      await setupCameraAssist();
+     startFarScan();
    }catch(e){
      console.warn('Lab scan',e);
      status(isPermissionError(e)?'Permiso de cámara denegado. Revisa Ajustes.':'No fue posible abrir la cámara. Puedes ingresar un código o usar una foto.','bad');
-     try{await scanner?.stop()}catch(_){ }try{await scanner?.clear()}catch(_){ }scanner=null;showCamera(false);
+     stopFarScan();try{await scanner?.stop()}catch(_){ }try{await scanner?.clear()}catch(_){ }scanner=null;showCamera(false);
    }finally{working=false;$('start-cam').disabled=cameraOn}
  }
  async function stopCamera(){
-   if(stopping)return;stopping=true;clearTimeout(zoomTimer);zoomPending=null;
+   if(stopping)return;stopping=true;stopFarScan();clearTimeout(zoomTimer);zoomPending=null;
    try{if(scanner){try{await scanner.stop()}catch(_){}try{await scanner.clear()}catch(_){}scanner=null}}finally{showCamera(false);stopping=false;status('Cámara apagada. La lista se conserva.')}
  }
  async function toggleTorch(){if(!cameraOn||!scanner)return;try{await scanner.applyVideoConstraints({advanced:[{torch:!flashOn}]});flashOn=!flashOn;$('torch').textContent=flashOn?'Apagar luz':'Linterna'}catch(_){toast('Linterna no disponible en esta cámara');$('torch').hidden=true}}

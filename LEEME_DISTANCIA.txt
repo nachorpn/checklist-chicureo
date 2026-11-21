@@ -1,0 +1,29 @@
+GESTARK - LABORATORIO 2026.11.21.6 · PRUEBA DE LECTURA A DISTANCIA
+
+OBJETIVO
+Leer el código cuando el comprobante completo se aprecia en el visor, como en la captura de prueba de 21/11/2026. No se fija distancia física en centímetros.
+
+NOVEDADES
+- Mantiene la cámara Full HD del laboratorio y su escáner principal.
+- Añade un análisis ZXing del fotograma a resolución original con frecuencia moderada.
+- Reutiliza la misma cámara; no crea una segunda solicitud getUserMedia.
+- Conserva filtros Code 128, Code 39 e ITF, sin QR en este laboratorio.
+- La O.F. se deduplica usando la regla ya existente de la versión 2026.11.21.5.
+- El escáner general, transferencias, calendario, usuarios y otras funciones quedan igual.
+
+INSTALACIÓN
+1. Descomprime el ZIP; copia laboratorio.js, laboratorio.html y gestark-version.json.
+2. En GitHub -> nachorpn/checklist-chicureo, sube los archivos a la raíz y confirma Commit changes.
+3. Abre Gestark, pulsa Nueva versión/Actualizar, entra con tu usuario y abre Laboratorio.
+4. Al encender la cámara, verifica que aparezca "segunda lectura HD" en información de cámara.
+
+PRUEBA REAL
+- Prueba primero la distancia en la que se ve casi la etiqueta completa.
+- No acerques el código: espera hasta 3 segundos con el teléfono inmóvil.
+- Acércate solo si no enfoca o el número es ilegible.
+- Para verificar que la lectura NUEVA funciona, pulsa "Limpiar prueba" antes del ensayo: el último resultado mostrado puede ser de un escaneo anterior.
+- Confirma la O.F. leída con la O.F. impresa; registra solo una por comprobante.
+- Compara la rapidez y precisión con la versión anterior.
+
+LIMITACIONES
+No se ha probado con la cámara física del iPhone. ZXing se descarga desde jsDelivr al usar la cámara y puede no estar disponible sin conexión. Si falla, queda activo el motor original. El procesamiento de imagen consume CPU y batería. El laboratorio no es el sistema oficial de Starken. No coloques información de clientes ni comprobantes reales en repositorios públicos.
