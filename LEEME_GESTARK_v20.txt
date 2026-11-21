@@ -1,0 +1,35 @@
+GESTARK · ENTREGAS CONTINGENTES · v2026.11.21.20
+
+INSTRUCCIONES
+1. Descomprime este ZIP y sube a la raíz de tu GitHub Pages los archivos que contiene, reemplazando los existentes.
+2. Abre Gestark y pulsa Actualizar.
+3. Para una entrega nueva: identifica la O.F. -> receptor y pago -> firma -> confirmar.
+4. La vista Comprobantes genera el PDF de 3 recibos por A4.
+5. Historial muestra entrega, pago, foto local y regularización.
+
+PAGO
+- Debes elegir explícitamente «Ya pagada / sin cobro» o «Por pagar».
+- Si está por pagar, solo hay Transferencia y Efectivo.
+- Transferencia: monto, titular de transferencia, foto de comprobante y confirmación del operador son obligatorios.
+- El pago por transferencia queda pendiente de validación bancaria, aunque la entrega física pueda confirmarse.
+- Foto comprimida (JPEG) guardada SOLO en IndexedDB local del navegador, asociada a ID de entrega.
+- Al eliminar entregas regularizadas se eliminan las fotos de esos IDs en este equipo.
+- Si no es posible guardar foto, Gestark BLOQUEA la confirmación de transferencia.
+
+INTEGRACIÓN CON TRANSFERENCIAS
+- Para CIBC, en el MISMO navegador/dispositivo, un pago por transferencia se añade al registro local existente, agrupado por titular y sin repetir la O.F.
+- Para otros usuarios NO se añade al registro privado de CIBC. La O.F. y el pago quedan pendientes de traspaso desde Historial.
+- Actualmente NO hay sincronización entre dispositivos. El backend opcional de v19 sigue DESACTIVADO por defecto y no se han configurado pagos/fotos para uso centralizado.
+- La foto no valida el abono bancario; solo documenta lo mostrado por el cliente.
+- Evita compartir fotografías de datos bancarios por canales inseguros. Respaldo local no equivale a almacenamiento corporativo con auditoría.
+
+MANTENIDO
+- Cámara/escáner idénticos a v15 y laboratorio sin cambios.
+- Validación de RUT, firma, confirmación explícita, cola de impresión, regularización, controles de duplicados y formato 3xA4.
+- La app no contiene las expresiones que el usuario pidió excluir.
+
+ARCHIVOS
+- entregas-contingentes.html / entregas-contingentes.js
+- gestark-db.js / gestark-db-config.js (configuración central, desactivada)
+- gestark-updates.js / gestark-version.json
+- LEEME_GESTARK_v20.txt

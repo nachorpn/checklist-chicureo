@@ -1,9 +1,9 @@
 {
-  "version": "2026.11.21.18",
+  "version": "2026.11.21.20",
   "name": "Gestark",
-  "changes": "Entregas contingentes: formato Gestark/Greenbox de tres comprobantes por hoja A4 con ID completo; cola de impresion temporal para varias entregas, firma ampliada y declaracion de recibo conforme. Lector y Laboratorio sin cambios.",
+  "changes": "Entregas contingentes: formulario compacto por cuatro etapas, pago (transferencia o efectivo), foto obligatoria del comprobante bancario, evidencia local en IndexedDB, relación local con Registro de transferencias de CIBC y PDF A4 tres por hoja con forma de pago. Sin activar base central.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
-  "contingencyVersion": "2026.11.21.18",
-  "contingencyUpdatedAt": "2026-11-21T18:44:00-03:00"
+  "contingencyVersion": "2026.11.21.20",
+  "contingencyUpdatedAt": "2026-11-21T19:55:00-03:00"
 }
