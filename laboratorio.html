@@ -25,6 +25,19 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
 .zoom-controls input[type=range]{width:100%;height:30px;accent-color:#127451;touch-action:auto;display:block;margin:8px 0 0;cursor:pointer}
 .zoom-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px;color:#708578}
 .zoom-foot button{padding:5px 9px;min-height:34px;font-size:11px}
+/* Diagnóstico opcional: no afecta el espacio de escaneo mientras permanece cerrado. */
+.lens-panel{margin-top:11px;border:1px solid #d5e5d9;border-radius:13px;background:#f7fbf8;padding:11px 12px}
+.lens-panel>summary{font-size:12px;font-weight:800;color:#236447;cursor:pointer;min-height:22px;line-height:1.45}
+.lens-panel[open]>summary{margin-bottom:9px}
+.lens-note{margin:6px 0 9px;color:#667f70;font-size:11px;line-height:1.5}
+.lens-panel select{display:block;width:100%;max-width:100%;padding:10px;border:1px solid #c8dcd0;border-radius:10px;background:#fff;color:#173e2e;font-size:14px;min-height:44px}
+.lens-grid{display:grid;grid-template-columns:1fr;gap:6px;background:#fff;border:1px solid #dbe7df;border-radius:9px;padding:10px;font-size:11px;line-height:1.5}
+.lens-grid strong{font-weight:750;color:#254e3c}
+.lens-grid span{overflow-wrap:anywhere;color:#4f6a5b}
+.lens-actions{margin-top:10px;gap:7px}
+.lens-actions .btn{min-height:38px;padding:7px 10px;font-size:11px}
+.lens-status{font-size:11px;line-height:1.5;color:#4e6f5c;margin:8px 0 0;min-height:17px}
+
 .lab-update-info{display:inline-block;margin:10px 0 0;color:#d9f2e7;font-size:11px;font-weight:650;letter-spacing:.08px;line-height:1.5;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.09);padding:6px 9px;border-radius:9px}
 </style>
 </head>
@@ -32,7 +45,7 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
 <header><div class="wrap">
  <div class="headrow"><a href="./" class="back">‹ Inicio Gestark</a><span class="pill">SOLO PRUEBAS</span></div>
  <h1>Laboratorio Gestark</h1><p class="headlead">Lector inteligente de etiquetas y comprobantes de entrega</p>
- <p class="lab-update-info" id="lab-last-update">Última actualización del Laboratorio: 21/11/2026 · 17:22 h (Chile) · v2026.11.21.13</p>
+ <p class="lab-update-info" id="lab-last-update">Última actualización del Laboratorio: 21/11/2026 · 17:38 h (Chile) · v2026.11.21.14</p>
 </div></header>
 <div id="gate" class="gate" hidden><h2>Acceso no habilitado</h2><p>Este laboratorio de pruebas se muestra únicamente en el perfil de administrador.</p><a href="./">Regresar al Inicio</a></div>
 <main id="workspace" hidden>
@@ -50,6 +63,26 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
      <input id="zoom-range" type="range" min="1" max="3" step="0.1" value="1" aria-label="Zoom de la cámara">
      <div class="zoom-foot"><span>Prueba primero 1× para encuadrar ambos códigos; aumenta el zoom solo si es necesario.</span><button id="zoom-reset" class="btn outline" type="button">Restablecer</button></div>
    </section>
+   <details id="lens-panel" class="lens-panel">
+     <summary>Diagnóstico de cámara y lentes · comparar 1× / 2×</summary>
+     <p class="lens-note">Esta herramienta identifica las cámaras que Safari permite seleccionar. El nombre mostrado puede corresponder a una cámara virtual: no confirma qué sensor físico ni si se activó macro.</p>
+     <div class="lens-grid" aria-live="polite">
+       <div><strong>Cámara activa: </strong><span id="lens-active">Inicia la cámara para ver los datos.</span></div>
+       <div><strong>Captura: </strong><span id="lens-resolution">—</span></div>
+       <div><strong>Zoom: </strong><span id="lens-zoom">—</span></div>
+       <div><strong>Enfoque: </strong><span id="lens-focus">—</span></div>
+     </div>
+     <label for="lens-device" style="margin-top:12px">Seleccionar cámara disponible (experimental)</label>
+     <select id="lens-device" aria-label="Cámara para probar">
+       <option value="">Automática · cámara trasera</option>
+     </select>
+     <div class="btnrow lens-actions">
+       <button id="lens-refresh" class="btn outline" type="button">Actualizar lista</button>
+       <button id="lens-zoom-1" class="btn soft" type="button" disabled>Probar 1×</button>
+       <button id="lens-zoom-2" class="btn soft" type="button" disabled>Probar 2×</button>
+     </div>
+     <p id="lens-status" class="lens-status" role="status" aria-live="polite">Primero inicia la cámara y concede el permiso. No se guardan identificadores de dispositivos.</p>
+   </details>
    <div id="lastread" class="lastread"><span class="tag">ORDEN IDENTIFICADA</span><br><strong id="last-of"></strong><small id="last-type"></small></div>
    <p id="scan-status" class="stat" role="status" aria-live="polite">Aún no se ha activado la cámara.</p>
    <form id="manual-form" style="margin-top:10px"><label for="manual-code">Introducir código manualmente</label><div class="btnrow"><input id="manual-code" type="text" placeholder="O.F. de 9 dígitos o código largo" autocomplete="off" spellcheck="false" style="flex:1;min-width:150px"><button type="submit" class="btn soft">Identificar</button></div></form>
@@ -133,11 +166,11 @@ label{display:block;font-size:11px;font-weight:800;color:#466b59;margin-bottom:5
 })();
 </script>
 <script src="./laboratorio-core.js?v=2026.11.21.2"></script>
-<script src="./laboratorio.js?v=2026.11.21.13"></script>
+<script src="./laboratorio.js?v=2026.11.21.14"></script>
 <script>
 (()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?v=2';document.body.appendChild(a)};u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div style="padding:25px">No se pudo cargar acceso. Vuelve a Inicio.</div>')};document.body.appendChild(u)})();
 </script>
 <noscript>Gestark necesita JavaScript.</noscript>
-<script src="./gestark-updates.js?v=2026.11.21.13"></script>
+<script src="./gestark-updates.js?v=2026.11.21.14"></script>
 <script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body></html>

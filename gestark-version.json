@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.13",
+  "version": "2026.11.21.14",
   "name": "Gestark",
-  "changes": "Laboratorio HD+: reconocer las excepciones normales de ZXing aunque sus clases esten minificadas (p. ej. N), evitando que un fotograma sin barras pause HD+. La camara, doble bip, deduplicacion, OCR y otros modulos permanecen igual. Diagnostico experimental.",
-  "labVersion": "2026.11.21.13",
-  "labUpdatedAt": "2026-11-21T17:22:00-03:00"
+  "changes": "Laboratorio: diagnóstico de cámara y lente reportadas por Safari, comparación rápida 1×/2× y selección experimental entre cámaras expuestas con retorno a automática si falla. Cámara, ZXing HD+, beep, OCR, firma, historial y escáner general preservados.",
+  "labVersion": "2026.11.21.14",
+  "labUpdatedAt": "2026-11-21T17:38:00-03:00"
 }

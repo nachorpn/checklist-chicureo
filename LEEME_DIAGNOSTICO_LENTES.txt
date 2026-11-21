@@ -1,0 +1,38 @@
+GESTARK — LABORATORIO / DIAGNÓSTICO DE CÁMARA Y LENTES
+Versión: 2026.11.21.14
+
+CAMBIOS
+- Nuevo panel desplegable "Diagnóstico de cámara y lentes · comparar 1× / 2×" en el Laboratorio (administrador CIBC).
+- Muestra el nombre de la cámara que expone Safari, la resolución de la pista, el zoom solicitado/aplicado y los modos de enfoque disponibles, cuando el navegador los informa.
+- Consulta mediante enumerateDevices las cámaras disponibles después de conceder permiso.
+- Permite seleccionar experimentalmente otra cámara expuesta por Safari; reinicia el escáner SOLO del Laboratorio y conserva el historial, la O.F. y el resto del formulario.
+- Si una cámara elegida deja de estar disponible, intenta volver a la cámara trasera automática.
+- Botones rápidos «Probar 1×» y «Probar 2×» sin mover físicamente el teléfono.
+- Mantiene 1× como zoom inicial; todavía NO cambia automáticamente a 2×.
+- No se guardan identificadores de cámara, ni se envían imágenes o resultados de este diagnóstico a un servidor.
+
+INSTALACIÓN EN GITHUB PAGES
+1. Descomprime este ZIP.
+2. Abre el repositorio nachorpn/checklist-chicureo.
+3. En Add file > Upload files, sube a la RAÍZ los tres archivos:
+   - laboratorio.html
+   - laboratorio.js
+   - gestark-version.json
+4. Reemplaza los archivos anteriores y confirma Commit changes.
+5. En Gestark toca Actualizar y entra con el perfil administrador al Laboratorio.
+
+PRUEBA COMPARATIVA (MISMA ETIQUETA Y MISMA DISTANCIA)
+1. En el Laboratorio pulsa Limpiar prueba, inicia la cámara y abre Diagnóstico de cámara y lentes.
+2. Anota el nombre de la cámara activa y la resolución mostrada.
+3. Pulsa Probar 1×. Si no lee, pulsa Probar 2× sin cambiar la distancia.
+4. Si Safari ofrece varias cámaras traseras, prueba otra cámara desde el selector.
+5. Compara si la O.F. se reconoce y qué cámara/zoom estaban seleccionados.
+6. Si algo falla, selecciona Automática · cámara trasera.
+
+LIMITACIONES
+- La etiqueta que muestra Safari podría representar una cámara VIRTUAL de múltiples lentes; esto NO confirma el sensor físico real ni si el macro está activado.
+- En algunos iPhone, Safari solo expone una cámara trasera. En esos casos el selector no puede forzar otra lente y el zoom 2× es el modo práctico que ya funcionó en la prueba del usuario.
+- Para probar la selección manual puede haber una breve interrupción de cámara; la captura se reanuda automáticamente y la lista histórica permanece intacta.
+- No se modifica el escáner general, el lector HD+, el doble beep, la lectura única de O.F., el OCR, la firma, el calendario ni las transferencias.
+- El Laboratorio sigue siendo una prueba, no un sistema oficial; usa solamente datos ficticios o anonimizados.
+- Verificado: sintaxis JavaScript, HTML, lógica simulada de enumeración/selección de cámara, estructura ZIP. Pendiente: prueba física con Safari en el iPhone.

@@ -7,6 +7,7 @@
  const STORAGE='gestark:lab:orders:CIBC:v1',MAX=1000;
  let active=false,scanner=null,working=false,cameraOn=false,stopping=false,flashOn=false;
  let zoomTimer=null,zoomBusy=false,zoomPending=null,zoomLimits=null;
+ let selectedCameraId='',cameraDevices=[],cameraSwitching=false; // Solo en memoria, sin guardar identificadores.
  let entries=[],imageFile=null,imageUrl=null,lastRaw='',lastAt=0,recognizedSource='manual';
  let lastCameraOf='',lastCameraAt=0; // Un evento de lectura por O.F. cuando hay dos códigos.
  let resumeScanAt=0,testGeneration=0; // Protección al limpiar entre pruebas.
@@ -291,6 +292,7 @@
    $('camera').style.display=on?'block':'none';$('cam-placeholder').style.display=on?'none':'flex';
    $('start-cam').disabled=on;$('stop-cam').disabled=!on;$('cam-badge').textContent=on?'Escaneando':'Apagada';
    if(!on){$('torch').hidden=true;flashOn=false;$('zoom-controls').hidden=true;zoomLimits=null;zoomPending=null;clearTimeout(zoomTimer);$('camera-info').textContent='';hdMessage('HD+: cámara apagada.')}
+   updateLensDiagnostics();
  }
  function onDecode(raw,engine='principal'){
   if(Date.now()<resumeScanAt)return;
@@ -313,8 +315,9 @@
  const BARCODE_FORMATS=['CODE_128','CODE_39','ITF'];
  function cameraFormats(){const f=window.Html5QrcodeSupportedFormats;return BARCODE_FORMATS.map(k=>f?.[k]).filter(x=>x!==undefined)}
  // Sin qrbox: html5-qrcode analizará el fotograma completo, no una franja de 270 px.
- function cameraScanConfig(hd){const cfg={fps:14,disableFlip:true};
-   if(hd)cfg.videoConstraints={facingMode:'environment',width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:24,max:30}};
+ function cameraScanConfig(hd,cameraId=''){const cfg={fps:14,disableFlip:true};
+   if(hd){const camera=cameraId?{deviceId:{exact:cameraId}}:{facingMode:'environment'};
+     cfg.videoConstraints={...camera,width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:24,max:30}};}
    return cfg;
  }
  function isPermissionError(e){return /denied|permission|notallowed|not.allowed|securityerror/i.test(String(e?.name||'')+' '+String(e?.message||e))}
@@ -331,9 +334,11 @@
      const applied=Number.isFinite(actual)&&actual>0?actual:v;
      $('zoom-range').value=String(applied);
      $('zoom-value').textContent=applied.toFixed(1)+'×';
+     updateLensDiagnostics();
    }catch(e){
      if(cameraOn){$('camera-info').textContent='El zoom no está disponible en esta cámara; continúa con lectura HD.';}
      $('zoom-controls').hidden=true;zoomLimits=null;
+     updateLensDiagnostics();
    }finally{
      zoomBusy=false;
      if(zoomPending!==null){const next=zoomPending;zoomPending=null;if(zoomLimits&&cameraOn)applyZoom(next)}
@@ -346,6 +351,90 @@
    clearTimeout(zoomTimer);
    zoomTimer=setTimeout(()=>{applyZoom(val)},immediate?0:170);
  }
+
+ // Safari puede exponer una cámara virtual (por ejemplo, una combinación de lentes).
+ // Estos datos describen la pista de video, no certifican qué sensor físico está activo.
+ function runningCameraSettings(){try{return scanner?.getRunningTrackSettings?.()||{}}catch(_){return {}}}
+ function runningCameraCapabilities(){try{return scanner?.getRunningTrackCapabilities?.()||{}}catch(_){return {}}}
+ function updateLensDiagnostics(){
+   const active=$('lens-active'),resolution=$('lens-resolution'),zoom=$('lens-zoom'),focus=$('lens-focus');
+   if(!active)return;
+   if(!cameraOn||!scanner){
+     active.textContent='Cámara detenida';resolution.textContent='—';zoom.textContent='—';focus.textContent='—';
+     $('lens-zoom-1').disabled=true;$('lens-zoom-2').disabled=true;return;
+   }
+   const settings=runningCameraSettings(),caps=runningCameraCapabilities();
+   const video=document.querySelector('#camera video');
+   const track=video?.srcObject?.getVideoTracks?.()?.[0];
+   const listed=cameraDevices.find(d=>d.deviceId&&d.deviceId===settings.deviceId);
+   active.textContent=listed?.label||track?.label||'Cámara trasera (Safari no indicó el nombre)';
+   const w=settings.width||video?.videoWidth||0,h=settings.height||video?.videoHeight||0;
+   resolution.textContent=(w&&h?w+' × '+h+' px':'Resolución no informada')+
+     (Number.isFinite(settings.frameRate)?' · '+Math.round(settings.frameRate)+' fps':'');
+   const actualZoom=Number(settings.zoom);
+   const hasActual=settings.zoom!==undefined&&Number.isFinite(actualZoom)&&actualZoom>0;
+   const requested=Number($('zoom-range').value)||1;
+   zoom.textContent=(hasActual?'Aplicado '+actualZoom.toFixed(1)+'×':'Solicitado '+requested.toFixed(1)+'× (Safari no confirma valor)')+
+     (zoomLimits?' · rango '+zoomLimits.min.toFixed(1)+'–'+zoomLimits.max.toFixed(1)+'×':' · control no disponible');
+   const modes=Array.isArray(caps.focusMode)?caps.focusMode.join(', '):'';
+   focus.textContent=String(settings.focusMode||'Modo no informado')+(modes?' · admite: '+modes:'');
+   $('lens-zoom-1').disabled=!zoomLimits||zoomLimits.min>1||zoomLimits.max<1||cameraSwitching;
+   $('lens-zoom-2').disabled=!zoomLimits||zoomLimits.min>2||zoomLimits.max<2||cameraSwitching;
+ }
+ function isFrontCameraLabel(label){return /(?:front|facetime|selfie|frontal|delantera|user-facing)/i.test(label||'')}
+ async function refreshCameraList(){
+   const select=$('lens-device');
+   if(!navigator.mediaDevices?.enumerateDevices){
+     $('lens-status').textContent='Safari no permite enumerar cámaras en este contexto.';return;
+   }
+   try{
+     const found=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'&&d.deviceId);
+     // No ofrecer expresamente la cámara frontal; las entradas sin etiqueta son inciertas.
+     const candidates=found.filter(d=>!isFrontCameraLabel(d.label));
+     cameraDevices=candidates.map(d=>({deviceId:d.deviceId,label:d.label||''}));
+     const selected=selectedCameraId;
+     select.replaceChildren();
+     const automatic=document.createElement('option');automatic.value='';automatic.textContent='Automática · cámara trasera';select.append(automatic);
+     cameraDevices.forEach((d,i)=>{
+       const option=document.createElement('option');option.value=d.deviceId;
+       option.textContent=d.label||'Cámara '+(i+1)+' (nombre no informado)';select.append(option);
+     });
+     select.value=selected&&cameraDevices.some(d=>d.deviceId===selected)?selected:'';
+     select.disabled=cameraSwitching||!cameraDevices.length;
+     $('lens-status').textContent=!cameraDevices.length?
+       'Safari no expone otras cámaras; mantén la selección automática.':
+       cameraDevices.length+' cámara(s) disponible(s) para probar. Selecciona otra para reiniciar solo el lector del Laboratorio.'+
+       (cameraDevices.some(d=>!d.label)?' Algunas no tienen nombre; podrían incluir una lente frontal.':'');
+     updateLensDiagnostics();
+   }catch(e){$('lens-status').textContent='No se pudo consultar la lista. Inicia la cámara y acepta el permiso antes de reintentar.'}
+ }
+ async function switchCameraFromPanel(){
+   if(cameraSwitching||working||stopping)return;
+   const next=$('lens-device').value;
+   if(next===selectedCameraId)return;
+   if(!cameraOn){selectedCameraId=next;$('lens-status').textContent='Cámara elegida. Se usará cuando pulses Iniciar cámara.';return}
+   cameraSwitching=true;
+   $('lens-device').disabled=true;$('lens-refresh').disabled=true;
+   $('lens-zoom-1').disabled=true;$('lens-zoom-2').disabled=true;
+   $('lens-status').textContent='Cambiando cámara… la lectura se reanudará sin borrar los datos.';
+   try{
+     await stopCamera();
+     selectedCameraId=next;
+     await startCamera();
+     if(!cameraOn)$('lens-status').textContent='La cámara seleccionada no pudo iniciarse. Usa Automática e intenta de nuevo.';
+   }finally{
+     cameraSwitching=false;
+     $('lens-refresh').disabled=false;
+     await refreshCameraList();
+     updateLensDiagnostics();
+   }
+ }
+ function compareLensZoom(value){
+   if(!cameraOn||!zoomLimits||value<zoomLimits.min||value>zoomLimits.max)return;
+   $('zoom-range').value=String(value);requestZoom(value,true);
+   $('lens-status').textContent='Comparando '+value.toFixed(1)+'×. Mantén el teléfono y el comprobante a la misma distancia.';
+ }
+
  async function setupCameraAssist(){
    if(!scanner||!cameraOn)return;
    let capabilities={};let settings={};
@@ -371,6 +460,7 @@
        await applyZoom(Number(control.value));
      }
    }
+   updateLensDiagnostics();
  }
  async function startCamera(){
    if(!canUse()||cameraOn||working)return;
@@ -380,24 +470,33 @@
    try{
      await loadScript(QR_LIB,'Html5Qrcode');
      let lastError=null;scanner=null;
-     // El segundo intento evita dejar sin escáner a celulares sin captura HD.
-     for(const hd of [true,false]){
-       const candidate=new Html5Qrcode('camera',{formatsToSupport:cameraFormats(),useBarCodeDetectorIfSupported:true,verbose:false});
-       try{
-         await candidate.start({facingMode:'environment'},cameraScanConfig(hd),raw=>onDecode(raw,'principal'),()=>{});
-         scanner=candidate;break;
-       }catch(e){
-         lastError=e;
-         try{await candidate.clear()}catch(_){ }
-         if(isPermissionError(e))break;
+     // Probar la cámara elegida y, si el dispositivo cambió o ya no existe, volver a la trasera automática.
+     const requestIds=selectedCameraId?[selectedCameraId,'']:[''];
+     let automaticFallback=false;
+     cameraSearch:for(const cameraId of requestIds){
+       for(const hd of [true,false]){
+         const candidate=new Html5Qrcode('camera',{formatsToSupport:cameraFormats(),useBarCodeDetectorIfSupported:true,verbose:false});
+         try{
+           const camera=cameraId?{deviceId:{exact:cameraId}}:{facingMode:'environment'};
+           await candidate.start(camera,cameraScanConfig(hd,cameraId),raw=>onDecode(raw,'principal'),()=>{});
+           scanner=candidate;
+           if(selectedCameraId&&!cameraId){selectedCameraId='';automaticFallback=true}
+           break cameraSearch;
+         }catch(e){
+           lastError=e;
+           try{await candidate.clear()}catch(_){ }
+           if(isPermissionError(e))break cameraSearch;
+         }
        }
      }
      if(!scanner)throw lastError||new Error('No hay cámara disponible');
      if(document.hidden){await stopCamera();return}
      showCamera(true);
-     status('Escaneando · mantén las barras completas dentro de la guía.','ok');
+     status(automaticFallback?'No se pudo utilizar la cámara elegida; se reanudó con la trasera automática.':'Escaneando · mantén las barras completas dentro de la guía.','ok');
      await setupCameraAssist();
+     // La lista de dispositivos no debe retrasar ni detener la lectura HD+.
      startFarScan();
+     refreshCameraList().catch(()=>{});
    }catch(e){
      console.warn('Lab scan',e);
      status(isPermissionError(e)?'Permiso de cámara denegado. Revisa Ajustes.':'No fue posible abrir la cámara. Puedes ingresar un código o usar una foto.','bad');
@@ -493,6 +592,10 @@
  function init(){if(active)return;active=true;entries=loadEntries();renderEntries();$('workspace').hidden=false;prepareSign();
    $('test-beep').addEventListener('click',testScanBeep);
     $('start-cam').addEventListener('click',startCamera);$('stop-cam').addEventListener('click',stopCamera);$('clear-test').addEventListener('click',()=>resetTest(false));$('torch').addEventListener('click',toggleTorch);
+   $('lens-refresh').addEventListener('click',refreshCameraList);
+   $('lens-device').addEventListener('change',switchCameraFromPanel);
+   $('lens-zoom-1').addEventListener('click',()=>compareLensZoom(1));
+   $('lens-zoom-2').addEventListener('click',()=>compareLensZoom(2));
    $('zoom-range').addEventListener('input',e=>requestZoom(e.target.value));$('zoom-range').addEventListener('change',e=>requestZoom(e.target.value,true));$('zoom-reset').addEventListener('click',()=>{if(zoomLimits){const v=Math.max(zoomLimits.min,Math.min(zoomLimits.max,1));$('zoom-range').value=String(v);requestZoom(v,true)}});
    // Cargar el motor en momentos ociosos para reducir la espera al tocar 'Iniciar cámara'.
    const warm=()=>loadScript(QR_LIB,'Html5Qrcode').catch(()=>{});
