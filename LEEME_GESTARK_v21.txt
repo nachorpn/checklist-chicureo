@@ -1,0 +1,30 @@
+GESTARK · ENTREGAS CONTINGENTES · v2026.11.21.21
+
+ACTUALIZACIÓN
+- Descomprime este ZIP y sube los archivos a la raíz de GitHub Pages, reemplazando los existentes.
+- Pulsa «Actualizar» desde Gestark.
+- Revisa recepción en el iPhone real antes del uso operativo.
+
+NUEVO: DATOS PERSONALES Y FACTURACIÓN
+- Paso 2: Correo electrónico del receptor (opcional sin factura, obligatorio con factura).
+- Menú desplegable «¿Necesita factura?» (No por defecto).
+- Si la respuesta es Sí: razón social, RUT empresa válido, giro y dirección tributaria obligatorios.
+- Al confirmar una entrega local, correo y factura se conservan en IndexedDB de ese mismo navegador, asociados al ID de entrega; no aparecen en localStorage.
+- En Historial, botón «Factura» o «Correo» permite revisar y copiar los datos en el mismo dispositivo.
+- Al eliminar las entregas regularizadas, también se eliminan sus anexos locales (fotografía + facturación).
+- El PDF A4 conserva tres comprobantes por hoja e identifica «FACTURA SOLICITADA» cuando aplica.
+- El PDF no incluye razón social, correo o RUT empresa para no saturar el comprobante.
+- ESTA FUNCIÓN RECOPILA DATOS, NO EMITE FACTURAS NI ENVÍA CORREOS.
+
+ALMACENAMIENTO Y SEGURIDAD
+- Sin base central habilitada, correo, facturación y fotos SOLO existen en el dispositivo donde se confirmaron.
+- El almacenamiento de navegador no equivale a una base corporativa protegida ni garantiza preservación ante pérdida del móvil, caché o reinstalación.
+- La base central sigue desactivada. Su esquema actual NO incluye facturación: se bloquean registros centrales con correo/factura hasta contar con migración autorizada, evitando guardar datos incompletos.
+- Se mantiene el nombre de IndexedDB e incrementa su versión a 2 para conservar las fotos existentes, agregando almacén de facturación.
+- No se modificaron escáner, Laboratorio ni Registro de transferencias.
+
+ARCHIVOS
+- entregas-contingentes.html y entregas-contingentes.js
+- gestark-db.js / gestark-db-config.js (sin cambios; base desactivada)
+- gestark-updates.js y gestark-version.json
+- LEEME_GESTARK_v21.txt

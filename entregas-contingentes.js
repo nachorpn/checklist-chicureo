@@ -1,4 +1,4 @@
-/* Gestark · Entregas contingentes · Flujo compacto y pagos v2026.11.21.20.
+/* Gestark · Entregas contingentes · Flujo compacto y pagos v2026.11.21.21.
    El motor de cámara/decodificación proviene de la versión aprobada 2026.11.21.15. */
 (()=>{
  'use strict';
@@ -17,7 +17,8 @@
  let toastTimer=null;
  let currentStep=0,currentView='form',paymentPhoto=null,paymentPhotoURL='',paymentPhotoHash='',resizeSignature=()=>{};
  const PERSONAL_TRANSFERS_KEY='gestark:notas-transferencias:v1:CIBC';
- const PHOTO_DB='gestark-contingency-evidence-v1';
+ const PHOTO_DB='gestark-contingency-evidence-v1'; // Se mantiene el nombre para preservar fotos v20. Versión IndexedDB 2 añade 'billing'.
+ let invoiceDialogText='';
  // Flujo por etapas: no se descartan campos al navegar.
  function setView(view){
    currentView=view;
@@ -48,6 +49,7 @@
    if(step===1){
      if(!d.name){paymentStatus('Indica el nombre del receptor.','bad');$('field-name').focus();return false}
      if(!core.validateRut(d.rut)){paymentStatus('El RUT del receptor debe ser válido.','bad');$('field-rut').focus();return false}
+     if(!readBilling(true))return false;
      return Boolean(readPayment(true));
    }
    if(step===2){if(!signed){toast('Solicita la firma del receptor antes de continuar');return false}return true}
@@ -61,7 +63,7 @@
  function updateConfirmSummary(){
    const el=$('confirm-summary');if(!el)return;
    const d=values(),pay=readPayment(false),state=pay?(pay.condition==='prepaid'?'Sin cobro en entrega':(pay.method==='transfer'?'Transferencia informada':'Efectivo recibido')+' · '+money(pay.amount)):'Pago sin completar';
-   const p=el.querySelector('p');p.textContent='O.F. '+(d.order||'—')+'\nReceptor: '+(d.name||'—')+'\nPago: '+state+'\nFirma: '+(signed?'Capturada':'Pendiente');
+   const p=el.querySelector('p');p.textContent='O.F. '+(d.order||'—')+'\nReceptor: '+(d.name||'—')+(d.email?'\nCorreo: '+d.email:'')+'\nFactura: '+(d.invoice?.requested?'Solicitada ('+d.invoice.rut+')':'No solicitada')+'\nPago: '+state+'\nFirma: '+(signed?'Capturada':'Pendiente');
  }
  function updateFlowCounters(){
    if($('history-badge'))$('history-badge').textContent=String(records.length);
@@ -100,6 +102,43 @@
    }
    if(!$('pay-cash-received').checked)return fail('Confirma que recibiste el efectivo.');
    return {condition,method,amount,status:'cash_received'};
+ }
+ // Los datos tributarios se conservan con el ID local, no en localStorage.
+ function invoiceStatus(message='',kind=''){
+   const e=$('invoice-feedback');e.textContent=message;e.className='stat '+kind;
+ }
+ function updateInvoiceUI(){
+   const requires=$('invoice-requested').value==='yes';
+   $('invoice-fields').hidden=!requires;
+   $('field-email').required=requires;
+   for(const id of ['invoice-name','invoice-rut','invoice-business','invoice-address'])$(id).required=requires;
+   invoiceStatus('');
+ }
+ function validEmail(raw){
+   const email=String(raw||'').trim();
+   return email.length<=120 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+ }
+ function readBilling(showError=true){
+   const fail=(msg,id)=>{if(showError){invoiceStatus(msg,'bad');if(id)$(id).focus()}return null};
+   const email=$('field-email').value.trim().toLowerCase();
+   if(email&&!validEmail(email))return fail('El correo electrónico no tiene un formato válido.','field-email');
+   const requested=$('invoice-requested').value==='yes';
+   if(!requested)return {email,invoice:{requested:false}};
+   if(!email)return fail('Ingresa el correo electrónico para enviar posteriormente el documento tributario.','field-email');
+   const name=$('invoice-name').value.replace(/\s+/g,' ').trim();
+   const rut=$('invoice-rut').value.trim();
+   const business=$('invoice-business').value.replace(/\s+/g,' ').trim();
+   const address=$('invoice-address').value.replace(/\s+/g,' ').trim();
+   if(!name)return fail('Completa la razón social.','invoice-name');
+   if(!core.validateRut(rut))return fail('El RUT de la empresa debe ser válido.','invoice-rut');
+   if(!business)return fail('Completa el giro comercial.','invoice-business');
+   if(!address)return fail('Completa la dirección tributaria.','invoice-address');
+   return {email,invoice:{requested:true,name,rut,business,address}};
+ }
+ function resetBilling(){
+   $('field-email').value='';$('invoice-requested').value='no';
+   for(const id of ['invoice-name','invoice-rut','invoice-business','invoice-address'])$(id).value='';
+   updateInvoiceUI();
  }
  function dropPaymentPhoto(){
    paymentPhoto=null;paymentPhotoHash='';
@@ -141,8 +180,11 @@
  }
  function photoDB(){return new Promise((resolve,reject)=>{
    if(!('indexedDB' in window))return reject(Error('El navegador no admite almacenamiento de fotografías'));
-   const open=indexedDB.open(PHOTO_DB,1);
-   open.onupgradeneeded=()=>{if(!open.result.objectStoreNames.contains('evidence'))open.result.createObjectStore('evidence',{keyPath:'id'})};
+   const open=indexedDB.open(PHOTO_DB,2);
+   open.onupgradeneeded=()=>{
+     if(!open.result.objectStoreNames.contains('evidence'))open.result.createObjectStore('evidence',{keyPath:'id'});
+     if(!open.result.objectStoreNames.contains('billing'))open.result.createObjectStore('billing',{keyPath:'id'});
+   };
    open.onsuccess=()=>resolve(open.result);open.onerror=()=>reject(open.error||Error('Almacenamiento no disponible'));
  })}
  async function writePhoto(id,blob,hash){
@@ -164,6 +206,50 @@
      const tx=db.transaction('evidence','readwrite');ids.forEach(id=>tx.objectStore('evidence').delete(id));
      tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
    });db.close()}catch(err){console.warn('Limpieza evidencia',err)}
+ }
+ // Escritura atómica de anexos (foto, correo y factura) antes del registro de la O.F.
+ async function writeLocalAttachments(id,payment,billing){
+   const stores=[];
+   if(payment.method==='transfer')stores.push('evidence');
+   if(billing.email||billing.invoice.requested)stores.push('billing');
+   if(!stores.length)return true;
+   const db=await photoDB();
+   try{return await new Promise((resolve,reject)=>{
+     const tx=db.transaction(stores,'readwrite');
+     if(stores.includes('evidence'))tx.objectStore('evidence').put({id,blob:paymentPhoto,hash:payment.photoHash,at:Date.now()});
+     if(stores.includes('billing'))tx.objectStore('billing').put({id,email:billing.email,invoice:{...billing.invoice},at:Date.now()});
+     tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error||Error('No se pudieron guardar los datos'));tx.onabort=()=>reject(tx.error||Error('Transacción cancelada'));
+   })}finally{db.close()}
+ }
+ async function readLocalBilling(id){
+   const db=await photoDB();
+   try{return await new Promise((resolve,reject)=>{
+     const rq=db.transaction('billing','readonly').objectStore('billing').get(id);
+     rq.onsuccess=()=>resolve(rq.result||null);rq.onerror=()=>reject(rq.error||Error('No se pudo consultar facturación'));
+   })}finally{db.close()}
+ }
+ async function deleteLocalAttachments(ids){
+   if(!ids.length)return;
+   try{const db=await photoDB();await new Promise((resolve,reject)=>{
+     const tx=db.transaction(['evidence','billing'],'readwrite');
+     for(const id of ids){tx.objectStore('evidence').delete(id);tx.objectStore('billing').delete(id)}
+     tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||Error('Limpieza no completada'));
+   });db.close()}catch(err){console.warn('Limpieza de anexos',err)}
+ }
+ async function showInvoice(id,of){
+   try{
+     const item=await readLocalBilling(id);
+     if(!item){toast('Los datos de contacto no están disponibles en este dispositivo');return}
+     const inv=item.invoice||{requested:false};
+     invoiceDialogText=[
+       'O.F.: '+of,
+       'Correo electrónico: '+(item.email||'Sin correo'),
+       'Factura solicitada: '+(inv.requested?'Sí':'No'),
+       ...(inv.requested?['Razón social: '+inv.name,'RUT empresa: '+inv.rut,'Giro: '+inv.business,'Dirección: '+inv.address]:[])
+     ].join('\n');
+     $('invoice-dialog-content').textContent=invoiceDialogText;
+     $('invoice-dialog').showModal();
+   }catch(err){toast('No fue posible recuperar los datos tributarios locales')}
  }
  let modalPhotoURL='';
  async function showPhoto(id,of){
@@ -271,7 +357,7 @@
  function pdfStatus(text,kind=''){const e=$('pdf-status');if(e){e.textContent=text;e.className='stat '+kind}}
  function toast(text){const e=$('toast');e.textContent=text;e.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove('visible'),2250)}
  function fmtDate(t){return new Date(t).toLocaleString('es-CL',{timeZone:'America/Santiago'})}
- function values(){return {order:$('field-order').value.trim(),name:$('field-name').value.trim(),rut:$('field-rut').value.trim()}}
+ function values(){const billing=readBilling(false);return {order:$('field-order').value.trim(),name:$('field-name').value.trim(),rut:$('field-rut').value.trim(),email:billing?.email||$('field-email').value.trim().toLowerCase(),invoice:billing?.invoice||{requested:$('invoice-requested').value==='yes'}}}
  function clearCurrent(){
    confirmedRecord=null;confirmedSnapshot=null;
    currentOF='';lastScanAt=0;resumeScanAt=Date.now()+1500;
@@ -281,12 +367,12 @@
    updatePrintQueue();$('reg-save').disabled=false;$('clear-sign').disabled=false;
    regStatus('Aún no se ha confirmado una entrega.');pdfStatus('');$('after-confirm-new').hidden=true;
    $('rut-warning').textContent='';
-   clearSign();resetPayment();setView('form');setStep(0,false);status(cameraOn?'Apunta a una nueva O.F.':'Pulsa Iniciar cámara para continuar.','ok');
+   clearSign();resetPayment();resetBilling();setView('form');setStep(0,false);status(cameraOn?'Apunta a una nueva O.F.':'Pulsa Iniciar cámara para continuar.','ok');
  }
  function newOrder(){
    if(confirmedRecord && !confirmedSnapshot?.pdfGenerated && !printQueue.includes(confirmedSnapshot)){
      if(!confirm('Esta entrega se confirmó, pero su firma no está en la cola de impresión. ¿Continuar?'))return;
-   }else if(!confirmedRecord && ($('field-name').value||$('field-rut').value||signed||paymentPhoto||$('pay-amount').value)){
+   }else if(!confirmedRecord && ($('field-name').value||$('field-rut').value||$('field-email').value||$('invoice-requested').value==='yes'||signed||paymentPhoto||$('pay-amount').value)){
      if(!confirm('¿Descartar los datos y la firma de la orden actual?'))return;
    }
    clearCurrent();toast('Nueva orden preparada');
@@ -645,6 +731,8 @@
    if(!/^\d{9}$/.test(data.order)||data.order!==currentOF){regStatus('Escanea o ingresa una O.F. válida de nueve dígitos.','bad');return}
    if(!data.name){regStatus('Escribe el nombre de la persona que recibe.','bad');$('field-name').focus();return}
    if(core.validateRut(data.rut)!==true){regStatus('Introduce un RUT válido de la persona que recibe.','bad');$('field-rut').focus();return}
+   const billing=readBilling(true);if(!billing){setView('form');setStep(1);regStatus('Revisa los datos de contacto y facturación antes de confirmar.','bad');return}
+   data.email=billing.email;data.invoice={...billing.invoice};
    if(!signed){regStatus('Falta la firma del receptor.','bad');$('signature').scrollIntoView({behavior:'smooth',block:'center'});return}
    const site=$('reg-site').value.trim();if(!site){regStatus('Indica el punto de entrega.','bad');return}
    const reason=$('reg-reason').value;
@@ -653,12 +741,12 @@
    if(!$('reg-physical').checked){regStatus('Debes confirmar expresamente la entrega física.','bad');return}
    const payment=readPayment(true);if(!payment){setView('form');setStep(1);regStatus('Revisa la sección de pago antes de confirmar.','bad');return}
    if(records.some(r=>r.of===data.order)){regStatus('Esta O.F. ya tiene un registro confirmado. Verifica antes de continuar.','bad');return}
-   let record={id:makeRecordId(),of:data.order,at:Date.now(),user:currentUser,status:'pending',reason,site:site.slice(0,90),payment:{...payment,photoHash:payment.photoHash||''}};
+   let record={id:makeRecordId(),of:data.order,at:Date.now(),user:currentUser,status:'pending',reason,site:site.slice(0,90),payment:{...payment,photoHash:payment.photoHash||''},invoiceRequested:billing.invoice.requested,contactStored:!!billing.email};
    // No conectar evidencia bancaria al esquema central antiguo: requiere migración segura explícita.
-   if(dbEnabled()&&payment.method!=='none'){regStatus('La base central requiere ampliar el esquema de pagos. Para evitar registros incompletos, no se confirma un cobro con la configuración actual.','bad');return}
-   if(!dbEnabled()&&payment.method==='transfer'){
-     try{await writePhoto(record.id,paymentPhoto,payment.photoHash)}
-     catch(err){regStatus('No se pudo guardar la fotografía. Libera espacio o habilita almacenamiento del navegador antes de entregar.','bad');return}
+   if(dbEnabled()&&(payment.method!=='none'||billing.email||billing.invoice.requested)){regStatus('La base central requiere una migración para pagos, correo y factura. Para evitar datos incompletos, no se confirma esta entrega con la configuración actual.','bad');return}
+   if(!dbEnabled()&&(payment.method==='transfer'||billing.email||billing.invoice.requested)){
+     try{await writeLocalAttachments(record.id,payment,billing)}
+     catch(err){regStatus('No fue posible guardar el respaldo, correo o datos de facturación en este dispositivo. Revisa el almacenamiento antes de confirmar.','bad');return}
    }
    const signatureData=exportSignatureInk();
    if(dbEnabled()){
@@ -675,7 +763,7 @@
        await loadDatabaseRecords();return;
      }finally{dbBusy=false}
    }else{
-     if(!storeRecords([...records,record])){if(payment.method==='transfer')await deletePhotos([record.id]);return}
+     if(!storeRecords([...records,record])){await deleteLocalAttachments([record.id]);return}
    }
    if(!dbEnabled()&&payment.method==='transfer'){
      const linked=linkToPersonalTransfers(record,payment);
@@ -704,7 +792,9 @@
      const state=document.createElement('small');state.className=rec.status==='regularized'?'delivery-status done':'delivery-status';state.textContent=rec.status==='regularized'?'Regularizada manualmente':'Pendiente de regularizar';
      info.append(code,meta,state);
      if(rec.payment){const pay=document.createElement('small');pay.textContent=rec.payment.method==='transfer'?'Transferencia informada · '+money(rec.payment.amount)+(rec.transferLink==='local-linked'?' · anotada en Transferencias':' · por traspasar'):rec.payment.method==='cash'?'Efectivo recibido · '+money(rec.payment.amount):'Sin cobro en entrega';info.append(pay)}
+     if(rec.invoiceRequested||rec.contactStored){const contact=document.createElement('small');contact.textContent=rec.invoiceRequested?'Factura solicitada · correo registrado':'Correo registrado';info.append(contact)}
      row.append(info);
+     if(!dbEnabled()&&(rec.contactStored||rec.invoiceRequested)){const button=document.createElement('button');button.className='micro';button.type='button';button.textContent=rec.invoiceRequested?'Factura':'Correo';button.dataset.action='show-invoice';button.dataset.id=rec.id;button.dataset.of=rec.of;row.append(button)}
      if(rec.payment?.method==='transfer'&&!dbEnabled()){
        const view=document.createElement('button');view.type='button';view.className='micro';view.textContent='Foto';view.dataset.action='show-photo';view.dataset.id=rec.id;view.dataset.of=rec.of;row.append(view);
        if(currentUser==='CIBC'&&rec.transferLink!=='local-linked'){
@@ -795,6 +885,7 @@
    const pay=p.payment||{method:'none',amount:0};
    const payLabel=pay.method==='transfer'?'TRANSFERENCIA INFORMADA':pay.method==='cash'?'EFECTIVO RECIBIDO':'SIN COBRO EN ENTREGA';
    text('PAGO: '+payLabel+(pay.amount?' · '+money(pay.amount):''),leftX,y+56.2,7,true,pay.method==='transfer'?[135,101,37]:green);
+   if(p.invoiceRequested){doc.setFont('helvetica','bold');doc.setFontSize(6.6);doc.setTextColor(135,101,37);doc.text('FACTURA SOLICITADA',x+w-6,y+56.2,{align:'right'})}
    // Panel blanco para firma; idéntico tamaño de hoja A4.
    const signY=y+59,signH=23;
    doc.setFillColor(255,255,255);doc.setDrawColor(...line);
@@ -851,8 +942,11 @@
    document.querySelectorAll('input[name="pay-condition"],input[name="pay-method"]').forEach(e=>e.addEventListener('change',updatePaymentUI));
    $('payment-photo').addEventListener('change',captureEvidence);$('payment-photo-file').addEventListener('change',captureEvidence);
    $('payment-remove').addEventListener('click',()=>{dropPaymentPhoto();paymentStatus('Fotografía eliminada.','bad')});
+   $('invoice-requested').addEventListener('change',updateInvoiceUI);
+   $('close-invoice').addEventListener('click',()=>{$('invoice-dialog').close()});
+   $('copy-invoice').addEventListener('click',async()=>toast(await copyText(invoiceDialogText)?'Datos copiados':'No se pudieron copiar los datos'));
    $('close-photo').addEventListener('click',closePhoto);$('photo-dialog').addEventListener('close',closePhoto);
-   updatePaymentUI();setView('form');setStep(0,false);
+   updatePaymentUI();updateInvoiceUI();setView('form');setStep(0,false);
    $('start-cam').addEventListener('click',startCamera);$('stop-cam').addEventListener('click',stopCamera);
    $('torch').addEventListener('click',toggleTorch);
    $('new-order').addEventListener('click',newOrder);$('after-confirm-new').addEventListener('click',newOrder);
@@ -870,13 +964,14 @@
    $('reg-copy').addEventListener('click',copyPending);
    $('reg-clear').addEventListener('click',()=>{
      if(dbEnabled()){toast('Los registros centrales se conservan para auditoría');return}
-     if(confirm('¿Eliminar solo entregas regularizadas y sus fotografías locales? No podrán recuperarse.')){const remove=records.filter(x=>x.status==='regularized').map(x=>x.id);if(storeRecords(records.filter(x=>x.status!=='regularized')))deletePhotos(remove)}
+     if(confirm('¿Eliminar entregas regularizadas y sus fotografías, correos y datos de facturación locales? No podrán recuperarse.')){const remove=records.filter(x=>x.status==='regularized').map(x=>x.id);if(storeRecords(records.filter(x=>x.status!=='regularized')))deleteLocalAttachments(remove)}
    });
    $('reg-history').addEventListener('click',e=>{
      const b=e.target.closest('[data-action]');if(!b)return;
      if(b.dataset.action==='regularize')regularize(b.dataset.id);
      if(b.dataset.action==='recover')recoverReceipt(b.dataset.id);
      if(b.dataset.action==='show-photo')showPhoto(b.dataset.id,b.dataset.of);
+     if(b.dataset.action==='show-invoice')showInvoice(b.dataset.id,b.dataset.of);
      if(b.dataset.action==='link-transfer'){
        const rec=records.find(x=>x.id===b.dataset.id);
        if(rec&&rec.payment?.method==='transfer'&&linkToPersonalTransfers(rec,rec.payment)){
