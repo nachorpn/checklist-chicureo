@@ -1,9 +1,9 @@
 {
-  "version": "2026.11.21.17",
+  "version": "2026.11.21.18",
   "name": "Gestark",
-  "changes": "Entregas contingentes fase 1: vista operativa limpia sin zoom, diagnóstico, selector de lentes, cámara fotográfica ni OCR. O.F., receptor manual, firma, confirmación explícita, PDF interno y regularización local. Laboratorio sin cambios.",
+  "changes": "Entregas contingentes: formato Gestark/Greenbox de tres comprobantes por hoja A4 con ID completo; cola de impresion temporal para varias entregas, firma ampliada y declaracion de recibo conforme. Lector y Laboratorio sin cambios.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
-  "contingencyVersion": "2026.11.21.17",
-  "contingencyUpdatedAt": "2026-11-21T18:24:00-03:00"
+  "contingencyVersion": "2026.11.21.18",
+  "contingencyUpdatedAt": "2026-11-21T18:44:00-03:00"
 }

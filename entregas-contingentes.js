@@ -1,4 +1,4 @@
-/* Gestark · Entregas contingentes · Interfaz operativa v2026.11.21.17.
+/* Gestark · Entregas contingentes · Recepción / impresión v2026.11.21.18.
    El motor de cámara/decodificación proviene de la versión aprobada 2026.11.21.15. */
 (()=>{
  'use strict';
@@ -12,6 +12,7 @@
  let scanner=null, cameraOn=false, working=false, stopping=false, flashOn=false;
  let signed=false, signatureCanvas=null, sigCtx=null, penDown=false;
  let currentOF='', lastScanAt=0, resumeScanAt=0, confirmedRecord=null, confirmedSnapshot=null;
+ let printQueue=[]; // Firmas y datos personales solo en memoria; nunca en localStorage.
  let toastTimer=null;
  function canUse(){return active && document.documentElement.classList.contains('gestark-unlocked')}
  function status(text,kind=''){const e=$('scan-status');if(e){e.textContent=text;e.className='stat '+kind}}
@@ -26,14 +27,14 @@
    for(const id of ['field-order','field-name','field-rut','manual-code'])$(id).value='';
    $('lastread').hidden=true;
    $('reg-physical').checked=false;
-   $('export-pdf').disabled=true;$('reg-save').disabled=false;$('clear-sign').disabled=false;
+   updatePrintQueue();$('reg-save').disabled=false;$('clear-sign').disabled=false;
    regStatus('Aún no se ha confirmado una entrega.');pdfStatus('');
    $('rut-warning').textContent='';
    clearSign();status(cameraOn?'Apunta a una nueva O.F.':'Pulsa Iniciar cámara para continuar.','ok');
  }
  function newOrder(){
-   if(confirmedRecord && !confirmedSnapshot?.pdfGenerated){
-     if(!confirm('Esta entrega ya fue confirmada. ¿Continuar sin descargar su PDF? La firma no podrá recuperarse.'))return;
+   if(confirmedRecord && !confirmedSnapshot?.pdfGenerated && !printQueue.includes(confirmedSnapshot)){
+     if(!confirm('Esta entrega se confirmó, pero su firma no está en la cola de impresión. ¿Continuar?'))return;
    }else if(!confirmedRecord && ($('field-name').value||$('field-rut').value||signed)){
      if(!confirm('¿Descartar los datos y la firma de la orden actual?'))return;
    }
@@ -320,12 +321,51 @@
    requestAnimationFrame(resize);
    let rr;window.addEventListener('resize',()=>{clearTimeout(rr);rr=setTimeout(resize,220)});
    function pos(e){const r=signatureCanvas.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
-   signatureCanvas.addEventListener('pointerdown',e=>{if(!canUse()||confirmedRecord)return;penDown=true;signed=true;signatureCanvas.setPointerCapture(e.pointerId);const p=pos(e);sigCtx.beginPath();sigCtx.moveTo(p.x,p.y);sigCtx.lineTo(p.x+.02,p.y+.02);sigCtx.stroke()});
+   signatureCanvas.addEventListener('pointerdown',e=>{if(!canUse()||confirmedRecord)return;penDown=true;signed=true;const ph=$('sign-placeholder');if(ph)ph.hidden=true;signatureCanvas.setPointerCapture(e.pointerId);const p=pos(e);sigCtx.beginPath();sigCtx.moveTo(p.x,p.y);sigCtx.lineTo(p.x+.02,p.y+.02);sigCtx.stroke()});
    signatureCanvas.addEventListener('pointermove',e=>{if(!penDown)return;const p=pos(e);sigCtx.lineTo(p.x,p.y);sigCtx.stroke()});
    ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>signatureCanvas.addEventListener(ev,()=>penDown=false));
  }
- function clearSign(){if(signatureCanvas&&sigCtx){sigCtx.clearRect(0,0,signatureCanvas.width,signatureCanvas.height)}signed=false}
+ function clearSign(){if(signatureCanvas&&sigCtx){sigCtx.clearRect(0,0,signatureCanvas.width,signatureCanvas.height)}signed=false;const ph=$('sign-placeholder');if(ph)ph.hidden=false}
 
+ // Eliminar los amplios márgenes transparentes alrededor de la firma antes de imprimir.
+ function exportSignatureInk(){
+   const source=signatureCanvas,sourceCtx=source.getContext('2d');
+   const w=source.width,h=source.height;
+   const pixels=sourceCtx.getImageData(0,0,w,h).data;
+   let minX=w,minY=h,maxX=-1,maxY=-1;
+   // Muestreo exacto de píxeles no transparentes: ni el fondo ni las guías son tinta.
+   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+     if(pixels[(y*w+x)*4+3]>25){if(x<minX)minX=x;if(y<minY)minY=y;if(x>maxX)maxX=x;if(y>maxY)maxY=y}
+   }
+   if(maxX<0||maxY<0)return source.toDataURL('image/png');
+   const pad=Math.max(14,Math.round((window.devicePixelRatio||1)*12));
+   const sx=Math.max(0,minX-pad),sy=Math.max(0,minY-pad);
+   const ex=Math.min(w,maxX+pad+1),ey=Math.min(h,maxY+pad+1);
+   const output=document.createElement('canvas');output.width=ex-sx;output.height=ey-sy;
+   output.getContext('2d').drawImage(source,sx,sy,output.width,output.height,0,0,output.width,output.height);
+   return output.toDataURL('image/png');
+ }
+ function updatePrintQueue(){
+   const count=printQueue.length;
+   const target=$('print-queue');
+   if(target){
+     const pages=Math.ceil(count/3);
+     target.replaceChildren();
+     const heading=document.createElement('strong');heading.textContent=count+' comprobante'+(count===1?'':'s')+' preparado'+(count===1?'':'s');
+     target.append(heading,document.createTextNode(count?(' · '+pages+' hoja'+(pages===1?'':'s')+' A4 (hasta tres por página). Descarga antes de cerrar.'):'Los siguientes comprobantes se reunirán aquí hasta descargar el PDF.'));
+   }
+   $('export-pdf').disabled=count===0;
+   $('print-discard').disabled=count===0;
+   $('export-pdf').textContent=count?'Descargar PDF · '+count+' comprobante'+(count===1?'':'s'):'Descargar hoja de comprobantes';
+ }
+ function discardPrintQueue(){
+   if(!printQueue.length)return;
+   if(!confirm('¿Descartar los '+printQueue.length+' comprobantes preparados? No se podrán recuperar sus firmas desde el historial.'))return;
+   printQueue=[];
+   if(confirmedSnapshot)confirmedSnapshot.pdfGenerated=false;
+   updatePrintQueue();
+   pdfStatus('Comprobantes descartados. Los estados de entrega no cambian.');
+ }
  function updateRutWarning(){
    const rut=$('field-rut').value.trim(),el=$('rut-warning');
    const ok=core.validateRut(rut);
@@ -358,12 +398,13 @@
    if(!$('reg-physical').checked){regStatus('Debes confirmar expresamente la entrega física.','bad');return}
    if(records.some(r=>r.of===data.order)){regStatus('Esta O.F. ya tiene un registro en este dispositivo. Verifica antes de continuar.','bad');return}
    const record={id:makeRecordId(),of:data.order,at:Date.now(),user:currentUser,status:'pending',reason,site:site.slice(0,90)};
-   const signatureData=signatureCanvas.toDataURL('image/png');
+   const signatureData=exportSignatureInk();
    if(!storeRecords([...records,record]))return;
    confirmedRecord=record;
-   confirmedSnapshot={data:{...data},signature:signatureData,pdfGenerated:false};
-   $('export-pdf').disabled=false;$('reg-save').disabled=true;$('clear-sign').disabled=true;
-   regStatus('Entrega registrada en este dispositivo. Descarga el PDF y regularízala en Starken.','ok');toast('Registro interno confirmado ✓');
+   confirmedSnapshot={data:{...data},record:{...record},operator:operatorName||currentUser,signature:signatureData,pdfGenerated:false};
+   printQueue.push(confirmedSnapshot);updatePrintQueue();
+   $('reg-save').disabled=true;$('clear-sign').disabled=true;
+   regStatus('Entrega registrada. El comprobante se agregó a la hoja de impresión; continúa con otra O.F. o descarga el PDF.','ok');toast('Comprobante añadido ✓');
  }
  function renderRecords(){
    const root=$('reg-history');const pending=records.filter(r=>r.status==='pending');
@@ -400,42 +441,92 @@
    if(!confirm('¿Confirmas que la O.F. '+rec.of+' YA fue regularizada en el sistema oficial de Starken? Esta app no sincroniza ni verifica esa gestión.'))return;
    if(storeRecords(records.map(x=>x.id===id?{...x,status:'regularized',regularizedAt:Date.now()}:x)))toast('Marcada como regularizada manualmente');
  }
- async function hashString(s){
-   if(!crypto.subtle)return '';
-   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
-   return Array.from(new Uint8Array(buf)).map(x=>x.toString(16).padStart(2,'0')).join('');
+ // Mantener solamente el ID como marca discreta de trazabilidad del comprobante.
+ function pdfReceipt(doc,entry,index){
+   const p=entry.record,d=entry.data;
+   const width=210,margin=10,gap=4,cardH=(297-20-2*gap)/3;
+   const y=10+(index%3)*(cardH+gap),x=margin,w=width-margin*2;
+   const ink=[24,61,45],muted=[91,115,102],green=[16,103,72],line=[207,225,215];
+   const text=(str,tx,ty,size=8,bold=false,color=ink)=>{
+     doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...color);
+     doc.text(String(str??''),tx,ty);
+   };
+   const clipped=(str,maxWidth,size=8,bold=false)=>{
+     let value=String(str??'').replace(/\s+/g,' ').trim();
+     doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);
+     while(value.length && doc.getTextWidth(value)>maxWidth){value=value.slice(0,-1)}
+     return value.length<String(str??'').replace(/\s+/g,' ').trim().length?value.slice(0,-3)+'...':value;
+   };
+   const box=(bx,by,bw,bh,r=2)=>{doc.setDrawColor(...line);doc.setFillColor(246,251,248);doc.roundedRect(bx,by,bw,bh,r,r,'FD')};
+   doc.setDrawColor(...line);doc.setLineWidth(.28);doc.roundedRect(x,y,w,cardH,3,3,'S');
+   doc.setFillColor(...green);doc.roundedRect(x,y,w,17,3,3,'F');doc.rect(x,y+10,w,7,'F');
+   text('Gestark',x+6,y+10.4,13,true,[255,255,255]);
+   text('GREENBOX',x+36,y+10,7,true,[224,246,233]);
+   doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(9);
+   doc.text('ENTREGA CONTINGENTE',x+w-6,y+9.4,{align:'right'});
+   doc.setFont('helvetica','normal');doc.setFontSize(7);
+   doc.text('Registro interno de recepción',x+w-6,y+13.4,{align:'right'});
+   // Tres columnas, como la maqueta aprobada.
+   const rowY=y+21,leftX=x+6,midX=x+70,rightX=x+142;
+   box(leftX,rowY,60,22,2.5);
+   text('ORDEN DE FLETE',leftX+3,rowY+5,7,true,muted);
+   text(d.order,leftX+3,rowY+13.5,18,true,ink);
+   text(fmtDate(p.at),leftX+3,rowY+19.3,6.7,false,muted);
+   text('RECEPTOR',midX,rowY+5,7,true,muted);
+   text(clipped(d.name,65,9.5,true),midX,rowY+11.5,9.5,true,ink);
+   text('RUT: '+d.rut,midX,rowY+18,8,false,ink);
+   text('ID',rightX,rowY+5,7,true,muted);
+   // UUID completo, dividido en líneas para evitar truncar el identificador.
+   const id=String(p.id||'');
+   doc.setFont('helvetica','normal');doc.setFontSize(6.4);
+   const idLines=doc.splitTextToSize(id,48);
+   idLines.slice(0,3).forEach((s,j)=>text(s,rightX,rowY+10+j*3.3,6.4,false,ink));
+   const detailY=y+49;
+   text('SUCURSAL',leftX,detailY,7,true,muted);
+   text(clipped(p.site,57,8,false),leftX,detailY+5,8,false,ink);
+   text('MOTIVO',midX,detailY,7,true,muted);
+   text(clipped(p.reason,64,8,false),midX,detailY+5,8,false,ink);
+   text('RESPONSABLE',rightX,detailY,7,true,muted);
+   text(clipped(entry.operator,47,8,false),rightX,detailY+5,8,false,ink);
+   // Panel blanco para la firma y declaración de recepción conforme.
+   const signY=y+58,signH=24;
+   doc.setFillColor(255,255,255);doc.setDrawColor(...line);
+   doc.roundedRect(leftX,signY,w-12,signH,2.5,2.5,'FD');
+   text('RECIBO CONFORME',leftX+3,signY+5,7.2,true,ink);
+   text('Recibí la encomienda indicada y dejo constancia con mi firma.',leftX+3,signY+9,6.6,false,muted);
+   if(entry.signature){
+     try{
+       const img=doc.getImageProperties(entry.signature);
+       const maxW=95,maxH=12;
+       const ratio=Math.min(maxW/img.width,maxH/img.height);
+       const dw=img.width*ratio,dh=img.height*ratio;
+       doc.addImage(entry.signature,'PNG',leftX+6+(maxW-dw)/2,signY+10.3+(12-dh)/2,dw,dh);
+     }catch(err){console.warn('Firma PDF',err)}
+   }
+   text('FIRMA DE RECEPCIÓN',leftX+110,signY+16,7,true,muted);
+   const footY=y+cardH-3.8;
+   text('PENDIENTE DE REGULARIZACIÓN',leftX,footY,7,true,[137,101,39]);
+   doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...muted);
+   doc.text('Gestark / Greenbox',x+w-6,footY,{align:'right'});
+   // Marcas discretas para facilitar el corte al imprimir.
+   if(index%3!==2){doc.setDrawColor(184,196,187);doc.setLineDashPattern([2,2],0);doc.line(x,y+cardH+gap/2,x+w,y+cardH+gap/2);doc.setLineDashPattern([],0)}
  }
  async function exportPdf(){
-   if(!confirmedRecord||!confirmedSnapshot){pdfStatus('Primero confirma una entrega.','bad');return}
-   const data=confirmedSnapshot.data,record=confirmedRecord;
-   $('export-pdf').disabled=true;pdfStatus('Generando PDF interno…');
+   if(!printQueue.length){pdfStatus('Primero confirma una entrega para preparar su comprobante.','bad');return}
+   const items=printQueue.slice();
+   $('export-pdf').disabled=true;pdfStatus('Generando hoja de '+items.length+' comprobante(s)…');
    try{
      await loadScript(PDF_LIB,'jspdf');const PDF=window.jspdf?.jsPDF;if(!PDF)throw Error('No se cargó el generador PDF');
      const doc=new PDF({unit:'mm',format:'a4',compress:true});
-     doc.setFillColor(17,102,74);doc.rect(0,0,210,41,'F');
-     doc.setFont('helvetica','bold');doc.setFontSize(17);doc.setTextColor(255);doc.text('Gestark | Entregas contingentes',15,16);
-     doc.setFontSize(10);doc.text('REGISTRO INTERNO - NO OFICIAL STARKEN',15,26);
-     doc.setFontSize(9);doc.text(fmtDate(record.at),15,34);
-     doc.setTextColor(27,58,43);doc.setFontSize(12);
-     doc.text('Orden de flete: '+data.order,15,57);
-     doc.setFont('helvetica','normal');doc.setFontSize(10);
-     const write=(title,value,y)=>{doc.setFont('helvetica','bold');doc.text(title,15,y);doc.setFont('helvetica','normal');doc.text(doc.splitTextToSize(value,122),68,y)};
-     write('Receptor',data.name,70);write('RUT',data.rut,85);
-     write('Lugar',record.site,100);write('Motivo',record.reason,115);
-     write('Operador',operatorName||currentUser,130);write('Identificador',record.id,145);
-     doc.setFont('helvetica','bold');doc.text('Firma indicada por el receptor:',15,166);
-     doc.addImage(confirmedSnapshot.signature,'PNG',15,173,90,34);
-     const digest=await hashString(JSON.stringify(data)+record.id+record.at+confirmedSnapshot.signature);
-     doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text('Huella informativa de captura (no certifica identidad ni autenticidad):',15,228);
-     doc.text(digest||'No disponible',15,234);
-     doc.setFontSize(9);doc.setTextColor(142,65,35);
-     doc.text('PENDIENTE DE REGULARIZACION EN EL SISTEMA AUTORIZADO',15,260);
-     doc.setTextColor(73,88,77);doc.setFontSize(8);
-     doc.text('Este PDF es un registro local. No sustituye el comprobante oficial Starken.',15,270);
-     doc.save('Gestark_entrega_contingencia_OF_'+record.of+'.pdf');
-     confirmedSnapshot.pdfGenerated=true;pdfStatus('PDF descargado. Pendiente de regularizar en Starken.','ok');toast('PDF generado ✓');
-   }catch(err){console.warn('Gestark: no se pudo generar PDF',err);pdfStatus('No fue posible generar el PDF. Comprueba internet y vuelve a intentar.','bad')}
-   finally{$('export-pdf').disabled=false}
+     items.forEach((entry,i)=>{if(i&&i%3===0)doc.addPage();pdfReceipt(doc,entry,i)});
+     const stamp=new Date().toLocaleDateString('en-CA',{timeZone:'America/Santiago'}).replace(/-/g,'');
+     doc.save('Gestark_Greenbox_Entregas_'+stamp+'_'+items.length+'_comprobantes.pdf');
+     items.forEach(entry=>entry.pdfGenerated=true);
+     printQueue=printQueue.filter(x=>!items.includes(x));updatePrintQueue();
+     pdfStatus('PDF generado: '+items.length+' comprobante(s), '+Math.ceil(items.length/3)+' página(s) A4. Guarda el archivo antes de cerrar la app.','ok');
+     toast('Hoja de comprobantes generada ✓');
+   }catch(err){console.warn('Gestark: PDF no disponible',err);pdfStatus('No fue posible generar el PDF; los comprobantes siguen preparados. Inténtalo de nuevo.','bad')}
+   finally{updatePrintQueue()}
  }
  function init(){
    if(active)return;active=true;
@@ -450,6 +541,8 @@
    $('clear-sign').addEventListener('click',()=>{if(!confirmedRecord)clearSign()});
    $('reg-save').addEventListener('click',registerDelivery);
    $('export-pdf').addEventListener('click',exportPdf);
+   $('print-discard').addEventListener('click',discardPrintQueue);
+   updatePrintQueue();
    $('reg-copy').addEventListener('click',copyPending);
    $('reg-clear').addEventListener('click',()=>{if(confirm('¿Eliminar solo entregas marcadas como regularizadas? No podrán recuperarse.'))storeRecords(records.filter(x=>x.status!=='regularized'))});
    $('reg-history').addEventListener('click',e=>{const b=e.target.closest('[data-action="regularize"]');if(b)regularize(b.dataset.id)});
@@ -462,6 +555,7 @@
    deliveryStorage=DELIVERY_PREFIX+currentUser;init();
  });
  window.addEventListener('storage',e=>{if(active&&e.key===deliveryStorage){records=loadRecords();renderRecords()}});
+ window.addEventListener('beforeunload',e=>{if(printQueue.length){e.preventDefault();e.returnValue=''}});
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&cameraOn)stopCamera()});
  window.addEventListener('pagehide',()=>{if(cameraOn||scanner)stopCamera()});
 })();

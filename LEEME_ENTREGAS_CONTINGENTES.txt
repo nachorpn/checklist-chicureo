@@ -1,25 +1,21 @@
-GESTARK - ENTREGAS CONTINGENTES FASE 1
-Versión 2026.11.21.17
+GESTARK / GREENBOX - ENTREGAS CONTINGENTES (FASE 1)
+Versión 2026.11.21.18
 
-CAMBIOS
-- Interfaz operativa limpia sin diagnóstico, zoom, selector de lentes ni botón de sonidos/pruebas.
-- Retiradas cámara para fotografías, lectura automática de datos impresos y OCR. Segunda fase.
-- Se conserva el escaneo de O.F. con el motor de códigos de barras aprobado, doble beep, deduplicación y captura HD de respaldo.
-- Campos indispensables manuales: nombre y RUT del receptor; firma en pantalla y confirmación expresa.
-- Descarga de PDF interno después de confirmar; historial de pendientes de regularizar.
-- No se modifica Laboratorio, el escáner general ni otros módulos.
+IMPLEMENTADO
+- Hoja A4 con 3 comprobantes por página. Diseño Gestark / Greenbox, O.F. destacada, receptor, RUT, motivo, punto de entrega, responsable, firma e ID único completo.
+- Sin textos de "sello de fidelidad" ni QR. No se emite ningún certificado externo.
+- Firma en bloque blanco ampliado; declaración "Recibo conforme" encima de la firma en la aplicación y en el PDF.
+- Eliminado el mensaje anterior sobre la firma como prueba de identidad.
+- Cola temporal de PDF: tras confirmar una entrega, el comprobante firmado queda en memoria; pulsa Nueva orden para añadir otras entregas, y luego Descargar PDF para imprimir hasta 3 en cada hoja A4.
+- Las firmas, nombres y RUT no se guardan en el historial persistente. Si se cierra o recarga Gestark antes de descargar, se pierde la cola temporal y no se puede reconstruir la firma desde el historial.
+- No se modificó el motor del escáner, Laboratorio, Checklist, ni los demás módulos.
 
-INSTALAR
-1. Descomprimir ZIP.
-2. En GitHub nachorpn/checklist-chicureo subir los cinco archivos de esta carpeta a la raíz, reemplazando los anteriores.
-3. Commit changes; en Gestark pulsar Actualizar y abrir Entregas contingentes.
-4. Probar con una O.F. ficticia y RUT de prueba válido. Verificar PDF antes de cerrar.
+INSTALACIÓN
+1. Descomprime el ZIP.
+2. En el repositorio GitHub nachorpn/checklist-chicureo, sube SOLO los cinco archivos de este ZIP a la RAÍZ, reemplazando los homónimos.
+3. Confirma Commit changes y pulsa Actualizar en Gestark.
+4. Abre Entregas contingentes. Con datos FICTICIOS, confirma tres entregas y descarga el PDF: debe ocupar una hoja A4.
 
-IMPORTANTES
-- Escanear NO equivale a confirmar entrega. Requiere confirmación expresa.
-- Solo se guarda localmente O.F., fecha, operador, motivo, lugar e ID; NO firma, RUT ni nombre.
-- Pendientes se regularizan manualmente en los sistemas autorizados; no hay sincronización.
-- No es un sistema corporativo certificado por Starken; GitHub Pages carece de seguridad de servidor.
-- No operar con datos reales sin autorización y controles de seguridad y respaldo aprobados.
-- El lector de datos/OCR se abordará únicamente en fase 2.
-- No se implementó QR ni integración de pagos o Transferencias.
+IMPORTANTE
+La confirmación de entrega exige la acción expresa del operador y la firma del receptor. Escanear por sí solo no confirma una entrega. El PDF representa un registro interno pendiente de regularización, no una validación contra el sistema central.
+La app sigue usando almacenamiento local sin seguridad de servidor; no uses RUT, firmas ni otros datos reales hasta disponer de autorización y controles corporativos adecuados.
