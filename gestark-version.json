@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.21.3",
+  "version": "2026.11.21.4",
   "name": "Gestark",
-  "changes": "Laboratorio HD para escaneo a distancia: captura 1920x1080 ideal con respaldo estándar, área de lectura ampliada, decodificación prioritaria Code 128, zoom opcional y enfoque continuo donde esté disponible. Sin cambios en otras funciones."
+  "changes": "Laboratorio: cámara a todo el ancho, zoom inicial 1×, lectura única por O.F. al detectar dos códigos y silencio ante formatos no reconocidos. Escáner general y QR sin cambios."
 }

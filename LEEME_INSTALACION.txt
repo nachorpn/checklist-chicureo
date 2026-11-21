@@ -1,0 +1,20 @@
+GESTARK - LABORATORIO 2026.11.21.4
+
+CAMBIOS
+- Vista de la cámara ocupando el ancho disponible, sin bandas oscuras laterales.
+- Zoom inicial 1x (puede ajustarse manualmente si la cámara lo admite).
+- Si el comprobante muestra código corto y largo de la misma O.F., se registra una sola vez.
+- Los códigos no reconocidos durante la lectura en vivo no disparan errores rojos.
+- Sin cambios en el escáner general. No se habilita QR en laboratorio.
+
+INSTALACION
+Sube los tres archivos de este ZIP a la raíz de nachorpn/checklist-chicureo, reemplazando sus versiones previas. Abre Gestark -> CIBC -> Laboratorio y actualiza.
+
+PRUEBAS
+1. Comprueba la vista de cámara en iPhone.
+2. Lee los dos códigos del mismo comprobante; debe salir una sola O.F.
+3. Lee una O.F. diferente; debe registrarse como otra orden.
+4. Verifica que zoom/linterna y formulario continúan funcionando.
+
+LIMITES
+Sin prueba física con iPhone. Revisa la O.F. impresa. Entorno de pruebas no oficial. No incorporar datos de clientes al repositorio público.

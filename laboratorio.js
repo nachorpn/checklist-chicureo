@@ -8,6 +8,7 @@
  let active=false,scanner=null,working=false,cameraOn=false,stopping=false,flashOn=false;
  let zoomTimer=null,zoomBusy=false,zoomPending=null,zoomLimits=null;
  let entries=[],imageFile=null,imageUrl=null,lastRaw='',lastAt=0,recognizedSource='manual';
+ let lastCameraOf='',lastCameraAt=0; // Un evento de lectura por O.F. cuando hay dos códigos.
  let ocrWorker=null,ocrBusy=false,signatureCanvas=null,sigCtx=null,signed=false,penDown=false;
  let toastTimeout=null;
  function status(text,kind=''){const e=$('scan-status');e.textContent=text;e.className='stat '+kind}
@@ -17,7 +18,7 @@
  function canUse(){return active&&document.documentElement.classList.contains('gestark-unlocked')}
  function values(){const r={};FIELDS.forEach(k=>r[k]=$('field-'+k)?.value.trim()||'');return r}
  function setField(key,val){const e=$('field-'+key);if(e)e.value=String(val||'').slice(0,e.maxLength>0?e.maxLength:180)}
- function clearData(){for(const key of FIELDS)setField(key,'');$('ocr-text').value='';recognizedSource='manual';$('source-label').textContent='Sin datos reconocidos';$('lastread').style.display='none';if($('rut-warning'))$('rut-warning').textContent='';clearSign()}
+ function clearData(){lastCameraAt=0;lastCameraOf='';for(const key of FIELDS)setField(key,'');$('ocr-text').value='';recognizedSource='manual';$('source-label').textContent='Sin datos reconocidos';$('lastread').style.display='none';if($('rut-warning'))$('rut-warning').textContent='';clearSign()}
  function showSource(text){recognizedSource=text;$('source-label').textContent=text}
  function onValidCode(read,source='cámara'){
    if(!canUse())return;
@@ -65,11 +66,25 @@
  const PDF_LIB='https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
  function showCamera(on){
    cameraOn=on;
+   if(!on){lastCameraAt=0;lastCameraOf=''}
    $('camera').style.display=on?'block':'none';$('cam-placeholder').style.display=on?'none':'flex';
    $('start-cam').disabled=on;$('stop-cam').disabled=!on;$('cam-badge').textContent=on?'Escaneando':'Apagada';
    if(!on){$('torch').hidden=true;flashOn=false;$('zoom-controls').hidden=true;zoomLimits=null;zoomPending=null;clearTimeout(zoomTimer);$('camera-info').textContent=''}
  }
- function onDecode(raw){const p=core.parseBarcode(raw);if(p.valid){onValidCode(p,'cámara')}else{const now=Date.now();if(raw!==lastRaw||now-lastAt>3000){lastRaw=raw;lastAt=now;status('Código leído pero el patrón no es reconocible: '+String(raw).slice(0,42),'bad')}}}
+ function onDecode(raw){
+  const p=core.parseBarcode(raw);
+  // Un comprobante puede mostrar dos códigos: ignorar formatos desconocidos
+  // mientras se busca una O.F. válida, sin disparar un error rojo.
+  if(!p.valid||!canUse())return;
+  const now=Date.now();
+  const current=$('field-order').value.trim();
+  // El código corto y el largo para la misma orden producen UN solo registro.
+  if(p.of===current)return;
+  // Evita saltar de orden por una lectura fugaz de otro código cercano.
+  if(lastCameraAt&&p.of!==lastCameraOf&&now-lastCameraAt<1500)return;
+  onValidCode(p,'cámara');
+  lastCameraOf=p.of;lastCameraAt=now;
+ }
  // Más detalle de barras desde lejos: capturar video HD (cuando el equipo lo permita),
  // decodificar menos formatos y ampliar la zona horizontal de lectura.
  const BARCODE_FORMATS=['CODE_128','CODE_39','ITF'];
@@ -126,10 +141,10 @@
      if(maximum>minimum){
        zoomLimits={min:minimum,max:maximum};
        const control=$('zoom-range');control.min=String(minimum);control.max=String(maximum);control.step='0.1';
-       control.value=String(Math.min(maximum,Math.max(minimum,1.4)));
+       control.value=String(Math.min(maximum,Math.max(minimum,1)));
        $('zoom-value').textContent=Number(control.value).toFixed(1)+'×';
        $('zoom-controls').hidden=false;
-       // Zoom suave de partida; se puede ajustar o restablecer desde la interfaz.
+       // Encuadre amplio al iniciar: zoom 1× (o mínimo admitido), con ajuste manual opcional.
        await applyZoom(Number(control.value));
      }
    }
