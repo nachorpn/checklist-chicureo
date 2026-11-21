@@ -1,0 +1,29 @@
+GESTARK | LABORATORIO — ESCANEO A DISTANCIA
+Versión 2026.11.21.3
+
+INSTALACIÓN
+- Descomprimir ZIP. Subir su contenido (NO la carpeta contenedora) a la raíz del repositorio GitHub.
+- Reemplazar archivos existentes, incluyendo laboratorio.html, laboratorio.js, index.html y gestark-version.json.
+- No subir datos de clientes, comprobantes reales ni fotografías al repositorio público.
+- En Gestark abrir Laboratorio desde perfil CIBC, actualizar la página y elegir Iniciar cámara.
+
+CAMBIOS
+- Intenta vídeo HD (ideal 1920x1080); si falla, usa el inicio estándar anterior.
+- Aumenta la zona de lectura horizontal, con objetivo de reconocer barras sin acercar tanto el móvil.
+- Prioriza Code 128, Code 39 e ITF (para códigos Starken, sin QR en este laboratorio).
+- Si hay zoom disponible lo activa suavemente, muestra regulador para ajustar y Restablecer.
+- Si no existe zoom en el dispositivo, el regulador no aparece.
+- Intenta enfocar continuamente solamente si la cámara anuncia esa capacidad.
+- Prepara biblioteca al entrar para reducir la espera inicial.
+- Historial de O.F., OCR, firma y PDF de PRUEBA permanecen como antes.
+- No se cambió el escáner general. No incluye QR en comprobante.
+
+PRUEBA
+- Colocar una etiqueta legible de Starken a 20-30 cm y apuntar a código grande primero.
+- Desplazar lento hasta enfocar; en móviles con zoom probar 1.0x / 1.4x / 2.0x.
+- Leer código corto y largo y comprobar que la O.F. coincide.
+- Si la cámara no muestra zoom o la distancia no mejora, depende del hardware y navegador; no se garantiza una distancia fija.
+
+PRIVACIDAD
+- Solo pruebas con datos ficticios. El acceso CIBC es ocultamiento en el cliente, NO control de acceso de servidor.
+- El motor se descarga por internet la primera vez. No se ha probado en cámara física iPhone.

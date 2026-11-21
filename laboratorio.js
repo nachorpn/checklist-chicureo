@@ -6,6 +6,7 @@
  const FIELDS=['order','pieces','name','rut','retriever','address','rutRetriever','origin','destination','deliveryType','issued','delivered','time','payment','amount','weight'];
  const STORAGE='gestark:lab:orders:CIBC:v1',MAX=1000;
  let active=false,scanner=null,working=false,cameraOn=false,stopping=false,flashOn=false;
+ let zoomTimer=null,zoomBusy=false,zoomPending=null,zoomLimits=null;
  let entries=[],imageFile=null,imageUrl=null,lastRaw='',lastAt=0,recognizedSource='manual';
  let ocrWorker=null,ocrBusy=false,signatureCanvas=null,sigCtx=null,signed=false,penDown=false;
  let toastTimeout=null;
@@ -62,24 +63,111 @@
  const QR_LIB='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
  const OCR_LIB='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';
  const PDF_LIB='https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
- function showCamera(on){cameraOn=on;$('camera').style.display=on?'block':'none';$('cam-placeholder').style.display=on?'none':'flex';$('start-cam').disabled=on;$('stop-cam').disabled=!on;$('cam-badge').textContent=on?'Escaneando':'Apagada';if(!on){$('torch').hidden=true;flashOn=false}}
+ function showCamera(on){
+   cameraOn=on;
+   $('camera').style.display=on?'block':'none';$('cam-placeholder').style.display=on?'none':'flex';
+   $('start-cam').disabled=on;$('stop-cam').disabled=!on;$('cam-badge').textContent=on?'Escaneando':'Apagada';
+   if(!on){$('torch').hidden=true;flashOn=false;$('zoom-controls').hidden=true;zoomLimits=null;zoomPending=null;clearTimeout(zoomTimer);$('camera-info').textContent=''}
+ }
  function onDecode(raw){const p=core.parseBarcode(raw);if(p.valid){onValidCode(p,'cámara')}else{const now=Date.now();if(raw!==lastRaw||now-lastAt>3000){lastRaw=raw;lastAt=now;status('Código leído pero el patrón no es reconocible: '+String(raw).slice(0,42),'bad')}}}
- async function startCamera(){if(!canUse()||cameraOn||working)return;if(!navigator.mediaDevices?.getUserMedia){status('Cámara no disponible. Abre Gestark en Safari o Chrome por HTTPS.','bad');return}
-   working=true;$('start-cam').disabled=true;status('Preparando cámara trasera…');
+ // Más detalle de barras desde lejos: capturar video HD (cuando el equipo lo permita),
+ // decodificar menos formatos y ampliar la zona horizontal de lectura.
+ const BARCODE_FORMATS=['CODE_128','CODE_39','ITF'];
+ function cameraFormats(){const f=window.Html5QrcodeSupportedFormats;return BARCODE_FORMATS.map(k=>f?.[k]).filter(x=>x!==undefined)}
+ function frameBox(w,h){return {width:Math.max(50,Math.min(w-10,Math.round(w*.97))),height:Math.max(45,Math.min(h-10,Math.round(h*.64),270))}}
+ function cameraScanConfig(hd){const cfg={fps:16,qrbox:frameBox,disableFlip:true};
+   if(hd)cfg.videoConstraints={facingMode:'environment',width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:24,max:30}};
+   return cfg;
+ }
+ function isPermissionError(e){return /denied|permission|notallowed|not.allowed|securityerror/i.test(String(e?.name||'')+' '+String(e?.message||e))}
+ // El zoom es optativo: algunos iPhone/navegadores no exponen este control.
+ async function applyZoom(value){
+   if(!cameraOn||!scanner||!zoomLimits)return;
+   const v=Math.round(Math.min(zoomLimits.max,Math.max(zoomLimits.min,Number(value)))*10)/10;
+   if(zoomBusy){zoomPending=v;return}
+   zoomBusy=true;
+   try{
+     await scanner.applyVideoConstraints({advanced:[{zoom:v}]});
+     if(!cameraOn)return;
+     const actual=Number(scanner.getRunningTrackSettings?.()?.zoom);
+     const applied=Number.isFinite(actual)&&actual>0?actual:v;
+     $('zoom-range').value=String(applied);
+     $('zoom-value').textContent=applied.toFixed(1)+'×';
+   }catch(e){
+     if(cameraOn){$('camera-info').textContent='El zoom no está disponible en esta cámara; continúa con lectura HD.';}
+     $('zoom-controls').hidden=true;zoomLimits=null;
+   }finally{
+     zoomBusy=false;
+     if(zoomPending!==null){const next=zoomPending;zoomPending=null;if(zoomLimits&&cameraOn)applyZoom(next)}
+   }
+ }
+ function requestZoom(value,immediate=false){
+   if(!cameraOn||!zoomLimits)return;
+   const val=Math.min(zoomLimits.max,Math.max(zoomLimits.min,Number(value)));
+   $('zoom-value').textContent=val.toFixed(1)+'×';
+   clearTimeout(zoomTimer);
+   zoomTimer=setTimeout(()=>{applyZoom(val)},immediate?0:170);
+ }
+ async function setupCameraAssist(){
+   if(!scanner||!cameraOn)return;
+   let capabilities={};let settings={};
+   try{capabilities=scanner.getRunningTrackCapabilities?.()||{};settings=scanner.getRunningTrackSettings?.()||{}}catch(_){ }
+   const video=document.querySelector('#camera video');
+   const width=settings.width||video?.videoWidth||0, height=settings.height||video?.videoHeight||0;
+   $('camera-info').textContent=width&&height?'Cámara: '+width+' × '+height+' píxeles · apunta al código completo.':'Lectura de barras optimizada · apunta al código completo.';
+   $('torch').hidden=!capabilities.torch;
+   // Intentar enfoque continuo solamente si la cámara declara soportarlo.
+   if(Array.isArray(capabilities.focusMode)&&capabilities.focusMode.includes('continuous')){
+     try{await scanner.applyVideoConstraints({advanced:[{focusMode:'continuous'}]})}catch(_){ }
+   }
+   const zoom=capabilities.zoom;
+   if(zoom&&Number.isFinite(zoom.min)&&Number.isFinite(zoom.max)&&zoom.max-zoom.min>=.2){
+     const minimum=Math.max(.5,zoom.min),maximum=Math.min(4,zoom.max);
+     if(maximum>minimum){
+       zoomLimits={min:minimum,max:maximum};
+       const control=$('zoom-range');control.min=String(minimum);control.max=String(maximum);control.step='0.1';
+       control.value=String(Math.min(maximum,Math.max(minimum,1.4)));
+       $('zoom-value').textContent=Number(control.value).toFixed(1)+'×';
+       $('zoom-controls').hidden=false;
+       // Zoom suave de partida; se puede ajustar o restablecer desde la interfaz.
+       await applyZoom(Number(control.value));
+     }
+   }
+ }
+ async function startCamera(){
+   if(!canUse()||cameraOn||working)return;
+   if(!navigator.mediaDevices?.getUserMedia){status('Cámara no disponible. Abre Gestark en Safari o Chrome por HTTPS.','bad');return}
+   working=true;$('start-cam').disabled=true;status('Preparando cámara HD…');
    try{
      await loadScript(QR_LIB,'Html5Qrcode');
-     const f=window.Html5QrcodeSupportedFormats;
-     const formats=[f.CODE_128,f.CODE_39,f.ITF,f.EAN_13,f.EAN_8,f.QR_CODE].filter(x=>x!==undefined);
-     scanner=new Html5Qrcode('camera',{formatsToSupport:formats,useBarCodeDetectorIfSupported:true,verbose:false});
-     await scanner.start({facingMode:'environment'},{fps:12,qrbox:(w,h)=>({width:Math.max(80,Math.min(w-12,440,Math.floor(w*.94))),height:Math.max(55,Math.min(h-12,190,Math.floor(h*.44)))}),disableFlip:true},onDecode,()=>{});
+     let lastError=null;scanner=null;
+     // El segundo intento evita dejar sin escáner a celulares sin captura HD.
+     for(const hd of [true,false]){
+       const candidate=new Html5Qrcode('camera',{formatsToSupport:cameraFormats(),useBarCodeDetectorIfSupported:true,verbose:false});
+       try{
+         await candidate.start({facingMode:'environment'},cameraScanConfig(hd),onDecode,()=>{});
+         scanner=candidate;break;
+       }catch(e){
+         lastError=e;
+         try{await candidate.clear()}catch(_){ }
+         if(isPermissionError(e))break;
+       }
+     }
+     if(!scanner)throw lastError||new Error('No hay cámara disponible');
      if(document.hidden){await stopCamera();return}
-     showCamera(true);status('Escaneando. Enfoca cualquiera de los dos códigos.','ok');
-     try{const cap=scanner.getRunningTrackCapabilities?.();$('torch').hidden=!cap?.torch}catch(_){$('torch').hidden=true}
-   }catch(e){console.warn('Lab scan',e);status(/denied|permission|notallowed/i.test(String(e))?'Permiso de cámara denegado. Revisa Ajustes.':'No fue posible abrir la cámara. Puedes ingresar un código o usar una foto.','bad');try{await scanner?.clear()}catch(_){}scanner=null;showCamera(false)}
-   finally{working=false;$('start-cam').disabled=cameraOn}
+     showCamera(true);
+     status('Escaneando · mantén las barras completas dentro de la guía.','ok');
+     await setupCameraAssist();
+   }catch(e){
+     console.warn('Lab scan',e);
+     status(isPermissionError(e)?'Permiso de cámara denegado. Revisa Ajustes.':'No fue posible abrir la cámara. Puedes ingresar un código o usar una foto.','bad');
+     try{await scanner?.stop()}catch(_){ }try{await scanner?.clear()}catch(_){ }scanner=null;showCamera(false);
+   }finally{working=false;$('start-cam').disabled=cameraOn}
  }
- async function stopCamera(){if(stopping)return;stopping=true;
-   try{if(scanner){try{await scanner.stop()}catch(_){}try{await scanner.clear()}catch(_){}scanner=null}}finally{showCamera(false);stopping=false;status('Cámara apagada. La lista se conserva.')}}
+ async function stopCamera(){
+   if(stopping)return;stopping=true;clearTimeout(zoomTimer);zoomPending=null;
+   try{if(scanner){try{await scanner.stop()}catch(_){}try{await scanner.clear()}catch(_){}scanner=null}}finally{showCamera(false);stopping=false;status('Cámara apagada. La lista se conserva.')}
+ }
  async function toggleTorch(){if(!cameraOn||!scanner)return;try{await scanner.applyVideoConstraints({advanced:[{torch:!flashOn}]});flashOn=!flashOn;$('torch').textContent=flashOn?'Apagar luz':'Linterna'}catch(_){toast('Linterna no disponible en esta cámara');$('torch').hidden=true}}
  async function setPhoto(file){if(!file)return;if(!file.type.startsWith('image/')){ocrStatus('Selecciona una fotografía válida.','bad');return}
    imageFile=file;if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=URL.createObjectURL(file);
@@ -161,6 +249,10 @@
  }
  function init(){if(active)return;active=true;entries=loadEntries();renderEntries();$('workspace').hidden=false;prepareSign();
    $('start-cam').addEventListener('click',startCamera);$('stop-cam').addEventListener('click',stopCamera);$('torch').addEventListener('click',toggleTorch);
+   $('zoom-range').addEventListener('input',e=>requestZoom(e.target.value));$('zoom-range').addEventListener('change',e=>requestZoom(e.target.value,true));$('zoom-reset').addEventListener('click',()=>{if(zoomLimits){const v=Math.max(zoomLimits.min,Math.min(zoomLimits.max,1));$('zoom-range').value=String(v);requestZoom(v,true)}});
+   // Cargar el motor en momentos ociosos para reducir la espera al tocar 'Iniciar cámara'.
+   const warm=()=>loadScript(QR_LIB,'Html5Qrcode').catch(()=>{});
+   if('requestIdleCallback' in window)window.requestIdleCallback(warm,{timeout:2400});else setTimeout(warm,500);
    $('manual-form').addEventListener('submit',e=>{e.preventDefault();const p=core.parseBarcode($('manual-code').value);if(!p.valid){status('Código no reconocido. Verifica su longitud (O.F.: nueve dígitos).','bad');return}onValidCode(p,'manual');$('manual-code').value=''});
    $('take-photo').addEventListener('click',()=>$('photo-file').click());$('choose-photo').addEventListener('click',()=>$('gallery-file').click());$('photo-file').addEventListener('change',e=>setPhoto(e.target.files?.[0]));$('gallery-file').addEventListener('change',e=>setPhoto(e.target.files?.[0]));
    $('photo-barcode').addEventListener('click',readBarcodePhoto);$('photo-ocr').addEventListener('click',runOCR);

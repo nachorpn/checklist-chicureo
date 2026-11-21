@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.21.2",
+  "version": "2026.11.21.3",
   "name": "Gestark",
-  "changes": "Nuevo Laboratorio (solo perfil CIBC): lectura rapida de dos codigos Starken, fotografia con OCR opcional, extraccion editable de comprobante, lista de ordenes y firma/constancia PDF de prueba. Conserva el escaner general, libreta, calendario, inicio compacto y repositorio."
+  "changes": "Laboratorio HD para escaneo a distancia: captura 1920x1080 ideal con respaldo estándar, área de lectura ampliada, decodificación prioritaria Code 128, zoom opcional y enfoque continuo donde esté disponible. Sin cambios en otras funciones."
 }
