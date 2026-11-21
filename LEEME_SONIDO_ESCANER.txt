@@ -1,0 +1,27 @@
+GESTARK | LABORATORIO · SONIDO TIPO PISTOLA ESCÁNER
+Versión: 2026.11.21.10
+Actualización: 21/11/2026 · 16:58 h · horario de Chile
+
+CAMBIOS
+- Nuevo doble bip breve de dos tonos agudos con timbre de lector de códigos portátil.
+- Botón «Probar bip de escáner» para escuchar sin tener que leer una O.F.
+- Suena un solo evento por orden detectada por la cámara; no vuelve a sonar por el código corto/largo duplicado.
+- La vibración previa se conserva.
+- No se modifican el funcionamiento de cámara, HD+, distancia, OCR, firma, historial, QR ni otros módulos.
+- La fecha/hora visible del Laboratorio se actualiza.
+
+INSTALACIÓN
+1. Descomprime el ZIP.
+2. En GitHub abre el repositorio nachorpn/checklist-chicureo.
+3. En Add file > Upload files, sube laboratorio.js, laboratorio.html y gestark-version.json a la RAÍZ.
+4. Confirma reemplazo de archivos y Commit changes.
+5. En el iPhone abre Laboratorio y pulsa Actualizar.
+6. Usa «Probar bip de escáner», y luego una etiqueta física para verificar el sonido real.
+
+LIMITACIÓN DEL AUDIO
+La intensidad máxima depende del volumen y las restricciones de Safari/iPhone.
+El sonido es original, sintetizado localmente; no se descarga ningún archivo de audio.
+No se ha ensayado el sonido desde el altavoz físico de un iPhone en este entorno.
+
+PRIVACIDAD
+El Laboratorio sigue siendo un entorno de prueba. No utilizar datos personales reales en la PWA pública sin implementar autenticación del lado servidor.

@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.9",
+  "version": "2026.11.21.10",
   "name": "Gestark",
-  "changes": "Laboratorio: beep de confirmación más fuerte y perceptible (ganancia interna de 0,14 a 0,65, tono de 1250 Hz y 200 ms), un solo aviso por O.F. No cambia cámara, distancia, OCR, firma, QR ni módulos restantes.",
-  "labVersion": "2026.11.21.9",
-  "labUpdatedAt": "2026-11-21T16:52:00-03:00"
+  "changes": "Laboratorio: doble bip tipo pistola escáner (dos tonos agudos cortos), botón para escuchar una muestra, y una sola confirmación por O.F. sin duplicados. No modifica cámara, distancia, OCR, QR ni otros módulos.",
+  "labVersion": "2026.11.21.10",
+  "labUpdatedAt": "2026-11-21T16:58-03:00"
 }

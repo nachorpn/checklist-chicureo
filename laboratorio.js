@@ -29,24 +29,39 @@
      osc.onended=()=>{try{osc.disconnect();gain.disconnect()}catch(_){}};
    }catch(_){/* Sin audio: conservar el escáner operativo. */}
  }
- function playScanBeep(){
-   if(!scanAudio||scanAudio.state!=='running')return;
-   try{
-     const t=scanAudio.currentTime;
-     const osc=scanAudio.createOscillator(),gain=scanAudio.createGain();
-     // Señal con mayor presencia para el altavoz pequeño de iPhone.
-     // Una única nota de 200 ms por O.F.; ganancia 0.65 (antes 0.14).
-     osc.type='sine';
-     osc.frequency.setValueAtTime(1250,t);
-     gain.gain.setValueAtTime(.0001,t);
-     gain.gain.exponentialRampToValueAtTime(.65,t+.010);
-     gain.gain.exponentialRampToValueAtTime(.0001,t+.195);
-     osc.connect(gain);gain.connect(scanAudio.destination);
-     osc.start(t);osc.stop(t+.20);
-     osc.onended=()=>{try{osc.disconnect();gain.disconnect()}catch(_){}};
-   }catch(_){/* El audio es opcional; la lectura sigue funcionando. */}
- }
- 
+  // Doble bip agudo, con timbre rico en armónicos, como un lector portátil.
+  // Un solo EVENTO sonoro por O.F.; el par de pulsos es parte del mismo aviso.
+  function playScanBeep(){
+    if(!scanAudio||scanAudio.state!=='running')return;
+    try{
+      const start=scanAudio.currentTime+.006;
+      const notes=[
+        {offset:0, duration:.073, hz:1760, level:.48},
+        {offset:.101, duration:.096, hz:2110, level:.52}
+      ];
+      notes.forEach((note)=>{
+        const t=start+note.offset;
+        const osc=scanAudio.createOscillator(),gain=scanAudio.createGain();
+        osc.type='square'; // Onda más nítida que el seno anterior.
+        osc.frequency.setValueAtTime(note.hz,t);
+        osc.frequency.linearRampToValueAtTime(note.hz*1.025,t+note.duration*.7);
+        gain.gain.setValueAtTime(.0001,t);
+        gain.gain.linearRampToValueAtTime(note.level,t+.003);
+        gain.gain.setValueAtTime(note.level,t+note.duration-.017);
+        gain.gain.exponentialRampToValueAtTime(.0001,t+note.duration);
+        osc.connect(gain);gain.connect(scanAudio.destination);
+        osc.start(t);osc.stop(t+note.duration+.004);
+        osc.onended=()=>{try{osc.disconnect();gain.disconnect()}catch(_){}};
+      });
+    }catch(_){/* El sonido es opcional; la lectura sigue funcionando. */}
+  }
+  function testScanBeep(){
+    // Se llama desde un botón: Web Audio recibe una interacción directa del usuario.
+    armScanBeep();
+    if(!scanAudio){toast('Este navegador no admite sonido de escáner');return}
+    if(scanAudio.state==='running'){playScanBeep();return}
+    scanAudio.resume().then(()=>playScanBeep()).catch(()=>toast('No se pudo activar el sonido'));
+  }
  function status(text,kind=''){const e=$('scan-status');e.textContent=text;e.className='stat '+kind}
  function ocrStatus(text,kind=''){const e=$('ocr-status');e.textContent=text;e.className='stat '+kind}
  function pdfStatus(text,kind=''){const e=$('pdf-status');e.textContent=text;e.className='stat '+kind}
@@ -378,7 +393,8 @@
    finally{$('export-pdf').disabled=false}
  }
  function init(){if(active)return;active=true;entries=loadEntries();renderEntries();$('workspace').hidden=false;prepareSign();
-   $('start-cam').addEventListener('click',startCamera);$('stop-cam').addEventListener('click',stopCamera);$('clear-test').addEventListener('click',()=>resetTest(false));$('torch').addEventListener('click',toggleTorch);
+   $('test-beep').addEventListener('click',testScanBeep);
+    $('start-cam').addEventListener('click',startCamera);$('stop-cam').addEventListener('click',stopCamera);$('clear-test').addEventListener('click',()=>resetTest(false));$('torch').addEventListener('click',toggleTorch);
    $('zoom-range').addEventListener('input',e=>requestZoom(e.target.value));$('zoom-range').addEventListener('change',e=>requestZoom(e.target.value,true));$('zoom-reset').addEventListener('click',()=>{if(zoomLimits){const v=Math.max(zoomLimits.min,Math.min(zoomLimits.max,1));$('zoom-range').value=String(v);requestZoom(v,true)}});
    // Cargar el motor en momentos ociosos para reducir la espera al tocar 'Iniciar cámara'.
    const warm=()=>loadScript(QR_LIB,'Html5Qrcode').catch(()=>{});
