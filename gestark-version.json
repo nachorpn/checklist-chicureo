@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.12",
+  "version": "2026.11.21.13",
   "name": "Gestark",
-  "changes": "Laboratorio: HD+ tolerante a fotogramas sin código, diagnóstico explícito de fallos y segunda fuente de descarga ZXing; usa BarcodeDetector nativo cuando esté disponible. Se mantienen Code 128, beep, deduplicación, OCR, firma y escáner general.",
-  "labVersion": "2026.11.21.12",
-  "labUpdatedAt": "2026-11-21T17:17-03:00"
+  "changes": "Laboratorio HD+: reconocer las excepciones normales de ZXing aunque sus clases esten minificadas (p. ej. N), evitando que un fotograma sin barras pause HD+. La camara, doble bip, deduplicacion, OCR y otros modulos permanecen igual. Diagnostico experimental.",
+  "labVersion": "2026.11.21.13",
+  "labUpdatedAt": "2026-11-21T17:22:00-03:00"
 }

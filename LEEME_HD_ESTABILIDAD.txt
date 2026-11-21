@@ -1,0 +1,20 @@
+GESTARK — Laboratorio HD+ versión 2026.11.21.13
+
+CAMBIO:
+- Corregido el reconocimiento de excepciones de ZXing UMD minificado. El mensaje "HD+ pausado: N" puede ser causado por el error normal NotFoundException en fotogramas sin códigos.
+- Los casos de código no encontrado, código incompleto o validación fallida permanecen como intentos normales, sin apagar el lector HD+.
+- Los fallos reales siguen mostrando diagnóstico y conservan el lector principal.
+- Sin cambios en zoom, cámara, modo macro, doble bip, deduplicación, OCR o escáner general.
+
+INSTALACIÓN:
+1. Descomprimir el ZIP.
+2. Subir los archivos laboratorio.js, laboratorio.html y gestark-version.json a la RAÍZ del repositorio nachorpn/checklist-chicureo (Add file > Upload files).
+3. Reemplazar los existentes y confirmar Commit changes.
+4. Abrir Gestark, Actualizar y entrar en Laboratorio. Pulsar Detener e Iniciar cámara si fuera necesario.
+5. Verificar que aparezca "HD+ activo" y no "HD+ pausado: N" al apuntar a superficies sin código.
+6. Pulsar Limpiar prueba y probar un comprobante a la distancia de la app TeaCapps.
+
+IMPORTANTE:
+- Mejora de estabilidad del lector, no garantía de mayor distancia.
+- No se ha probado en un iPhone físico en este entorno. La prueba real debe realizarla el usuario.
+- No subas fotos reales, datos de clientes ni comprobantes al repositorio público.

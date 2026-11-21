@@ -154,6 +154,14 @@
    return (name==='Error'&&message?message:name).slice(0,110);
  }
  function isNoBarcode(err){
+   // ZXing UMD esta minificado: NotFoundException puede llegar como "N".
+   // Comparar por tipo real evita pausar el lector por un fotograma sin barras.
+   const Z=window.ZXing;
+   for(const type of ['NotFoundException','ChecksumException','FormatException','ReaderException']){
+     const Ctor=Z?.[type];
+     if(typeof Ctor==='function' && err instanceof Ctor)return true;
+   }
+   // Respaldo para errores de otras bibliotecas o builds no minificados.
    const parts=[err?.name,err?.constructor?.name,err?.message,err?.type].map(x=>String(x||'')).join(' ');
    return /NotFound|Not Found|Checksum|FormatException|ReaderException|no (?:barcode|code|reader)|not detected|cannot find|not found/i.test(parts);
  }
