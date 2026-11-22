@@ -1,0 +1,25 @@
+GESTARK — MEJORA DE VELOCIDAD 2026.11.22.8
+
+Subir SOLAMENTE gestark-sw.js a la raiz de GitHub: nachorpn/checklist-chicureo
+Usar Add file > Upload files > Commit changes.
+
+Esta version acelera la carga de pantallas y archivos estaticos al reutilizar
+la cache local y actualizarla en segundo plano. Precarga Inicio,
+Checklist, Transferencias y Entregas. No cambia logins, datos, ni reglas Firebase.
+
+La version actual de gestark-updates.js anade ?actualizar a cada enlace
+interno. El nuevo service worker distingue esos enlaces de las recargas
+intencionales desde el boton Actualizar; por eso no hace falta modificar
+las paginas HTML.
+
+Primera carga: puede seguir con la velocidad anterior mientras el service
+worker se instala. La mejora se aprecia a partir de la segunda navegacion.
+Si no cambia, cerrar y reabrir Gestark para que tome el service worker.
+
+LIMITACIONES: Firestore todavia comprueba autorizacion por pagina, de modo
+que con conexion lenta aun puede haber una espera; no se sustituye una
+SPA ni se garantiza tiempo cero. Sin conexion, algunos archivos deben estar
+previamente cacheados; no cambia el comportamiento de datos en Firebase.
+
+Si se observa alguna vista antigua, usar el boton Actualizar (en la misma
+pantalla) para obtener la version mas reciente.
