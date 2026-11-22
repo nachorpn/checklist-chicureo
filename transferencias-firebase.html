@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#105744">
+<meta name="robots" content="noindex,nofollow">
+<title>Gestark · Transferencias Firebase (prueba controlada)</title>
+<style>
+*{box-sizing:border-box}html{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#193a30;background:#f3f7f5}body{margin:0;padding:0 14px 80px}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}a{color:#13694e}body>header{max-width:800px;margin:auto;background:linear-gradient(115deg,#103d35,#116d54);color:#fff;border-radius:0 0 25px 25px;padding:25px 22px 22px}header a{color:#c8eddf;font-size:13px;text-decoration:none}header h1{font-size:25px;margin:12px 0 5px}header p{font-size:12px;line-height:1.5;margin:0;color:#d5eee5}.wrap{max-width:800px;margin:16px auto}.panel{border:1px solid #d8e7dd;border-radius:17px;padding:17px;background:#fff;margin-bottom:13px;box-shadow:0 4px 22px #0c46330b}.panel h2{font-size:17px;margin:0 0 12px}.muted{color:#638174;font-size:12px;line-height:1.55}.notice{background:#fff9e9;border:1px solid #ebdba9;color:#74572a;padding:12px;border-radius:12px;font-size:12px;line-height:1.5;margin-bottom:14px}.badge{display:inline-block;padding:7px 10px;border-radius:99px;font-size:11px;font-weight:800;color:#915b27;background:#fef2da;border:1px solid #f3dcb3}.badge.ok{background:#e5f5ed;color:#13724e;border-color:#c6e5d4}.badge.err{background:#fff0ee;color:#a63936;border-color:#f1c9c2}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.split{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}.fields{display:grid;grid-template-columns:minmax(0,1fr) 135px auto;gap:8px;align-items:end}.field label{font-size:12px;font-weight:700;display:block;margin-bottom:5px}.field input{width:100%;min-height:43px;padding:9px 11px;border:1px solid #b9d3c5;border-radius:9px;background:#fff;color:#173e30;font-size:16px}.button{min-height:43px;border:1px solid #146d51;border-radius:10px;background:#137453;color:#fff;padding:10px 14px;font-size:13px;font-weight:800}.button.ghost{background:#eef6f1;color:#176449;border-color:#c6dfcf}.button.danger{background:#fff0ee;color:#ad4540;border-color:#efcfc9}.button.sm{min-height:33px;padding:7px 10px;font-size:11px}.table-actions{white-space:nowrap}.table-actions button+button{margin-left:4px}.edit-dialog{width:min(430px,calc(100vw - 26px));max-width:430px;border:1px solid #c7ded0;border-radius:19px;background:#fff;color:#193a30;padding:22px;box-shadow:0 12px 50px #0b302a55}.edit-dialog::backdrop{background:#0b221dad}.edit-dialog h2{margin:0 0 13px;font-size:19px}.edit-dialog .field{margin:10px 0}.edit-dialog .field input,.edit-dialog .field select{width:100%;min-height:43px;padding:9px 11px;border:1px solid #b9d3c5;border-radius:9px;background:#fff;color:#173e30;font-size:16px}.edit-dialog .row{justify-content:flex-end;margin-top:15px}.edit-dialog .message{margin-top:8px}.stack{display:grid;gap:8px}.table-wrap{overflow:auto;margin-top:8px}.data{width:100%;border-collapse:collapse;font-size:12px}.data th{text-align:left;color:#637e70;font-size:10px;background:#eff6f1;text-transform:uppercase}.data td,.data th{padding:12px 8px;border-bottom:1px solid #e6eee8;vertical-align:middle}.data tr:nth-child(even) td{background:#fbfdfc}.data td.money{font-weight:800;color:#135c46;white-space:nowrap}.data select{width:75px;max-width:100%;min-height:36px;border:1px solid #c0dace;border-radius:8px;background:#f7fbf8;color:#235d44;font-weight:700}.pill{display:inline-flex;gap:4px;font-size:10px;color:#607a6c;flex-wrap:wrap}.empty{padding:16px;text-align:center;color:#6b8174;font-size:12px}.total{font-size:13px;font-weight:800}.message{min-height:22px;font-size:12px;color:#21674c;margin-top:12px;line-height:1.5}.message.error{color:#b52c3c}details{margin-top:8px}summary{font-weight:750;cursor:pointer;font-size:13px}code{font-size:11px;background:#f1f5f2;border-radius:5px;padding:3px 5px}.loading{display:inline-block;width:15px;height:15px;border:2px solid #bdd7c7;border-top-color:#087550;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:5px}@keyframes spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.loading{animation:none}}@media(max-width:620px){.fields{grid-template-columns:minmax(0,1fr) 110px}.fields button{grid-column:1/-1}.panel{padding:13px}.data td,.data th{padding:9px 5px}.data{font-size:11px}.data th{font-size:9px}.data td:last-child{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header><a href="./notas-transferencias.html">‹ Volver a Transferencias actual</a><h1>Transferencias · Firebase</h1><p>Etapa de prueba controlada · Sin modificar el módulo que ya utilizas</p></header>
+<main class="wrap">
+ <div class="notice"><strong>Atención:</strong> esta es una lista Firebase independiente. Las transferencias actuales no se copian automáticamente. Las reglas de seguridad ya se publicaron. Prueba primero con un cliente ficticio; no importes datos reales todavía.</div>
+ <section class="panel"><div class="split"><div><strong>Conexión con Firebase</strong><div class="muted" id="who">Verificando tu sesión…</div></div><span class="badge" id="connection">Conectando…</span></div><p id="status-msg" class="message" role="status" aria-live="polite"></p></section>
+ <section class="panel" id="cloud-workspace" hidden>
+  <h2>Agregar transferencia a Firebase</h2>
+  <form id="new-transfer" class="fields">
+   <div class="field"><label for="client">Cliente</label><input id="client" required maxlength="80" autocomplete="off" placeholder="Nombre del cliente"></div>
+   <div class="field"><label for="amount">Monto ($)</label><input id="amount" required inputmode="numeric" placeholder="Ej. 25000" maxlength="12"></div>
+   <button class="button" id="add-button" type="submit">Guardar</button>
+  </form>
+  <p class="muted">Todos los usuarios Firebase autorizados pueden crear, editar y eliminar transferencias de esta lista de prueba. No uses datos reales hasta terminar las comprobaciones.</p>
+ </section>
+ <section class="panel" id="cloud-list-panel" hidden>
+  <div class="split"><h2>Registros sincronizados</h2><div class="total" id="count">0 registros</div></div>
+  <div class="row"><button id="copy-excel" class="button ghost sm" type="button">Copiar para Excel</button><button id="share-wa" class="button ghost sm" type="button">WhatsApp</button></div>
+  <div class="table-wrap"><table class="data"><thead><tr><th>Cliente</th><th>Monto</th><th>¿Transfirió?</th><th>Origen</th><th>Acción</th></tr></thead><tbody id="cloud-rows"></tbody></table></div>
+  <p class="muted">Vista de los últimos 400 registros. El estado se actualiza entre los dispositivos conectados; los cambios pendientes o recibidos desde la caché se identifican arriba.</p>
+ </section>
+ <section class="panel" id="import-panel" hidden>
+  <h2>Registros guardados en este dispositivo</h2>
+  <div id="local-preview" class="muted">Leyendo registros…</div>
+  <div class="row" style="margin-top:13px"><button class="button ghost" id="backup" type="button">Descargar respaldo JSON</button><button class="button" id="import" type="button">Importar a Firebase (máx. 30)</button></div>
+  <p class="muted">La importación histórica está reservada al administrador y es <strong>manual y opcional</strong>. No elimina los datos originales. Utiliza el mismo navegador y modo de instalación donde están almacenadas tus transferencias. Si no aparecen datos locales, no significa que se hayan borrado.</p>
+  <details><summary>¿Qué se importa?</summary><p class="muted">Las anotaciones manuales del usuario CIBC y las órdenes contingentes marcadas como transferencia. Se excluyen órdenes contingentes que ya estén vinculadas a un registro manual. El efectivo no se importa.</p></details>
+ </section>
+ <dialog id="edit-dialog" class="edit-dialog" aria-labelledby="edit-title">
+  <h2 id="edit-title">Editar transferencia</h2>
+  <form id="edit-form">
+   <div class="field"><label for="edit-client">Cliente</label><input id="edit-client" required maxlength="80" autocomplete="off"></div>
+   <div class="field"><label for="edit-amount">Monto ($)</label><input id="edit-amount" inputmode="numeric" required maxlength="12"></div>
+   <div class="field"><label for="edit-date">Fecha</label><input id="edit-date" type="date" required></div>
+   <div class="field"><label for="edit-status">¿Transfirió?</label><select id="edit-status"><option value="no">No</option><option value="si">Sí</option></select></div>
+   <p id="edit-error" class="message error" role="alert" aria-live="polite"></p>
+   <div class="row"><button id="edit-cancel" type="button" class="button ghost">Cancelar</button><button id="edit-save" type="submit" class="button">Guardar cambios</button></div>
+  </form>
+ </dialog>
+ <p id="feedback" class="message" aria-live="polite" role="status"></p>
+</main>
+<script src="./gestark-firebase-config.js?v=2026.11.21.43"></script>
+<script>(()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?transferpilot=2026.11.22.4';document.body.appendChild(a)};u.onerror=()=>{document.getElementById('status-msg').textContent='No se pudo cargar la lista de usuarios de Gestark.'};document.body.appendChild(u)})();</script>
+<script type="module" src="./gestark-transferencias-cloud.js?v=2026.11.22.4"></script>
+<noscript>Gestark necesita JavaScript para funcionar.</noscript>
+</body></html>

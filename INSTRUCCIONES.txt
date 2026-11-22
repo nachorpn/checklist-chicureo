@@ -1,12 +1,40 @@
-GESTARK — Corrección del parpadeo de acceso Firebase (2026.11.22.2)
+Gestark - Transferencias Firebase - Piloto v2026.11.22.4
 
-1. En GitHub abre nachorpn/checklist-chicureo.
-2. Add file > Upload files.
-3. Sube SOLAMENTE gestark-auth.js (reemplaza el archivo del mismo nombre).
-4. Confirma los cambios.
-5. Abre Gestark en una pestaña nueva y pulsa Actualizar, o recarga forzada si persiste la versión antigua.
+PRERREQUISITO
+Ya publicaste las reglas completas de Firestore para gestark_transfers_v1, con
+read/create/update/delete permitidos a usuarios autorizados (role admin o user).
+El laboratorio anterior sigue separado de este piloto.
 
-RESULTADO ESPERADO
-Mientras Firebase verifica la sesion se muestra el icono de Gestark y «Verificando sesión segura…». Cuando comprueba la cuenta se abre Inicio. Si la sesion no existe o falla la verificacion, aparece el inicio de sesion anterior. Hay un boton para entrar con usuario anterior mientras se verifica.
+SUBIR A GITHUB
+En el repositorio nachorpn/checklist-chicureo, rama main,
+Add file > Upload files. Carga SOLO estos dos archivos en la RAÍZ:
+  transferencias-firebase.html
+  gestark-transferencias-cloud.js
+Haz clic en Commit changes. No subas las instrucciones.
 
-NO se modifican los modulos, usuarios, reglas Firestore ni datos locales.
+ABRIR
+https://nachorpn.github.io/checklist-chicureo/transferencias-firebase.html
+
+PRUEBA (NO usar clientes reales)
+1. Inicia sesión desde Gestark usando la cuenta Firebase autorizada.
+2. Abre la dirección anterior.
+3. Guarda Cliente Prueba, $1234.
+4. Desde un segundo dispositivo con LA MISMA cuenta Firebase, comprueba que aparece.
+5. Cambia ¿Transfirió? de No a Sí y confirma sincronización.
+6. Edita el nombre o monto y confirma sincronización.
+7. Elimina el registro de prueba y verifica que desaparece en ambos.
+
+PERMISOS DE LA PANTALLA
+Todos los usuarios con perfiles Firestore activos (admin/user) pueden
+crear, ver, cambiar estado, editar nombre/monto/fecha y eliminar.
+La IMPORTACIÓN HISTÓRICA de datos desde almacenamiento local sigue reservada
+al administrador durante esta fase; no la utilices todavía.
+
+SEGURIDAD
+- No cambia ni borra el localStorage del módulo original de Transferencias.
+- No altera Entregas contingentes ni su efectivo.
+- No realiza migración automática y no activa el módulo original en Firebase.
+- Las eliminaciones en la lista Firebase son definitivas: usar datos ficticios.
+- Reglas de Firestore limitan los permisos. No configures acceso público.
+- El panel muestra hasta los últimos 400 registros de la colección.
+- No publica los archivos automáticamente; es necesario subirlos a GitHub.
