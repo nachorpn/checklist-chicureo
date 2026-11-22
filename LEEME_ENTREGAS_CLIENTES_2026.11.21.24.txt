@@ -1,0 +1,53 @@
+GESTARK · NUEVA SECCIÓN «ENTREGAS CLIENTES»
+Versión 2026.11.21.24
+
+INSTALACIÓN PARA GITHUB PAGES
+1. Descomprime el ZIP.
+2. Sube los CINCO archivos de aplicación a la RAÍZ del repositorio de Gestark.
+   - index.html                      (REEMPLAZAR; agrega acceso desde Inicio)
+   - entregas-clientes.html          (NUEVO)
+   - entregas-clientes.js            (NUEVO)
+   - gestark-updates.js              (REEMPLAZAR; nuevo número de versión)
+   - gestark-version.json            (REEMPLAZAR; nuevo número de versión)
+3. Conserva los demás archivos existentes, especialmente laboratorio-core.js,
+   usuarios.js, gestark-auth.js, gestark-sw.js, manifest.webmanifest y los módulos
+   Entregas contingentes y Registro de transferencias. NO hay cambios en ellos.
+4. En Gestark pulsa «Actualizar», abre «Entregas clientes» desde Inicio y
+   comprueba el flujo utilizando órdenes de prueba autorizadas.
+
+CÓMO FUNCIONA
+- Escribe un nombre manualmente; no se requiere directorio ni otros datos.
+- Pulsa «Iniciar cámara» UNA vez: continúa leyendo varias etiquetas seguidas.
+- Cada lectura válida agrega la O.F., suena el doble bip y muestra una burbuja.
+- Si una etiqueta presenta código corto y largo de la misma O.F., no se duplica.
+- Puedes agregar O.F. manualmente y quitar las incorporadas por error.
+- El borrador se recupera al volver al módulo en el MISMO dispositivo y cuenta.
+- «Finalizar retiro y compartir» guarda una nómina y abre el menú nativo
+  para compartir la(s) imagen(es), cuando el navegador lo permite.
+- Si el navegador no permite compartir archivos, aparece una alternativa para
+  guardar la imagen, copiar el mensaje e intentar compartir nuevamente.
+- El diseño de imagen reproduce la marca tipográfica Gestark (verde y blanco),
+  la fecha, el cliente, la lista real de O.F. y el total. No contiene Greenbox.
+- Para retiros con más de 24 O.F., se crean imágenes adicionales, sin perder
+  órdenes, para que los números sigan siendo legibles.
+- «Nómina general» muestra todos los retiros finalizados en este navegador,
+  sin separar en directorios por cliente; permite volver a compartir.
+
+LÍMITES DE ESTA PRIMERA VERSIÓN
+- Todos los datos se guardan LOCALMENTE en el navegador/dispositivo. Aún no
+  existe sincronización entre iPhone, Android y computadores distintos.
+- El historial puede ser visible para otros usuarios de Gestark en EL MISMO
+  navegador, mientras que un borrador pertenece a la cuenta que lo creó.
+- La nómina no confirma pago, no emite factura y no cierra O.F. en sistemas
+  de la empresa. El botón «Finalizar» es la confirmación operativa del retiro.
+- Se necesita HTTPS y autorización de cámara para escanear; el modo manual
+  sirve de respaldo. html5-qrcode y el motor ZXing se cargan por CDN.
+- En iPhone la hoja de compartir depende de la versión de Safari/PWA y de
+  los permisos; el diseño incluye una alternativa de descarga.
+- Realiza pruebas con etiquetas reales antes de usarlo en operación diaria.
+
+PRUEBAS TÉCNICAS
+Validado por simulación en navegador: lectura continua, doble código con
+O.F. idéntica, rechazo de duplicados, guardado de borrador, cierre de nómina,
+imagen dinámica, compartir nativo simulado, modo alternativo de descarga,
+lista general, corrección manual y múltiples imágenes para lotes extensos.
