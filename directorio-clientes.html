@@ -131,6 +131,45 @@ main#directory{max-width:1080px;padding:19px 15px 42px}
  .entry .name-stack{grid-column:1;grid-row:1}
  .entry .alternate-name{font-size:12.5px}
 }
+
+/* Gestark v23 · Formulario Agregar/Editar contacto compacto y elegante.
+   Alcance limitado al formulario: no cambia la legibilidad de la lista. */
+#contact-dialog.dialog{
+  width:min(94vw,500px);
+  border-radius:14px;
+}
+#contact-dialog .modal-head{padding:11px 15px 9px}
+#contact-dialog .modal-head h2{font-size:15px;letter-spacing:-.18px;line-height:1.3}
+#contact-dialog .close{font-size:21px;line-height:1;padding:1px 4px}
+#contact-dialog .modal-body{padding:12px 15px 14px;max-height:calc(93dvh - 48px)}
+#contact-dialog .fields{column-gap:10px;row-gap:9px}
+#contact-dialog .fields label{gap:4px;font-size:10.5px;font-weight:750;line-height:1.25}
+#contact-dialog .fields input{
+  min-height:38px;padding:7px 10px;border-radius:8px;
+  font-size:13.5px;line-height:1.3;
+}
+#contact-dialog .fields input::placeholder{color:#8a9c90;opacity:1}
+#contact-dialog .help{font-size:9.5px;line-height:1.3;min-height:12px}
+#contact-dialog .check{gap:8px;min-height:30px;margin-top:6px;font-size:11.5px}
+#contact-dialog .check input{width:16px;height:16px}
+#contact-dialog .invoice{margin-top:5px;padding-top:10px}
+#contact-dialog .invoice-warning{padding:7px 9px;margin-bottom:10px;font-size:11px;line-height:1.3}
+#contact-dialog .error{font-size:11px;line-height:1.35;min-height:0;margin-top:6px}
+#contact-dialog .dialog-actions{gap:7px;margin-top:11px}
+#contact-dialog .dialog-actions button{
+  min-height:37px;padding:7px 11px;border-radius:9px;
+  font-size:11.5px;font-weight:800;
+}
+@media (min-width:380px) and (max-width:650px){
+  /* RUT y teléfono lado a lado: menos desplazamiento vertical. */
+  #contact-dialog .fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #contact-dialog .fields label.full{grid-column:1/-1}
+}
+@media (max-width:379px){
+  #contact-dialog.dialog{width:96vw}
+  #contact-dialog .modal-body{padding:11px 12px 13px}
+  #contact-dialog .modal-head{padding:10px 12px 8px}
+}
 </style>
 </head>
 <body>
@@ -179,7 +218,7 @@ main#directory{max-width:1080px;padding:19px 15px 42px}
   </div>
 </dialog>
 <script src="./gestark-auth.js?v=2" defer></script>
-<script src="./directorio-clientes.js?v=2026.11.22.22" defer></script>
+<script src="./directorio-clientes.js?v=2026.11.22.23" defer></script>
 <noscript>Gestark requiere JavaScript.</noscript>
 </body>
 </html>

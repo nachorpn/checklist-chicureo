@@ -1,11 +1,11 @@
 {
-  "version": "2026.11.22.22",
+  "version": "2026.11.22.23",
   "name": "Gestark",
-  "changes": "Directorio: nombre alternativo opcional (persona/empresa) al agregar o editar, visible en lista, búsqueda instantánea y Excel; teléfono adaptable al pegar desde WhatsApp o escribir manualmente. Conserva Firebase, O.F. y notificaciones.",
+  "changes": "Directorio: formulario Agregar/Editar contacto más compacto, con tipografía, recuadros y espacios moderados. La lista mantiene sus letras grandes; sin cambios en Firebase, exportación, facturación, O.F. ni notificaciones.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
   "clientsVersion": "2026.11.22.16",
-  "directoryVersion": "2026.11.22.22"
+  "directoryVersion": "2026.11.22.23"
 }

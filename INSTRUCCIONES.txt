@@ -1,40 +1,15 @@
-GESTARK · DIRECTORIO - NOMBRE ALTERNATIVO + TELÉFONO ADAPTABLE · v2026.11.22.22
-============================================================================
+GESTARK v23 · FORMULARIO DE CONTACTO COMPACTO
 
-PASO 1 (Firebase - solo una vez):
-Publica las reglas actualizadas en Firebase > Firestore > Reglas.
-Se incluye el archivo completo REGLAS_FIRESTORE_COMPLETAS_v22.txt y la alternativa
-CAMBIO_MINIMO_REGLAS.txt. El cambio SOLO habilita el nombre alternativo opcional.
+1. Descomprime este ZIP.
+2. En GitHub, repositorio nachorpn/checklist-chicureo, rama main, reemplaza en la raíz los cinco archivos:
+   - gestark-app.html
+   - directorio-clientes.html
+   - directorio-clientes.js
+   - gestark-sw.js
+   - gestark-version.json
+3. Espera a que GitHub Pages publique la actualización y vuelve a abrir Gestark.
+4. Prueba "+ Contacto" y "Editar": letras y campos algo más pequeños, con menos separación.
 
-PASO 2 (GitHub):
-Sube/reemplaza SOLO estos cinco archivos en la raíz de 'checklist-chicureo' (main):
-- gestark-app.html
-- directorio-clientes.html
-- directorio-clientes.js
-- gestark-sw.js
-- gestark-version.json
-NO subas los archivos .txt al repositorio; solo úsalos como referencia.
-
-CAMBIOS:
-- Nuevo campo opcional "Nombre alternativo" para registrar el nombre de la empresa,
-  una denominación habitual o el nombre de la persona. Visible bajo el nombre,
-  sin agregar tarjetas grandes.
-- Se puede buscar por ambos nombres y exportar ambos al Excel. Por defecto
-  Nombre alternativo también queda marcado para exportación.
-- Teléfono adaptable: escribir, pegar desde WhatsApp, +56, 56, con o sin separadores,
-  números de 9 dígitos y números locales de 8 dígitos. Al validar se guarda siempre
-  como +56 9 91919191.
-- Nunca recorta silenciosamente dígitos sobrantes; indica errores para corregir.
-- Los contactos ya guardados no se pierden; la edición permite agregar alias después.
-
-NO CAMBIA:
-- RUT módulo 11 y rechazo de RUT duplicado.
-- Facturación y su advertencia visible.
-- Firebase y sincronización, exportación, botón flotante, O.F. y notificaciones.
-
-PRUEBAS:
-1. Publica las reglas de Firestore actualizadas.
-2. Sube los cinco archivos a GitHub, abre Gestark y pulsa Actualizar aplicación.
-3. Edita un cliente: añade "Nombre alternativo" y guárdalo. Búscalo por alias.
-4. Copia +56 (9) 9191-9191 desde WhatsApp y pégalo. Debe verse +56 9 91919191.
-5. Exporta Excel y comprueba columna "Nombre alternativo".
+No hay cambios en Firestore ni en reglas. No debes subir reglas ni volver a registrar los contactos.
+El tamaño de letra de la lista de contactos se mantiene para accesibilidad.
+Si aún ves la versión anterior, cierra y vuelve a abrir la PWA para renovar su caché.

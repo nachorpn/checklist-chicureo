@@ -1,4 +1,4 @@
-/* Gestark · Directorio de clientes · v2026.11.22.22
+/* Gestark · Directorio de clientes · v2026.11.22.23
  * Fuente única: Firestore. No guarda los datos del directorio en GitHub ni localStorage.
  * RUT módulo 11; móvil Chile +56 9 XXXXXXXX; XLSX auténtico autocontenido.
  */
