@@ -1,0 +1,9 @@
+Gestark · actualización 2026.11.21.39
+
+- La lista de clientes, montos y Sí/No ahora utiliza filas compactas tipo planilla con líneas divisorias, sin tarjetas individuales.
+- Se eliminan los totales acumulados de Transferencias, Efectivo y mensaje de WhatsApp; los importes por cliente y su agrupación para Excel no cambian.
+- Nueva transferencia más compacta en móvil; botones de exportación debajo de la nómina.
+- Sin cambios al almacenamiento local, el selector Sí/No, los permisos, el enlace web y el botón Copiar y abrir en navegador.
+
+Reemplaza en GitHub: notas-transferencias.html, notas-transferencias.js, gestark-updates.js, gestark-version.json.
+No hace falta reemplazar los demás archivos.

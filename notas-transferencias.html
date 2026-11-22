@@ -92,6 +92,55 @@ h1{font-size:26px;letter-spacing:-.6px;margin:0 0 5px}.hero p{font-size:12px;lin
 #feedback.error:not(:empty){background:#fff6f4;color:#a13030;border-color:#efcac4}
 @media(max-width:390px){.panel{padding:11px}.entry{padding:9px}.entry-amount{font-size:16px}.entry-name{font-size:13px}.priority-panel .stat strong{font-size:21px}.section-tag{font-size:9px}}
 @media(min-width:670px){.form{grid-template-columns:1.3fr 1fr auto}.panel{padding:16px 17px}.priority-panel .list{grid-template-columns:1fr 1fr}.priority-panel .entry{align-self:start}}
+
+/* Gestark v39 · Vista tipo planilla: filas horizontales compactas, sin total acumulado. */
+.priority-panel,.cash-panel{box-shadow:none;border:1px solid #dae6df;background:#fff}
+.priority-panel .panel-heading,.cash-panel .panel-heading{margin-bottom:8px}
+.priority-panel .panel-heading .title,.cash-panel .panel-heading .title{font-size:15px}
+.sheet-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(73px,max-content) 72px;gap:7px;align-items:center;padding:8px 9px;background:#ebf5ee;color:#4e7361;border:1px solid #dcebe1;border-radius:7px 7px 0 0;font-size:10px;font-weight:800;letter-spacing:.15px}
+.sheet-head span:nth-child(2){text-align:right}.sheet-head span:nth-child(3){text-align:center}
+.priority-panel .list,.cash-panel .list{display:block;margin:0;padding:0;gap:0}
+.priority-panel .entry,.cash-panel .entry{display:block;border:0;border-left:1px solid #e3ece6;border-right:1px solid #e3ece6;border-bottom:1px solid #e3ece6;border-radius:0;background:#fff;padding:8px 9px;box-shadow:none;margin:0}
+.priority-panel .entry:last-child,.cash-panel .entry:last-child{border:0;border-left:1px solid #e3ece6;border-right:1px solid #e3ece6;border-bottom:1px solid #e3ece6;border-radius:0 0 7px 7px}
+.priority-panel .entry:nth-child(even),.cash-panel .entry:nth-child(even){background:#fafcfb}
+.priority-panel .entry-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(73px,max-content) 72px;gap:7px;align-items:center}
+.entry-name{font-size:13px;font-weight:750;color:#203e30;line-height:1.25;overflow-wrap:anywhere}
+.priority-panel .entry-meta,.cash-panel .entry-meta{font-size:10px;margin:2px 0 0;color:#7d9185;line-height:1.23}
+.priority-panel .entry-amount,.cash-panel .entry-amount{font-size:14px;font-weight:800;color:#146e4e;white-space:nowrap;max-width:none;letter-spacing:-.25px;text-align:right;font-variant-numeric:tabular-nums}
+.priority-panel .bank-confirm-label{display:block;margin:0;min-height:0;padding:0;border:0;background:transparent}
+.priority-panel .bank-confirm-text{display:none}
+.priority-panel .bank-confirm-select{width:100%;min-width:0;max-width:72px;min-height:34px;padding:4px 5px;background:#f4f8f5;font-size:13px;border-radius:7px;font-weight:800}
+.priority-panel .entry-actions{display:flex;align-items:center;gap:5px;margin:4px 0 0;padding:0}
+.priority-panel .entry-actions .micro{min-height:26px;padding:4px 7px;border-radius:6px;font-size:10px;font-weight:750}
+.priority-panel .add-form{margin:6px 0 0;padding:7px;background:#f6fbf7;border-radius:7px}
+.priority-panel .add-form input{height:38px}
+.list-footer{margin-top:6px}
+.empty{margin:0;padding:14px 8px;border:1px solid #e3ece6;border-top:0;border-radius:0 0 7px 7px;background:#fafcfb}
+.cash-head{grid-template-columns:minmax(0,1fr) max-content}
+.cash-panel .entry-row{align-items:center}
+.cash-panel .entry-info{flex:1;min-width:0}
+.cash-panel .entry-amount{flex:0 0 auto}
+.cash-panel .micro-note{margin-top:7px}
+.manual-panel{box-shadow:none}
+@media(max-width:669px){
+ .manual-panel .form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+ .manual-panel .form .field:first-child{grid-column:1/-1}
+ .manual-panel .form .field:nth-child(2){grid-column:1}
+ .manual-panel .form button{grid-column:2;min-width:89px}
+}
+@media(min-width:670px){
+ .priority-panel .list{display:block;grid-template-columns:none}
+ .priority-panel .entry{align-self:unset}
+}
+@media(max-width:360px){
+ .sheet-head,.priority-panel .entry-row{grid-template-columns:minmax(0,1fr) minmax(69px,max-content) 65px;gap:5px}
+ .sheet-head{padding:7px 6px}
+ .priority-panel .entry,.cash-panel .entry{padding:7px 6px}
+ .priority-panel .entry-amount{font-size:12.5px}
+ .priority-panel .bank-confirm-select{max-width:65px;font-size:12px}
+ .priority-panel .entry-name{font-size:12px}
+}
+
 </style></head>
 <body>
 <div class="wrap">
@@ -106,8 +155,8 @@ h1{font-size:26px;letter-spacing:-.6px;margin:0 0 5px}.hero p{font-size:12px;lin
  </form>
 </section>
 <section class="panel priority-panel" aria-labelledby="pending-title">
- <div class="panel-heading"><h2 class="title" id="pending-title">Clientes y montos</h2><span class="section-tag">Por traspasar</span></div>
- <div class="stat" role="status"><div class="stat-label"><span id="record-count">0 clientes</span><small>Total acumulado</small></div><strong id="record-total">$0</strong></div>
+ <div class="panel-heading"><h2 class="title" id="pending-title">Clientes y montos</h2><span class="section-tag" id="record-count">0 clientes</span></div>
+ <div class="sheet-head" aria-hidden="true"><span>Cliente</span><span>Monto</span><span>Sí / No</span></div>
  <ul id="entries" class="list" aria-label="Listado de clientes con transferencias y montos"></ul>
  <p id="empty" class="empty">Aún no hay transferencias para mostrar.</p>
  <div class="list-footer"><div id="manual-clear-wrap" hidden><button id="clear" type="button" class="small-action">Vaciar transferencias manuales</button></div><div id="auto-transfer-clear-wrap" hidden><button id="clear-auto-transfer" type="button" class="small-action">Vaciar transferencias de entregas</button></div></div>
@@ -120,8 +169,8 @@ h1{font-size:26px;letter-spacing:-.6px;margin:0 0 5px}.hero p{font-size:12px;lin
  </div>
 </section>
 <section class="panel cash-panel" aria-labelledby="cash-title">
- <div class="panel-heading"><h2 class="title" id="cash-title">Efectivo</h2><span class="section-tag">Control separado</span></div>
- <div class="stat"><span id="cash-count">0 cobros</span><strong id="cash-total">$0</strong></div>
+ <div class="panel-heading"><h2 class="title" id="cash-title">Efectivo</h2><span class="section-tag" id="cash-count">0 cobros</span></div>
+ <div class="sheet-head cash-head" aria-hidden="true"><span>Cliente</span><span>Monto</span></div>
  <ul id="cash-entries" class="list"></ul><p id="cash-empty" class="empty">Sin cobros en efectivo.</p>
  <button id="clear-auto-cash" type="button" class="small-action" hidden>Vaciar efectivo registrado</button>
  <p class="micro-note">El efectivo no se exporta con las transferencias.</p>
@@ -130,8 +179,8 @@ h1{font-size:26px;letter-spacing:-.6px;margin:0 0 5px}.hero p{font-size:12px;lin
 <p id="feedback" aria-live="polite" role="status"></p>
 </main></div>
 <nav class="bottom-nav" aria-label="Navegación principal"><a href="./">Inicio</a><a href="./checklist.html">Checklist</a><a href="./entregas-contingentes.html">Entregas</a><a href="./notas-transferencias.html" class="active" aria-current="page">Transferencias</a></nav>
-<script src="./notas-transferencias.js?v=2026.11.21.38"></script>
+<script src="./notas-transferencias.js?v=2026.11.21.39"></script>
 <script>(()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?v=2';document.body.appendChild(a)};u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<p style="padding:20px;background:white">No se pudo cargar la lista de usuarios de Gestark.</p>')};document.body.appendChild(u)})();</script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.21.38"></script><script src="./gestark-pwa.js?v=2026.11.17.3"></script>
+<script src="./gestark-updates.js?v=2026.11.21.39"></script><script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body></html>

@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.38",
+  "version": "2026.11.21.39",
   "name": "Gestark",
-  "changes": "Transferencias: lista de clientes y montos destacada en el centro, después del registro manual y antes de los botones de exportar. Encabezado, textos y selector Sí/No compactos. Sin cambios en información guardada ni en acceso Excel Online.",
+  "changes": "Transferencias: lista lineal estilo planilla, columnas Cliente / Monto / Sí-No, sin total acumulado ni en la pantalla ni en el mensaje WhatsApp. Formulario más compacto; Excel Online y datos locales sin cambios.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
