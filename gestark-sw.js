@@ -1,13 +1,14 @@
-/* Gestark PWA v2026.11.22.15: shell nativo, carga local de archivos estáticos.
+/* Gestark PWA v2026.11.22.16: shell nativo, carga local de archivos estáticos.
  * Las consultas de autenticación y Firestore no pasan por este trabajador.
  */
-const VERSION='2026.11.22.15';
+const VERSION='2026.11.22.16';
 const CACHE='gestark-pwa-'+VERSION;
 const CORE=[
  './','./index.html','./gestark-app.html','./gestark-rapido.html','./checklist.html','./notas-transferencias.html',
  './entregas-clientes.html','./repositorio.html','./entregas-contingentes.html',
  './gestark-auth.js','./gestark-updates.js','./gestark-pwa.js','./gestark-ui.css',
  './notas-transferencias.js','./entregas-clientes.js','./gestark-clientes-cloud.js',
+ './gestark-clientes-ui.js',
  './usuarios.js','./gestark-version.json','./manifest.webmanifest',
  './icon-192.png','./icon-512.png','./icon-maskable-512.png','./apple-touch-icon.png'
 ];

@@ -1,4 +1,4 @@
-/* Gestark · Entregas clientes compartidas · 2026.11.22.15
+/* Gestark · Entregas clientes compartidas · 2026.11.22.16
  * Integra el módulo existente sin modificar el lector de códigos ni la función nativa de compartir.
  * Fuente de verdad: Firestore gestark_client_deliveries_v1.
  * Respaldo/borrador: almacenamiento local existente. Operaciones pendientes: cola local durable.
@@ -9,11 +9,13 @@
 if (window.__gestarkClientsCloudLoaded) return;
 window.__gestarkClientsCloudLoaded = true;
 if (!location.pathname.endsWith('/entregas-clientes.html')) return;
-const VERSION = '2026.11.22.15';
+const VERSION = '2026.11.22.16';
 const SDK = 'https://www.gstatic.com/firebasejs/12.11.0/';
 const COLLECTION = 'gestark_client_deliveries_v1';
 const HISTORY_KEY = 'gestark:clients:rosters:v1';
 const STATUS_KEY = 'gestark:clients:system-closure:v1';
+const ARCHIVE_DATES_KEY = 'gestark:clients:closure-dates:v1';
+const CLOSED_AT_PREFIX = 'closedAt_';
 const QUEUE_KEY = 'gestark:clients:cloud-queue:v1';
 const KNOWN_KEY = 'gestark:clients:cloud-known:v1';
 const VALID_ID = /^[a-zA-Z0-9_-]{5,100}$/;
@@ -65,7 +67,7 @@ function setStatus(message, warning=false){
  el.style.background=warning?'#fff5e5':'#eef8f2';el.style.borderColor=warning?'#f0d39f':'#cfe5d8';el.style.color=warning?'#795019':'#215943';
 }
 function exportBackup(){
- const data={version:VERSION,createdAt:new Date().toISOString(),history:localArr(HISTORY_KEY),closure:localObj(STATUS_KEY),pending:queue};
+ const data={version:VERSION,createdAt:new Date().toISOString(),history:localArr(HISTORY_KEY),closure:localObj(STATUS_KEY),closureDates:localObj(ARCHIVE_DATES_KEY),pending:queue};
  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gestark-entregas-clientes-respaldo-'+new Date().toISOString().slice(0,10)+'.json';
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
@@ -103,7 +105,7 @@ function changedClosures(before,after) {
   if(Boolean(old[k])===Boolean(now[k]))continue;
   const at=k.lastIndexOf(':');if(at<0)continue;
   const id=k.slice(0,at),of=k.slice(at+1);
-  if(VALID_ID.test(id)&&VALID_OF.test(of))enqueue({type:'closure',id,of,closed:now[k]===true});
+  if(VALID_ID.test(id)&&VALID_OF.test(of))enqueue({type:'closure',id,of,closed:now[k]===true,closedAt:now[k]===true?(Number(localObj(ARCHIVE_DATES_KEY)[k])||Date.now()):null});
  }
 }
 // Observador explícito de operaciones locales. En Safari/iOS sobrescribir
@@ -151,7 +153,7 @@ function observeLocalChanges() {
  });
  setInterval(()=>{if(!document.hidden)captureLocalChanges()},1200);
 }
-function closuresFor(id,flat){const value={};for(const [k,v] of Object.entries(flat)){if(k.startsWith(id+':')){const of=k.slice(id.length+1);if(VALID_OF.test(of)&&v===true)value[of]=true;}}return value;}
+function closuresFor(id,flat){const value={},dates=localObj(ARCHIVE_DATES_KEY);for(const [k,v] of Object.entries(flat)){if(k.startsWith(id+':')){const of=k.slice(id.length+1);if(VALID_OF.test(of)&&v===true){value[of]=true;const at=Number(dates[k]);if(Number.isFinite(at)&&at>0)value[CLOSED_AT_PREFIX+of]=at;}}}return value;}
 function prepareLegacy(){
  const localHistory=localArr(HISTORY_KEY),storedClosures=localObj(STATUS_KEY);
  const queuedCreates=new Set(queue.filter(x=>x.type==='create').map(x=>x.id));
@@ -173,8 +175,8 @@ function applyPending(map){
    if(!curr && op.entry) data.set(op.id,{...op.entry,closures:{...(op.closures||{})},deleted:false});
   }else if(curr && !curr.deleted){
    if(op.type==='remove-order'){
-    curr.orders=curr.orders.filter(x=>x.of!==op.of);delete curr.closures[op.of];if(!curr.orders.length)curr.deleted=true;
-   } else if(op.type==='closure'&&curr.orders.some(x=>x.of===op.of)) curr.closures[op.of]=Boolean(op.closed);
+    curr.orders=curr.orders.filter(x=>x.of!==op.of);delete curr.closures[op.of];delete curr.closures[CLOSED_AT_PREFIX+op.of];if(!curr.orders.length)curr.deleted=true;
+   } else if(op.type==='closure'&&curr.orders.some(x=>x.of===op.of)){curr.closures[op.of]=Boolean(op.closed);if(op.closed)curr.closures[CLOSED_AT_PREFIX+op.of]=Number(op.closedAt)||op.queuedAt||Date.now();else delete curr.closures[CLOSED_AT_PREFIX+op.of];}
   }
  }
  return data;
@@ -184,20 +186,20 @@ function reflectRemote() {
  captureLocalChanges();
  if(!serverReady||stopped||!queueDurable)return;
  const working=applyPending(remote);
- const list=[],flat={};
+ const list=[],flat={},archiveDates={};
  for(const [id,doc] of working){
   if(!goodRoster(doc)||doc.deleted===true||!doc.orders?.length)continue;
   const entry=cleanEntry({...doc,id});if(!entry)continue;
   list.push(entry);
-  for(const [of,closed] of Object.entries(doc.closures)){if(VALID_OF.test(of)&&closed===true)flat[id+':'+of]=true}
+  for(const [of,closed] of Object.entries(doc.closures)){if(VALID_OF.test(of)&&closed===true){flat[id+':'+of]=true;const at=Number(doc.closures[CLOSED_AT_PREFIX+of]);if(Number.isFinite(at)&&at>0)archiveDates[id+':'+of]=at;}}
  }
  list.sort((a,b)=>a.at-b.at);
  applyingRemote=true;
  try {
   // La fuente visible procede de Firestore + operaciones locales pendientes.
-  const payloads={[HISTORY_KEY]:JSON.stringify(list),[STATUS_KEY]:JSON.stringify(flat)};
+  const payloads={[HISTORY_KEY]:JSON.stringify(list),[STATUS_KEY]:JSON.stringify(flat),[ARCHIVE_DATES_KEY]:JSON.stringify(archiveDates)};
   // Evitar reconstruir cientos de filas si sólo cambió la metadata de Firestore.
-  for(const key of [HISTORY_KEY,STATUS_KEY]){
+  for(const key of [HISTORY_KEY,STATUS_KEY,ARCHIVE_DATES_KEY]){
    if(localStorage.getItem(key)===payloads[key])continue;
    rawSetItem.call(localStorage,key,payloads[key]);
    if(window.__gestarkClientsCloudObserverLast)window.__gestarkClientsCloudObserverLast[key]=payloads[key];
@@ -237,6 +239,8 @@ async function uploadClosure(op){
   if(!snap.exists()||snap.data().deleted)return;
   const d=snap.data();if(!d.orders?.some(x=>x.of===op.of))return;
   const closures={...(d.closures||{}),[op.of]:Boolean(op.closed)};
+  if(op.closed)closures[CLOSED_AT_PREFIX+op.of]=Number(op.closedAt)||op.queuedAt||Date.now();
+  else delete closures[CLOSED_AT_PREFIX+op.of];
   tx.update(ref,{closures,updatedBy:current.uid,updatedAt:client.fs.serverTimestamp()});
   returned={...d,closures};
  });return returned;
@@ -247,7 +251,7 @@ async function uploadRemoval(op){
   const snap=await tx.get(ref);
   if(!snap.exists()||snap.data().deleted)return;
   const d=snap.data();
-  const orders=d.orders.filter(x=>x.of!==op.of),closures={...(d.closures||{})};delete closures[op.of];
+  const orders=d.orders.filter(x=>x.of!==op.of),closures={...(d.closures||{})};delete closures[op.of];delete closures[CLOSED_AT_PREFIX+op.of];
   const deleted=orders.length===0;
   tx.update(ref,{orders,closures,deleted,updatedBy:current.uid,updatedAt:client.fs.serverTimestamp()});
   returned={...d,orders,closures,deleted};

@@ -1,10 +1,10 @@
 {
-  "version": "2026.11.22.15",
+  "version": "2026.11.22.16",
   "name": "Gestark",
-  "changes": "Entregas clientes: detección fiable de guardados en iPhone/Mac y contador de retiros en Firestore; no cambia las reglas, el escáner ni Transferencias.",
+  "changes": "Entregas clientes: Nómina operativa prioriza O.F. pendientes; confirmación de cierre, archivo por fecha de cierre, reapertura sincronizada y compatibilidad con cierres históricos.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
-  "clientsVersion": "2026.11.22.15"
+  "clientsVersion": "2026.11.22.16"
 }

@@ -1,10 +1,10 @@
-/* Gestark · instalador PWA 2026.11.22.15.
+/* Gestark · instalador PWA 2026.11.22.16.
  * El contenedor nativo registra el Service Worker una sola vez.
  * Los módulos abiertos dentro de iframes NO lo registran nuevamente.
  */
 (() => {
  'use strict';
- const VERSION='2026.11.22.15';
+ const VERSION='2026.11.22.16';
  const appBase=new URL('./',document.currentScript?.src||location.href);
  // Activar la sincronización de Entregas clientes después de validar Firebase.
  // Compatible con la pestaña nativa (iframe) y el acceso clásico directo.
@@ -13,7 +13,7 @@
      if(window.__gestarkClientsCloudRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
      window.__gestarkClientsCloudRequested=true;
      const script=document.createElement('script');
-     script.src='./gestark-clientes-cloud.js?v=2026.11.22.15';
+     script.src='./gestark-clientes-cloud.js?v=2026.11.22.16';
      script.async=true;
      script.onerror=()=>{
        window.__gestarkClientsCloudRequested=false;
@@ -25,8 +25,21 @@
      };
      document.head.append(script);
    };
+   // Interfaz operativa: sólo se carga al autenticar Clientes. Funciona tanto
+   // en el navegador como dentro de la PWA; no interfiere con el escáner.
+   const loadClientsUi=()=>{
+     if(window.__gestarkClientsUiRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
+     window.__gestarkClientsUiRequested=true;
+     const script=document.createElement('script');
+     script.src='./gestark-clientes-ui.js?v=2026.11.22.16';
+     script.async=true;
+     script.onerror=()=>{window.__gestarkClientsUiRequested=false;console.warn('Gestark: vista de archivo no disponible; se conserva la nómina anterior.')};
+     document.head.append(script);
+   };
    document.addEventListener('gestark:ready',loadClientsCloud);
-   if(window.GestarkAuth?.getUser?.()?.uid)loadClientsCloud();
+   document.addEventListener('gestark:ready',loadClientsUi);
+   if(window.GestarkAuth?.getUser?.()?.uid){loadClientsCloud();loadClientsUi()}
+
  }
  const embedded=(()=>{try{return window.parent!==window && window.parent.location.origin===location.origin && window.parent.location.pathname.endsWith('/gestark-app.html')}catch(_){return false}})();
  if(embedded)return;

@@ -1,60 +1,64 @@
-GESTARK · ENTREGAS CLIENTES · CORRECCIÓN DE SINCRONIZACIÓN v2026.11.22.15
+GESTARK · NÓMINA OPERATIVA Y ARCHIVO POR FECHA
+Versión: 2026.11.22.16
 
-SITUACIÓN
-La v14 mostraba «Firebase sincronizado» aunque esa frase solo confirmaba que
-Firestore estaba enviando una lectura. Los retiros guardados localmente podían
-no quedar incorporados oportunamente a la cola de subida si fallaba la
-intercepción de Storage.prototype.setItem, especialmente en WebKit/Safari.
-No es posible confirmar desde aquí si esta es la única causa del problema real.
+QUÉ CAMBIA
+- Por cerrar: destaca las O.F. grandes, con las pendientes más antiguas primero.
+- «Confirmar cerrada»: abre una confirmación con la O.F. y el cliente.
+- Al confirmar: sale de Por cerrar y aparece en Archivo por fecha.
+- El archivo se organiza por fecha de cierre en Chile.
+- Buscar por O.F. o cliente, filtrar por fecha, ver más registros de 60 en 60.
+- «Reabrir»: previa confirmación, devuelve la O.F. a Por cerrar.
+- «Eliminar O.F.»: conserva la funcionalidad original, con confirmación.
+- Se conservan los documentos de Firestore; archivar NO elimina datos.
+- Los cierres históricos sin fecha de cierre se agrupan por fecha del retiro
+  y se identifican como «Fecha retiro · cierre antiguo».
 
-CAMBIOS
-- Se eliminó la intercepción global de Storage.prototype.setItem.
-- Se comprueban los cambios locales tras Finalizar, Cerrar/Pendiente y Eliminar.
-- Se mantiene una revisión periódica y al reactivar la ventana.
-- Antes de aplicar un snapshot, se registran retiros locales pendientes,
-  para que no se pierdan por una llegada de datos remotos.
-- Ahora se indica «Firebase sincronizado · X retiro(s) en la nube · Y O.F.».
-  Esto cuenta los documentos recibidos de Firestore, no solo los locales.
-- Se sustituyó «Reintentar» por «Sincronizar» para volver a subir pendientes
-  sin recargar cuando Firebase ya está conectado.
-- La app no detiene permanentemente su observador al pasar a segundo plano.
+INSTALACIÓN EN GITHUB
+1) En Entregas clientes pulsa «Respaldo» si hay datos locales pendientes.
+2) Abre https://github.com/nachorpn/checklist-chicureo
+3) Sube exactamente estos SEIS archivos a la raíz (Add file > Upload files):
 
-ARCHIVOS A SUBIR A LA RAÍZ DE GITHUB (REEMPLAZANDO LOS ANTERIORES)
-1. gestark-clientes-cloud.js
-2. gestark-pwa.js
-3. gestark-sw.js
-4. gestark-app.html
-5. gestark-version.json
+   gestark-clientes-ui.js       [NUEVO]
+   gestark-clientes-cloud.js    [REEMPLAZAR]
+   gestark-pwa.js               [REEMPLAZAR]
+   gestark-sw.js                [REEMPLAZAR]
+   gestark-app.html             [REEMPLAZAR]
+   gestark-version.json         [REEMPLAZAR]
 
-NO SUBAS el archivo de prueba ni estas instrucciones. NO CAMBIES las reglas
-Firestore que publicaste antes: la nueva versión usa la misma colección y los
-mismos campos. No se cambian el escáner, la estructura de datos ni Transferencias.
+4) Pulsa «Commit changes».
+5) Abre Safari en:
+   https://nachorpn.github.io/checklist-chicureo/gestark-app.html?actualizar=2026112216
+6) Entra en Clientes > Nómina general. Puede requerir actualizar por la caché
+   de la PWA instalada. No borres la app ni su almacenamiento.
 
-PASOS
-1. Guarda un respaldo local de Clientes (botón «Respaldo») desde Mac y iPhone
-   antes de modificar la app, si existen registros en dichos dispositivos.
-2. Sube los 5 archivos y confirma el Commit en GitHub.
-3. Abre en Safari (o navegador Mac):
-   https://nachorpn.github.io/checklist-chicureo/gestark-app.html?actualizar=2026112215
-4. Después del primer acceso, refresca una vez más si aparece la versión vieja;
-   el Service Worker puede continuar sirviendo temporalmente archivos de caché.
-5. Entra a Clientes → Nómina general en Mac e iPhone. Comprueba que ambos
-   indican el mismo número de «retiros en la nube».
-6. Crea un retiro de prueba con una O.F. RESERVADA PARA PRUEBAS (no una orden
-   operativa real). Finaliza el retiro en Mac y comprueba que el contador de
-   retiros en la nube aumenta y que aparece en el iPhone sin recargar.
+FIREBASE
+- NO debes cambiar las reglas existentes para esta mejora.
+- Continúa usando la colección gestark_client_deliveries_v1.
+- El historial es una vista: no se crea una colección aparte.
+- Los cierres nuevos guardan la fecha junto al estado en el mapa closures.
+- Los usuarios autorizados mantienen sus permisos actuales.
 
-CÓMO INTERPRETAR EL RESULTADO
-- Mac muestra la O.F. pero «0 retiros en la nube»: el dato no llegó al servidor.
-  Mira si el aviso dice «Sin sincronizar» o «Firebase rechazó el acceso».
-- Mac «1 retiro en la nube», iPhone «0»: comprobar la actualización de la app,
-  cuenta autorizada y escucha en el iPhone.
-- Ambos «1 retiro en la nube», pero la lista del iPhone no muestra la O.F.:
-  el problema está en materializar la lista local / actualización de interfaz.
-- «Sincronizando N cambio(s) pendientes»: todavía no hay confirmación remota.
+PRUEBA RECOMENDADA
+1) Mac: crea una O.F. válida de prueba y termina el retiro.
+2) Clientes > Nómina general > Por cerrar: comprueba que aparece la O.F.
+3) Pulsa «Confirmar cerrada»; comprueba que NO cierra hasta aceptar.
+4) Acepta y comprueba que desaparece de Por cerrar.
+5) Abre «Archivo por fecha» y revisa su fecha de cierre.
+6) iPhone: verifica que la misma O.F. aparece en el archivo sin recargar.
+7) Pulsa «Reabrir», confirma, y comprueba que vuelve a Por cerrar
+   también en el otro dispositivo.
 
-IMPORTANTE
-No elimines apps, no borres almacenamiento local ni desinstales Gestark.
-No borrar registros reales de prueba sin verificar que estén centralizados.
-Esta versión tiene pruebas de sintaxis y lógica simulada; la verificación real
-con Firebase y dispositivos sigue pendiente.
+PRECAUCIONES
+- La confirmación es un cierre ADMINISTRATIVO en el sistema; no reemplaza
+  ninguna constancia física ni validación externa de Starken.
+- La fecha nueva usa la hora del dispositivo que confirma el cierre,
+  mostrada en zona horaria America/Santiago (no es un sello de servidor).
+- Para cierres históricos no se inventa una fecha de cierre inexistente.
+- No se cambia el lector de códigos, la imagen para WhatsApp ni Transferencias.
+- La sincronización real necesita conexión, permisos Firestore y pruebas en iPhone;
+  la comprobación de sintaxis no sustituye la validación en producción.
+
+PRUEBAS LOCALES HECHAS
+- Javascript: node --check en los 4 archivos JS y script del contenedor.
+- 12 pruebas heredadas de sincronización.
+- 13 pruebas nuevas: archivo, fecha, cierre, reapertura, eliminación e importación.
