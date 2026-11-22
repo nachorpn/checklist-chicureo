@@ -1,0 +1,12 @@
+Gestark · actualización 2026.11.21.30
+
+Esta actualización SOLO retira el acceso «Escáner» del Inicio.
+El archivo escaner.html y los escáneres integrados no se modifican.
+
+Para instalar: reemplaza en la raíz de GitHub solamente estos 3 archivos:
+- index.html
+- gestark-updates.js
+- gestark-version.json
+
+No elimines ningún otro archivo. Abre Gestark y usa Actualizar.
+El menú inferior con acceso central a Entregas clientes permanece intacto.

@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.29",
+  "version": "2026.11.21.30",
   "name": "Gestark",
-  "changes": "Rediseño de los iconos del Inicio con una línea visual más sofisticada y coherente con Gestark, manteniendo el menú central a Entregas clientes y el resto de funciones sin cambios.",
+  "changes": "Inicio: se retira el acceso independiente Escáner y se actualiza el contador de herramientas. Los lectores integrados y los demás módulos se conservan sin cambios.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
