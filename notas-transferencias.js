@@ -1,18 +1,36 @@
-/* Gestark · Transferencias v2026.11.21.35. Acceso combinado: copiar filas y abrir Excel Online. */
+/* Gestark · Transferencias v2026.11.21.36. Selector Si/No visible por cliente y exportación Excel. */
 (()=>{
 'use strict';
-const ALLOWED_USER='CIBC', PERSONAL_KEY='gestark:notas-transferencias:v1:CIBC',QUEUE_KEY='gestark:contingency:payments:v1';
+const ALLOWED_USER='CIBC', PERSONAL_KEY='gestark:notas-transferencias:v1:CIBC',QUEUE_KEY='gestark:contingency:payments:v1',TRANSFER_STATUS_KEY='gestark:notas-transferencias:confirmacion:v1';
 const $=id=>document.getElementById(id),fmt=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0});
-let active=false,currentUser='',manual=[],queue=[],toastTimeout=null;
+let active=false,currentUser='',manual=[],queue=[],transferStatus={},toastTimeout=null;
 function cash(n){return fmt.format(n).replace(/\s/g,' ')}
 function nameKey(s){return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLocaleLowerCase('es-CL')}
 function parseAmount(v){const raw=String(v||'').trim(),digits=raw.replace(/[^0-9]/g,'');const amount=Number(digits);return /^[\d\s.$]+$/.test(raw)&&digits&&Number.isSafeInteger(amount)&&amount>0&&amount<=999999999?amount:null}
 function dateISO(){const v=new Intl.DateTimeFormat('en-US',{timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const g=k=>v.find(x=>x.type===k)?.value||'';return g('year')+'-'+g('month')+'-'+g('day')}
 function toast(msg,error=false){const e=$('feedback');e.textContent=msg;e.classList.toggle('error',error);clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{e.textContent='';e.classList.remove('error')},3800)}
+function loadTransferStatus(){
+ try{const a=JSON.parse(localStorage.getItem(TRANSFER_STATUS_KEY)||'{}');return a&&typeof a==='object'&&!Array.isArray(a)?a:{}}
+ catch{return {}}
+}
+function bankStatus(name){return transferStatus[nameKey(name)]==='si'?'si':'no'}
+function saveBankStatus(name,value){
+ const key=nameKey(name),next={...transferStatus};
+ if(value==='si')next[key]='si';else delete next[key];
+ try{localStorage.setItem(TRANSFER_STATUS_KEY,JSON.stringify(next));transferStatus=next;render();toast('¿Transfirió? '+(value==='si'?'Sí':'No')+' · '+name);return true}
+ catch{toast('No se pudo guardar el estado.',true);return false}
+}
+function pruneTransferStatus(){
+ const live=new Set(bankRows().map(x=>nameKey(x.name))),next={...transferStatus};
+ for(const key of Object.keys(next))if(!live.has(key))delete next[key];
+ if(Object.keys(next).length===Object.keys(transferStatus).length)return;
+ try{localStorage.setItem(TRANSFER_STATUS_KEY,JSON.stringify(next));transferStatus=next}
+ catch{toast('No se pudo actualizar el estado de transferencias.',true)}
+}
 function loadManual(){if(currentUser!==ALLOWED_USER)return [];try{const data=JSON.parse(localStorage.getItem(PERSONAL_KEY)||'[]');return Array.isArray(data)?data.filter(x=>x&&typeof x.name==='string'&&Number.isSafeInteger(x.amount)&&x.amount>0&&typeof x.id==='string').slice(-1500):[]}catch{return []}}
 function loadQueue(){try{const data=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');return Array.isArray(data)?data.filter(x=>x&&typeof x.of==='string'&&/^\d{9}$/.test(x.of)&&Number.isSafeInteger(x.amount)&&x.amount>0&&['transfer','cash'].includes(x.method)&&typeof x.id==='string').slice(-3000):[]}catch{return []}}
-function persistManual(arr){try{localStorage.setItem(PERSONAL_KEY,JSON.stringify(arr));manual=arr;render();return true}catch{toast('No se pudo guardar la lista manual.',true);return false}}
-function persistQueue(arr){try{localStorage.setItem(QUEUE_KEY,JSON.stringify(arr));queue=arr;render();return true}catch{toast('No se pudo actualizar el registro de cobros.',true);return false}}
+function persistManual(arr){try{localStorage.setItem(PERSONAL_KEY,JSON.stringify(arr));manual=arr;pruneTransferStatus();render();return true}catch{toast('No se pudo guardar la lista manual.',true);return false}}
+function persistQueue(arr){try{localStorage.setItem(QUEUE_KEY,JSON.stringify(arr));queue=arr;pruneTransferStatus();render();return true}catch{toast('No se pudo actualizar el registro de cobros.',true);return false}}
 function bankQueue(){
  // No incluir órdenes ya existentes en notas personales antiguas (las de v22).
  const legacyOF=new Set(manual.flatMap(x=>[x.sourceOF,...(Array.isArray(x.sources)?x.sources.map(s=>s.of):[])]).filter(Boolean));
@@ -32,6 +50,17 @@ function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className
 function appendRow(root,name,amount,meta,actions=[]){const li=el('li','entry');const row=el('div','entry-row'),info=el('div','entry-info');
  info.append(el('div','entry-name',name),el('div','entry-meta',meta));row.append(info,el('span','entry-amount',cash(amount)));li.append(row);
  if(actions.length){const d=el('div','entry-actions');for(const a of actions)d.append(a);li.append(d)}root.append(li);return li}
+function transferSelector(name){
+ const label=el('label','bank-confirm-label');
+ const caption=el('span','bank-confirm-text','¿Transfirió?');
+ const select=el('select','bank-confirm-select');
+ select.setAttribute('aria-label','¿Transfirió? '+name);
+ for(const [value,text] of [['no','No'],['si','Sí']]){const option=el('option','',text);option.value=value;select.append(option)}
+ select.value=bankStatus(name);
+ select.addEventListener('change',()=>{if(!saveBankStatus(name,select.value))select.value=bankStatus(name)});
+ label.append(caption,select);
+ return label;
+}
 function manualActions(item){
  const add=el('button','micro','+ Sumar monto');add.type='button';const remove=el('button','micro danger','Eliminar');remove.type='button';
  const form=el('form','add-form');form.hidden=true;const inp=el('input');inp.inputMode='numeric';inp.required=true;inp.placeholder='Monto adicional';inp.maxLength=12;
@@ -48,16 +77,16 @@ function render(){if(!active)return;
  for(const b of ['copy-excel','send-wa','copy-open-excel-online'])$(b).disabled=bank.length===0;
  $('empty').hidden=bank.length>0;$('entries').replaceChildren();
  for(const x of [...manual].reverse()){
-   const {actions,form}=manualActions(x);const li=appendRow($('entries'),x.name,x.amount,'Manual · '+dateStr(x.date)+(Array.isArray(x.sources)&&x.sources.length?' · Entregas previas vinculadas':''),actions);li.append(form);
+   const {actions,form}=manualActions(x);const li=appendRow($('entries'),x.name,x.amount,'Manual · '+dateStr(x.date)+(Array.isArray(x.sources)&&x.sources.length?' · Entregas previas vinculadas':''),actions);li.append(transferSelector(x.name),form);
  }
- const auto=bankQueue();for(const x of [...auto].reverse())appendRow($('entries'),x.payer,x.amount,'Entrega contingente · O.F. '+x.of+' · '+(x.user||'Gestark')+' · pendiente de verificar');
+ const auto=bankQueue();for(const x of [...auto].reverse()){const li=appendRow($('entries'),x.payer,x.amount,'Entrega contingente · O.F. '+x.of+' · '+(x.user||'Gestark')+' · pendiente de verificar');li.append(transferSelector(x.payer))}
  $('manual-clear-wrap').hidden=!manual.length||currentUser!==ALLOWED_USER;
  $('auto-transfer-clear-wrap').hidden=!auto.length;
  const cashList=cashEntries();$('cash-count').textContent=cashList.length+' '+(cashList.length===1?'cobro':'cobros');$('cash-total').textContent=cash(cashList.reduce((a,x)=>a+x.amount,0));
  $('cash-entries').replaceChildren();$('cash-empty').hidden=cashList.length>0;$('clear-auto-cash').hidden=!cashList.length;
  for(const x of [...cashList].reverse())appendRow($('cash-entries'),x.payer,x.amount,'O.F. '+x.of+' · '+(x.user||'Gestark')+' · efectivo recibido');
 }
-function excel(){return bankRows().map(x=>x.name.replace(/[\t\r\n]+/g,' ').replace(/^([=+\-@])/,'\'$1')+'\t'+String(x.amount)+'\tno').join('\n')}
+function excel(){return bankRows().map(x=>x.name.replace(/[\t\r\n]+/g,' ').replace(/^([=+\-@])/,'\'$1')+'\t'+String(x.amount)+'\t'+bankStatus(x.name)).join('\n')}
 function message(){const bank=bankRows();const lines=['*Transferencias pendientes*',''];for(const x of bank)lines.push('• '+x.name+' — '+cash(x.amount));lines.push('','*Total: '+cash(bank.reduce((a,x)=>a+x.amount,0))+'*','Registros: '+bank.length);return lines.join('\n')}
 async function copy(text){if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(text);return true}catch{}}const area=el('textarea');area.value=text;area.style.cssText='position:fixed;left:-9999px';document.body.append(area);area.select();let ok=false;try{ok=document.execCommand('copy')}catch{}area.remove();return ok}
 $('note-form').addEventListener('submit',e=>{e.preventDefault();if(currentUser!==ALLOWED_USER||!active)return;
@@ -70,7 +99,7 @@ $('note-form').addEventListener('submit',e=>{e.preventDefault();if(currentUser!=
    const id=crypto.randomUUID?.()||String(Date.now())+Math.random();ok=persistManual([...manual,{id,name,amount,date:dateISO()}]);}
  if(ok){$('client').value='';$('amount').value='';$('client').focus();toast('Transferencia anotada ✓')}
 });
-$('copy-excel').addEventListener('click',async()=>{const rows=bankRows();if(!rows.length)return;toast(await copy(excel())?'Copiados '+rows.length+' cliente(s): Nombre · Monto · no':'No se pudo copiar para Excel.',false)});
+$('copy-excel').addEventListener('click',async()=>{const rows=bankRows();if(!rows.length)return;toast(await copy(excel())?'Copiados '+rows.length+' cliente(s): Nombre · Monto · Sí/No':'No se pudo copiar para Excel.',false)});
 $('copy-open-excel-online').addEventListener('click',async()=>{
  const rows=bankRows();if(!rows.length){toast('No hay transferencias bancarias para copiar.',true);return}
  const button=$('copy-open-excel-online');if(button.disabled)return;
@@ -96,7 +125,7 @@ $('clear-auto-cash').addEventListener('click',()=>{const len=cashEntries().lengt
  if(confirm('¿Ya registraste estos '+len+' cobros en efectivo? Solo se limpia esta lista; las entregas permanecen en su historial.')){if(persistQueue(queue.filter(x=>x.method!=='cash')))toast('Cobros en efectivo limpiados ✓')}
 });
 document.addEventListener('gestark:ready',e=>{if(active)return;const username=e.detail?.username;if(!username)return;currentUser=String(username);active=true;
- manual=loadManual();queue=loadQueue();$('manual-panel').hidden=currentUser!==ALLOWED_USER;$('workspace').hidden=false;render();
+ manual=loadManual();queue=loadQueue();transferStatus=loadTransferStatus();pruneTransferStatus();$('manual-panel').hidden=currentUser!==ALLOWED_USER;$('workspace').hidden=false;render();
 });
-window.addEventListener('storage',e=>{if(!active||![PERSONAL_KEY,QUEUE_KEY].includes(e.key))return;manual=loadManual();queue=loadQueue();render()});
+window.addEventListener('storage',e=>{if(!active||![PERSONAL_KEY,QUEUE_KEY,TRANSFER_STATUS_KEY].includes(e.key))return;manual=loadManual();queue=loadQueue();transferStatus=loadTransferStatus();render()});
 })();

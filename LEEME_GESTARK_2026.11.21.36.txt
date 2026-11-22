@@ -1,0 +1,17 @@
+GESTARK 2026.11.21.36 — TRANSFERENCIAS Y NÓMINA GENERAL
+
+ARCHIVOS QUE SE DEBEN REEMPLAZAR EN GITHUB
+- notas-transferencias.html
+- notas-transferencias.js
+- entregas-clientes.html
+- entregas-clientes.js
+- gestark-updates.js
+- gestark-version.json
+
+CAMBIOS
+1. Transferencias: selector visible ¿Transfirió? Sí o No en cada tarjeta bancaria. Todas empiezan en No. Los movimientos con el mismo cliente comparten selección porque la exportación a Excel agrupa el monto por cliente. Se guarda por navegador y persiste tras recargar. La tercera columna al copiar usa si/no según el selector. La información de efectivo se mantiene separada.
+2. Entregas clientes > Nómina general: botón Eliminar individual para cada O.F.; diálogo Gestark que identifica O.F. y cliente, con Cancelar y Sí, eliminar. Si es la última O.F. de un retiro, el retiro se elimina del historial. El estado de cierre asociado también se limpia.
+3. No se ha configurado Firebase; todos los datos continúan locales, como antes.
+
+REVERTIR
+Se conserva como referencia previa la versión 2026.11.21.35. En caso de error, no borres manualmente los datos locales.

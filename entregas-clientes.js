@@ -1,4 +1,4 @@
-/* Gestark · Entregas clientes · 2026.11.21.28
+/* Gestark · Entregas clientes · 2026.11.21.36
  * Escáner continuo usando motor aprobado de Contingentes/Laboratorio 2026.11.21.15.
  * Sin directorio ni sincronización central en esta versión.
  */
@@ -345,6 +345,32 @@ function setClosure(entryId,of,closed){
  catch(_){toast('No se pudo guardar el estado. Revisa el almacenamiento.','warn');return false}
  renderHistory();toast('O.F. '+of+' · '+(closed?'Cerrada':'Pendiente'));return true;
 }
+function deleteHistoryOF(id,of){
+ // Releer inmediatamente antes de borrar para evitar actuar sobre una lista antigua.
+ const current=readHistory();const batch=current.find(x=>x.id===id);
+ if(!batch||!batch.orders.some(x=>x.of===of)){toast('La O.F. ya no está en la nómina.','warn');renderHistory();return false}
+ const next=current.map(x=>x.id!==id?x:{...x,orders:x.orders.filter(o=>o.of!==of)}).filter(x=>x.orders.length);
+ if(!persistHistory(next))return false;
+ // Limpiar también el control de cierre correspondiente a esta O.F.
+ const closure=readClosure(),key=id+':'+of;
+ if(Object.prototype.hasOwnProperty.call(closure,key)){
+  delete closure[key];try{localStorage.setItem(STATUS_KEY,JSON.stringify(closure))}
+  catch{toast('Orden eliminada, pero no se pudo limpiar el estado de cierre.','warn')}
+ }
+ renderHistory();toast('O.F. '+of+' eliminada de la nómina');return true;
+}
+function requestDeleteHistory(item){
+ const dialog=$('history-delete-dialog');
+ if(typeof dialog.showModal!=='function'){
+  if(window.confirm('¿Eliminar la O.F. '+item.of+' de '+item.client+' de la nómina general? Esta acción no se puede deshacer.'))deleteHistoryOF(item.id,item.of);
+  return;
+ }
+ $('delete-of-number').textContent=item.of;
+ $('delete-of-client').textContent=item.client;
+ dialog.dataset.entryId=item.id;
+ dialog.dataset.of=item.of;
+ dialog.showModal();
+}
 function renderHistory(){
  history=readHistory();
  const root=$('history-list'),selector=$('history-date-filter');root.replaceChildren();
@@ -391,7 +417,12 @@ function renderHistory(){
   const bottom=document.createElement('div');bottom.className='history-row-bottom';
   const client=document.createElement('span');client.className='history-client';client.textContent=item.client;
   const date=document.createElement('span');date.className='history-date';date.textContent=fmtDay(item.at);
-  bottom.append(client,date);row.append(top,bottom);frag.append(row);
+  const end=document.createElement('div');end.className='history-row-end';
+  const remove=document.createElement('button');remove.type='button';remove.className='history-delete';
+  remove.textContent='Eliminar';remove.setAttribute('aria-label','Eliminar O.F. '+item.of+' de la nómina general');
+  remove.addEventListener('click',()=>requestDeleteHistory(item));
+  end.append(date,remove);
+  bottom.append(client,end);row.append(top,bottom);frag.append(row);
  }
  root.append(frag);
  $('history-more').hidden=filtered.length<=historyShow;
@@ -559,6 +590,12 @@ function init(){
  $('history-date-filter').addEventListener('change',()=>{historyShow=80;renderHistory()});
  $('history-state-filter').addEventListener('change',()=>{historyShow=80;renderHistory()});
  $('history-more').addEventListener('click',()=>{historyShow+=80;renderHistory()});
+ $('history-delete-cancel').addEventListener('click',()=>$('history-delete-dialog').close());
+ $('history-delete-confirm').addEventListener('click',()=>{
+  const dialog=$('history-delete-dialog');const id=dialog.dataset.entryId,of=dialog.dataset.of;
+  dialog.close();deleteHistoryOF(id,of);
+ });
+ $('history-delete-dialog').addEventListener('click',e=>{if(e.target===$('history-delete-dialog'))e.target.close()});
  $('share-close').addEventListener('click',closeShareFallback);$('share-download').addEventListener('click',downloadImages);
  $('share-retry').addEventListener('click',()=>{closeShareFallback();if(preparedEntry)shareEntry(preparedEntry)});
  $('share-copy').addEventListener('click',async()=>{const ok=await copyText(SHARE_TEXT);toast(ok?'Mensaje copiado':'No se pudo copiar el mensaje',ok?'ok':'warn')});
