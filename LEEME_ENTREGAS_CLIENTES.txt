@@ -1,0 +1,24 @@
+GESTARK · ENTREGAS CLIENTES · v2026.11.21.27
+
+INCLUYE
+- Desplegable de fecha a todo ancho y visible encima de la Nómina general.
+- Todas las fechas (por defecto), Hoy y fechas históricas con O.F. registradas.
+- O.F. en letra grande, nombre del cliente y fecha compactos.
+- Estado de cierre en sistema: No entregado por defecto / Entregado al pulsar.
+- Cada O.F. guarda el estado independientemente y el botón permite revertir.
+- Las órdenes existentes comienzan como No entregado; se conservan sus datos y sus imágenes.
+- La imagen compartida y el escáner continuo permanecen sin modificaciones.
+- El control es local en cada dispositivo; no sincroniza todavía entre usuarios.
+
+INSTALACIÓN
+Sube los cinco archivos a la raíz del repositorio GitHub Pages, reemplazando las versiones anteriores:
+- index.html
+- entregas-clientes.html
+- entregas-clientes.js
+- gestark-updates.js
+- gestark-version.json
+
+Luego pulsa Actualizar en Gestark y entra a Entregas clientes → Nómina general.
+Si todavía aparece el formulario anterior, cierra la PWA completamente, ábrela de nuevo y comprueba la versión 2026.11.21.27.
+
+IMPORTANTE: El estado representa SOLO el cierre administrativo en sistema; no cambia la constancia física de retiro ni el mensaje que se envía por WhatsApp.

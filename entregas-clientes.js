@@ -1,4 +1,4 @@
-/* Gestark · Entregas clientes · 2026.11.21.26
+/* Gestark · Entregas clientes · 2026.11.21.27
  * Escáner continuo usando motor aprobado de Contingentes/Laboratorio 2026.11.21.15.
  * Sin directorio ni sincronización central en esta versión.
  */
@@ -8,6 +8,7 @@ const $=id=>document.getElementById(id);
 const core=window.GestarkLabCore;
 const SCAN_LIB='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
 const HISTORY_KEY='gestark:clients:rosters:v1'; // nómina general en este navegador
+const STATUS_KEY='gestark:clients:system-closure:v1'; // control de cierre por O.F. y retiro
 const DRAFT_PREFIX='gestark:clients:draft:v1:';
 const SHARE_TEXT='¡Hola! Hoy retiraste estos pedidos. En unos minutos te enviaremos el total a pagar.';
 const MAX_ROSTER=500;
@@ -330,35 +331,55 @@ function setView(which){
  if(which==='history'){if(cameraOn)stopCamera();renderHistory()}
  window.scrollTo({top:0,behavior:'instant'});
 }
+// Los estados se guardan independientemente para conservar íntegra la nómina y los datos de compartir.
+function readClosure(){
+ try{const value=JSON.parse(localStorage.getItem(STATUS_KEY)||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}
+ catch{return {}}
+}
+function setClosure(entryId,of,closed){
+ // Clave compuesta: una misma O.F. en lotes diferentes no comparte estado accidentalmente.
+ const key=entryId+':'+of;
+ const saved=readClosure();
+ if(closed)saved[key]=true;else delete saved[key];
+ try{localStorage.setItem(STATUS_KEY,JSON.stringify(saved))}
+ catch(_){toast('No se pudo guardar el estado. Revisa el almacenamiento.','warn');return false}
+ renderHistory();toast('O.F. '+of+' · '+(closed?'Entregado':'No entregado'));return true;
+}
 function renderHistory(){
  history=readHistory();
  const root=$('history-list'),selector=$('history-date-filter');root.replaceChildren();
- // La nómina es plana: cada O.F. ocupa UNA fila, sin tarjetas por cliente ni lote.
- const rows=history.flatMap(retire=>retire.orders.map(order=>({of:order.of,client:retire.client,at:retire.at,scannedAt:order.at})));
+ const rows=history.flatMap(retire=>retire.orders.map(order=>({id:retire.id,of:order.of,client:retire.client,at:retire.at,scannedAt:order.at})));
  const dates=[...new Set(rows.map(row=>numDay(row.at)))].sort().reverse();
- const selection=selector.value;
+ const selection=selector.value||'all';
  selector.replaceChildren();
- const all=document.createElement('option');all.value='all';all.textContent='Todas las fechas';selector.append(all);
- for(const day of dates){
-  const opt=document.createElement('option');opt.value=day;opt.textContent=day.slice(6,8)+'/'+day.slice(4,6)+'/'+day.slice(0,4);selector.append(opt);
+ for(const [value,label] of [['all','Todas las fechas'],['today','Hoy · '+fmtDay(Date.now())]]){
+  const option=document.createElement('option');option.value=value;option.textContent=label;selector.append(option);
  }
- selector.value=selection==='all'||dates.includes(selection)?selection:'all';
- const filtered=(selector.value==='all'?rows:rows.filter(row=>numDay(row.at)===selector.value));
+ for(const day of dates){
+  const option=document.createElement('option');option.value=day;option.textContent=day.slice(6,8)+'/'+day.slice(4,6)+'/'+day.slice(0,4);selector.append(option);
+ }
+ selector.value=selection==='all'||selection==='today'||dates.includes(selection)?selection:'all';
+ const daySelected=selector.value==='today'?numDay(Date.now()):selector.value;
+ const filtered=daySelected==='all'?rows:rows.filter(row=>numDay(row.at)===daySelected);
  $('history-count').textContent=String(filtered.length);
- const columns=document.createElement('div');columns.className='history-columns';columns.setAttribute('role','row');
- for(const name of ['O.F.','Cliente','Fecha']){const cell=document.createElement('span');cell.setAttribute('role','columnheader');cell.textContent=name;columns.append(cell)}
- root.append(columns);
  if(!filtered.length){
-  const empty=document.createElement('p');empty.className='empty';empty.textContent=rows.length?'No hay órdenes para esta fecha.':'Todavía no hay órdenes registradas en este dispositivo.';root.append(empty);$('history-more').hidden=true;return;
+  const empty=document.createElement('p');empty.className='empty';empty.textContent=rows.length?'No hay órdenes registradas en la fecha seleccionada.':'Todavía no hay órdenes registradas en este dispositivo.';root.append(empty);$('history-more').hidden=true;return;
  }
  filtered.sort((a,b)=>b.at-a.at||b.scannedAt-a.scannedAt);
- const frag=document.createDocumentFragment();
+ const closures=readClosure(),frag=document.createDocumentFragment();
  for(const item of filtered.slice(0,historyShow)){
-  const row=document.createElement('div');row.className='history-row';row.setAttribute('role','row');
-  const of=document.createElement('span');of.className='history-of';of.textContent=item.of;of.setAttribute('role','cell');
-  const client=document.createElement('span');client.className='history-client';client.textContent=item.client;client.setAttribute('role','cell');
-  const date=document.createElement('span');date.className='history-date';date.textContent=fmtDay(item.at);date.setAttribute('role','cell');
-  row.append(of,client,date);frag.append(row);
+  const row=document.createElement('div');row.className='history-row';row.setAttribute('role','listitem');
+  const top=document.createElement('div');top.className='history-row-top';
+  const of=document.createElement('span');of.className='history-of';of.textContent=item.of;
+  const key=item.id+':'+item.of;
+  const delivered=closures[key]===true;
+  const state=document.createElement('button');state.type='button';state.className='history-state'+(delivered?' delivered':'');state.textContent=delivered?'✓ Entregado':'No entregado';state.setAttribute('aria-pressed',String(delivered));state.setAttribute('aria-label','O.F. '+item.of+': '+(delivered?'Entregado':'No entregado')+'. Cambiar estado de cierre en sistema');
+  state.addEventListener('click',()=>setClosure(item.id,item.of,!delivered));
+  top.append(of,state);
+  const bottom=document.createElement('div');bottom.className='history-row-bottom';
+  const client=document.createElement('span');client.className='history-client';client.textContent=item.client;
+  const date=document.createElement('span');date.className='history-date';date.textContent=fmtDay(item.at);
+  bottom.append(client,date);row.append(top,bottom);frag.append(row);
  }
  root.append(frag);
  $('history-more').hidden=filtered.length<=historyShow;
@@ -529,7 +550,7 @@ function init(){
  $('share-retry').addEventListener('click',()=>{closeShareFallback();if(preparedEntry)shareEntry(preparedEntry)});
  $('share-copy').addEventListener('click',async()=>{const ok=await copyText(SHARE_TEXT);toast(ok?'Mensaje copiado':'No se pudo copiar el mensaje',ok?'ok':'warn')});
  $('share-dialog').addEventListener('click',e=>{if(e.target===$('share-dialog'))closeShareFallback()});
- window.addEventListener('storage',e=>{if(e.key===HISTORY_KEY&&view==='history')renderHistory();if(e.key===draftKey){draft=readDraft();$('client').value=draft.client;renderOrders()}});
+ window.addEventListener('storage',e=>{if((e.key===HISTORY_KEY||e.key===STATUS_KEY)&&view==='history')renderHistory();if(e.key===draftKey){draft=readDraft();$('client').value=draft.client;renderOrders()}});
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&cameraOn)stopCamera()});
  window.addEventListener('pagehide',()=>{if(cameraOn||scanner)stopCamera()});
  // El motor se descarga únicamente al abrir la cámara, sin bloquear el inicio del formulario.
