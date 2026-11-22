@@ -1,10 +1,10 @@
 {
-  "version": "2026.11.22.14",
+  "version": "2026.11.22.15",
   "name": "Gestark",
-  "changes": "Entregas clientes: sincronización de nóminas y estados de cierre entre dispositivos, importación idempotente con respaldo local y prevención de restaurar órdenes borradas.",
+  "changes": "Entregas clientes: detección fiable de guardados en iPhone/Mac y contador de retiros en Firestore; no cambia las reglas, el escáner ni Transferencias.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
-  "clientsVersion": "2026.11.22.14"
+  "clientsVersion": "2026.11.22.15"
 }

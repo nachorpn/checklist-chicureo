@@ -1,4 +1,4 @@
-/* Gestark · Entregas clientes compartidas · 2026.11.22.14
+/* Gestark · Entregas clientes compartidas · 2026.11.22.15
  * Integra el módulo existente sin modificar el lector de códigos ni la función nativa de compartir.
  * Fuente de verdad: Firestore gestark_client_deliveries_v1.
  * Respaldo/borrador: almacenamiento local existente. Operaciones pendientes: cola local durable.
@@ -9,7 +9,7 @@
 if (window.__gestarkClientsCloudLoaded) return;
 window.__gestarkClientsCloudLoaded = true;
 if (!location.pathname.endsWith('/entregas-clientes.html')) return;
-const VERSION = '2026.11.22.14';
+const VERSION = '2026.11.22.15';
 const SDK = 'https://www.gstatic.com/firebasejs/12.11.0/';
 const COLLECTION = 'gestark_client_deliveries_v1';
 const HISTORY_KEY = 'gestark:clients:rosters:v1';
@@ -45,9 +45,9 @@ function makeStatus() {
  host.style.cssText='max-width:680px;margin:10px auto;padding:10px 13px;border:1px solid #cfe5d8;border-radius:12px;background:#eef8f2;color:#215943;font:700 12px/1.45 system-ui;display:flex;align-items:center;flex-wrap:wrap;gap:8px';
  const message=document.createElement('span');message.id='gestark-cloud-clientes-msg';message.style.flex='1';message.style.minWidth='175px';
  message.textContent='Entregas clientes: preparando sincronización…';
- const retry=document.createElement('button');retry.type='button';retry.textContent='Reintentar';retry.title='Volver a conectar Firebase, conservando los datos locales';
+ const retry=document.createElement('button');retry.type='button';retry.textContent='Sincronizar';retry.title='Enviar registros pendientes, conservando los datos locales';
  retry.style.cssText='border:1px solid #bfd8ca;background:white;color:#206247;border-radius:8px;padding:6px 10px;font:700 11px system-ui';
- retry.addEventListener('click',()=>location.reload());
+ retry.addEventListener('click',()=>{captureLocalChanges();if(!serverReady){location.reload();return}notifyError='';showProgress();void flush()});
  const backup=document.createElement('button');backup.type='button';backup.textContent='Respaldo';backup.title='Guardar respaldo local de nóminas, cierres y cambios pendientes';
  backup.style.cssText='border:1px solid #bfd8ca;background:white;color:#206247;border-radius:8px;padding:6px 10px;font:700 11px system-ui';
  backup.addEventListener('click',exportBackup);
@@ -106,39 +106,50 @@ function changedClosures(before,after) {
   if(VALID_ID.test(id)&&VALID_OF.test(of))enqueue({type:'closure',id,of,closed:now[k]===true});
  }
 }
-function interceptStorage() {
- if(Storage.prototype.setItem.__gestarkClientsCloud)return;
- const original=rawSetItem;
- function wrapped(key,value){
-  const watching=this===localStorage&&(key===HISTORY_KEY||key===STATUS_KEY)&&!applyingRemote;
-  const previous=watching?this.getItem(key):null;
-  const result=original.call(this,key,value);
-  if(watching){
-    if(key===HISTORY_KEY)changedHistory(safeJSON(previous,[]),safeJSON(String(value),[]));
-    else changedClosures(safeJSON(previous,{}),safeJSON(String(value),{}));
+// Observador explícito de operaciones locales. En Safari/iOS sobrescribir
+// Storage.prototype.setItem no es una forma fiable de recibir eventos.
+// Leemos los cambios tras los clics operativos y, como respaldo, periódicamente.
+let captureLocalChanges=()=>{};
+function observeLocalChanges() {
+ const previous={
+  [HISTORY_KEY]:localStorage.getItem(HISTORY_KEY),
+  [STATUS_KEY]:localStorage.getItem(STATUS_KEY)
+ };
+ // La materialización de Firestore actualiza este registro para que NO se
+ // confunda una descarga remota con una nueva operación local.
+ window.__gestarkClientsCloudObserverLast=previous;
+ captureLocalChanges=()=>{
+  if(applyingRemote||stopped)return;
+  for(const key of [HISTORY_KEY,STATUS_KEY]){
+   const oldValue=previous[key],newValue=localStorage.getItem(key);
+   if(oldValue===newValue)continue;
+   previous[key]=newValue;
+   if(key===HISTORY_KEY)changedHistory(safeJSON(oldValue,[]),safeJSON(newValue,[]));
+   else changedClosures(safeJSON(oldValue,{}),safeJSON(newValue,{}));
   }
-  return result;
- }
- wrapped.__gestarkClientsCloud=true;
- try {
-  Storage.prototype.setItem=wrapped;
-  if(Storage.prototype.setItem!==wrapped || localStorage.setItem!==wrapped)throw Error('Intercepción no disponible');
- }catch(error){
-  // Safari restringido: observar las dos claves periódicamente como respaldo.
-  console.warn('Gestark: observador alternativo de cambios locales',error);
-  const last={[HISTORY_KEY]:localStorage.getItem(HISTORY_KEY),[STATUS_KEY]:localStorage.getItem(STATUS_KEY)};
-  window.__gestarkClientsCloudObserverLast=last;
-  setInterval(()=>{
-   for(const key of [HISTORY_KEY,STATUS_KEY]){
-    const now=localStorage.getItem(key),before=last[key];
-    if(now===before)continue;
-    last[key]=now;
-    if(applyingRemote)continue;
-    if(key===HISTORY_KEY)changedHistory(safeJSON(before,[]),safeJSON(now,[]));
-    else changedClosures(safeJSON(before,{}),safeJSON(now,{}));
-   }
-  },750);
- }
+ };
+ // Los controles ya tienen handlers en entregas-clientes.js. El evento
+ // burbujea aquí una vez que el guardado local ha terminado.
+ document.addEventListener('click',event=>{
+  const target=event.target?.closest?.('button');
+  if(!target)return;
+  if(target.id==='finish'||target.id==='history-delete-confirm'||target.classList.contains('history-state')){
+   // La primera comprobación ocurre al final del gesto; la segunda cubre
+   // navegadores donde un diálogo nativo posterga la actividad del documento.
+   queueMicrotask(captureLocalChanges);
+   setTimeout(captureLocalChanges,150);
+  }
+ });
+ // Respaldo para guardar desde otros controles o modificaciones en otras pestañas.
+ window.addEventListener('focus',captureLocalChanges);
+ window.addEventListener('pageshow',captureLocalChanges);
+ window.addEventListener('storage',event=>{
+  if(event.key===HISTORY_KEY||event.key===STATUS_KEY)captureLocalChanges();
+ });
+ document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden)captureLocalChanges();
+ });
+ setInterval(()=>{if(!document.hidden)captureLocalChanges()},1200);
 }
 function closuresFor(id,flat){const value={};for(const [k,v] of Object.entries(flat)){if(k.startsWith(id+':')){const of=k.slice(id.length+1);if(VALID_OF.test(of)&&v===true)value[of]=true;}}return value;}
 function prepareLegacy(){
@@ -169,6 +180,8 @@ function applyPending(map){
  return data;
 }
 function reflectRemote() {
+ // No pisar un retiro local que todavía no haya sido incorporado a la cola.
+ captureLocalChanges();
  if(!serverReady||stopped||!queueDurable)return;
  const working=applyPending(remote);
  const list=[],flat={};
@@ -199,7 +212,9 @@ function showProgress(){
  if(!navigator.onLine){setStatus('Sin conexión · '+queue.length+' cambio(s) pendientes de sincronizar',true);return}
  if(!serverReady){setStatus('Conectando Entregas clientes con Firebase…',true);return}
  if(queue.length){setStatus('Sincronizando '+queue.length+' cambio(s) pendientes…',true);return}
- setStatus('Firebase sincronizado · Nómina compartida en tiempo real');
+ const valid=[...remote.values()].filter(v=>!v.deleted&&Array.isArray(v.orders));
+ const orders=valid.reduce((sum,r)=>sum+r.orders.length,0);
+ setStatus('Firebase sincronizado · '+valid.length+' retiro(s) en la nube · '+orders+' O.F.');
 }
 async function uploadCreate(op){
  const ref=client.fs.doc(client.db,COLLECTION,op.id);
@@ -270,12 +285,13 @@ async function boot(){
  makeStatus();
  queue=localArr(QUEUE_KEY).filter(x=>x&&['create','closure','remove-order'].includes(x.type)&&VALID_ID.test(String(x.id))&&x.nonce);
  known=localObj(KNOWN_KEY);
- interceptStorage();
+ observeLocalChanges();
  const oldCount=prepareLegacy();
  if(oldCount)setStatus('Preparando '+oldCount+' retiro(s) guardados en este dispositivo…',true);
- window.addEventListener('online',()=>{notifyError='';showProgress();void flush()});
- document.addEventListener('visibilitychange',()=>{if(!document.hidden){showProgress();void flush()}});
- window.addEventListener('pagehide',()=>{stopped=true;client?.unsubscribe?.()},{once:true});
+ window.addEventListener('online',()=>{captureLocalChanges();notifyError='';showProgress();void flush()});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden){captureLocalChanges();showProgress();void flush()}});
+ // No cerrar el listener en pagehide: Safari puede suspender y restaurar una PWA.
+ // Si el documento se destruye, el navegador libera sus listeners automáticamente.
  window.addEventListener('storage',e=>{if([QUEUE_KEY,KNOWN_KEY].includes(e.key)){queue=localArr(QUEUE_KEY);known=localObj(KNOWN_KEY);showProgress();void flush()}});
  try {
   if(!current||current.provider!=='firebase'||!current.uid)throw Error('Se necesita una sesión Firebase autorizada.');
@@ -306,6 +322,6 @@ async function boot(){
  }
 }
 // Permite probar de forma local la integración sin exponer credenciales ni SDKs.
-if (typeof window!=='undefined') window.GestarkClientsCloud={version:VERSION,status:()=>({ready:serverReady,pending:queue.length,lastSnapshotFromCache}),retry:()=>{notifyError='';void flush()}};
+if (typeof window!=='undefined') window.GestarkClientsCloud={version:VERSION,status:()=>({ready:serverReady,pending:queue.length,lastSnapshotFromCache}),retry:()=>{captureLocalChanges();notifyError='';showProgress();void flush()}};
 void boot();
 })();
