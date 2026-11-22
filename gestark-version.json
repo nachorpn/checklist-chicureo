@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.39",
+  "version": "2026.11.21.40",
   "name": "Gestark",
-  "changes": "Transferencias: lista lineal estilo planilla, columnas Cliente / Monto / Sí-No, sin total acumulado ni en la pantalla ni en el mensaje WhatsApp. Formulario más compacto; Excel Online y datos locales sin cambios.",
+  "changes": "Transferencias: botón rojo «Vaciar transferencias» después de las opciones Excel, con confirmación explícita del traspaso; limpia registros bancarios manuales y de entregas, conserva efectivo y los historiales de entregas. Sin cambios en exportación Excel ni Nómina general.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",

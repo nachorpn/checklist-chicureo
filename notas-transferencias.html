@@ -141,6 +141,26 @@ h1{font-size:26px;letter-spacing:-.6px;margin:0 0 5px}.hero p{font-size:12px;lin
  .priority-panel .entry-name{font-size:12px}
 }
 
+
+/* Gestark v40: acción destructiva visible, separada de la tabla y de Excel. */
+.bank-clear-zone{border-top:1px solid #e8e8e8;margin-top:12px;padding-top:12px;display:grid;justify-items:start;gap:5px}
+.bank-clear-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 15px;background:#a73342;border:1px solid #a73342;color:white;font-weight:800;font-size:13px;letter-spacing:-.1px;border-radius:10px;box-shadow:0 3px 8px #912b351a}
+.bank-clear-button:hover{background:#8f2837}.bank-clear-button:active{transform:scale(.985)}
+.bank-clear-button svg,.clear-bank-dialog-icon svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.85;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.bank-clear-zone>p{font-size:10px;line-height:1.3;color:#916369;margin:0}
+.clear-bank-dialog{width:min(calc(100vw - 32px),420px);max-width:420px;max-height:calc(100dvh - 32px);overflow:auto;margin:auto;border:1px solid #f0d5da;border-radius:18px;padding:0;background:#fff;color:#2f3430;box-shadow:0 18px 55px #1d312d45}
+.clear-bank-dialog::backdrop{background:#081a16a6;backdrop-filter:blur(3px)}
+.clear-bank-dialog-body{padding:24px 21px 20px}
+.clear-bank-dialog-icon{width:43px;height:43px;border-radius:12px;background:#fcebed;color:#a73342;display:grid;place-items:center;margin-bottom:12px}
+.clear-bank-dialog-icon svg{width:22px;height:22px}
+.clear-bank-dialog h2{font-size:19px;margin:0 0 9px;letter-spacing:-.3px}
+.clear-bank-dialog p{font-size:13px;color:#65776c;line-height:1.5;margin:0 0 15px}
+.clear-bank-check{display:flex;align-items:center;gap:10px;border:1px solid #ecd4d6;background:#fff8f8;border-radius:11px;padding:12px 11px;font-size:12px;font-weight:740;line-height:1.35;color:#763b42;cursor:pointer}
+.clear-bank-check input{appearance:auto;accent-color:#a73342;width:19px;height:19px;flex-shrink:0;margin:0}
+.clear-bank-dialog-actions{display:grid;grid-template-columns:1fr 1.3fr;gap:8px;margin-top:15px}
+.clear-bank-dialog-actions button{min-height:45px;border-radius:10px;padding:9px;font-size:12px;font-weight:800}
+.clear-bank-confirm{background:#a73342;color:white;border:1px solid #a73342}.clear-bank-confirm:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:360px){.clear-bank-dialog-body{padding:19px 15px 16px}.bank-clear-button{width:100%}}
 </style></head>
 <body>
 <div class="wrap">
@@ -159,13 +179,17 @@ h1{font-size:26px;letter-spacing:-.6px;margin:0 0 5px}.hero p{font-size:12px;lin
  <div class="sheet-head" aria-hidden="true"><span>Cliente</span><span>Monto</span><span>Sí / No</span></div>
  <ul id="entries" class="list" aria-label="Listado de clientes con transferencias y montos"></ul>
  <p id="empty" class="empty">Aún no hay transferencias para mostrar.</p>
- <div class="list-footer"><div id="manual-clear-wrap" hidden><button id="clear" type="button" class="small-action">Vaciar transferencias manuales</button></div><div id="auto-transfer-clear-wrap" hidden><button id="clear-auto-transfer" type="button" class="small-action">Vaciar transferencias de entregas</button></div></div>
+ 
  <div class="export-panel" aria-label="Compartir o exportar transferencias">
   <h3 class="export-title">Exportar registros</h3>
   <button id="copy-open-excel-online" class="excel-online-link" type="button" aria-describedby="excel-online-help"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="15" height="16" rx="2"/><path d="M7 9h7M7 13h7M7 17h4"/><path d="m15 3 5 0v5M20 3l-6 6"/></svg>Copiar y abrir en navegador</button>
   <div class="actions"><button id="copy-excel" type="button" class="secondary">Solo copiar</button><button id="send-wa" type="button" class="secondary">WhatsApp</button></div>
   <a id="open-excel-online" class="excel-online-secondary" href="https://onedrive.live.com/:x:/g/personal/2f0a067c00dc3979/IQBid1ETFEFhTJ8SI8W8owsHAeWMP2zBdIHQ5UZzPOeXjuc?rtime=zNXCPHRG30g&amp;redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy8yZjBhMDY3YzAwZGMzOTc5L0lRQmlkMUVURkVGaFRKOFNJOFc4b3dzSEFlV01QMnpCZElIUTVVWnpQT2VYanVjP2U9NDo3NlRJTlcmYXQ9OQ&amp;web=1" target="_blank" rel="external noopener noreferrer">Solo abrir Excel Online</a>
   <details class="helper-details" id="excel-online-help"><summary>¿Cómo copiar a Excel?</summary><p>Copia Nombre, Monto y Sí/No. En Excel Online selecciona una celda vacía y toca <strong>Pegar</strong>. iPhone puede redirigir el enlace de Microsoft a su aplicación.</p></details>
+ </div>
+ <div class="bank-clear-zone" id="bank-clear-zone" hidden>
+  <button class="bank-clear-button" id="clear-bank" type="button" aria-haspopup="dialog" aria-controls="clear-bank-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></svg>Vaciar transferencias</button>
+  <p>Solo después de traspasar los datos a Excel.</p>
  </div>
 </section>
 <section class="panel cash-panel" aria-labelledby="cash-title">
@@ -177,10 +201,22 @@ h1{font-size:26px;letter-spacing:-.6px;margin:0 0 5px}.hero p{font-size:12px;lin
 </section>
 <p class="micro-note data-note">Registros guardados en este dispositivo. Verifica los comprobantes de pago.</p>
 <p id="feedback" aria-live="polite" role="status"></p>
+<dialog id="clear-bank-dialog" class="clear-bank-dialog" aria-labelledby="clear-bank-title" aria-describedby="clear-bank-description">
+ <div class="clear-bank-dialog-body">
+  <div class="clear-bank-dialog-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></svg></div>
+  <h2 id="clear-bank-title">¿Vaciar transferencias?</h2>
+  <p id="clear-bank-description">Se eliminarán los registros bancarios de este dispositivo. Los cobros en efectivo y el historial de entregas no se modificarán.</p>
+  <label class="clear-bank-check"><input id="clear-bank-ack" type="checkbox">Ya traspasé los datos a la planilla Excel</label>
+  <div class="clear-bank-dialog-actions">
+   <button id="clear-bank-cancel" class="secondary" type="button">Cancelar</button>
+   <button id="clear-bank-confirm" class="clear-bank-confirm" type="button" disabled>Vaciar definitivamente</button>
+  </div>
+ </div>
+</dialog>
 </main></div>
 <nav class="bottom-nav" aria-label="Navegación principal"><a href="./">Inicio</a><a href="./checklist.html">Checklist</a><a href="./entregas-contingentes.html">Entregas</a><a href="./notas-transferencias.html" class="active" aria-current="page">Transferencias</a></nav>
-<script src="./notas-transferencias.js?v=2026.11.21.39"></script>
+<script src="./notas-transferencias.js?v=2026.11.21.40"></script>
 <script>(()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?v=2';document.body.appendChild(a)};u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<p style="padding:20px;background:white">No se pudo cargar la lista de usuarios de Gestark.</p>')};document.body.appendChild(u)})();</script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.21.39"></script><script src="./gestark-pwa.js?v=2026.11.17.3"></script>
+<script src="./gestark-updates.js?v=2026.11.21.40"></script><script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body></html>

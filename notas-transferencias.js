@@ -1,4 +1,4 @@
-/* Gestark · Transferencias v2026.11.21.39. Filas tipo planilla, selector Sí/No visible y exportación Excel. */
+/* Gestark · Transferencias v2026.11.21.40. Lista lineal y vaciado bancario con confirmación. */
 (()=>{
 'use strict';
 const ALLOWED_USER='CIBC', PERSONAL_KEY='gestark:notas-transferencias:v1:CIBC',QUEUE_KEY='gestark:contingency:payments:v1',TRANSFER_STATUS_KEY='gestark:notas-transferencias:confirmacion:v1';
@@ -81,8 +81,7 @@ function render(){if(!active)return;
    const {actions,form}=manualActions(x);const li=appendRow($('entries'),x.name,x.amount,'Manual · '+dateStr(x.date)+(Array.isArray(x.sources)&&x.sources.length?' · Vinculadas':''),actions,true);li.append(form);
  }
  const auto=bankQueue();for(const x of [...auto].reverse())appendRow($('entries'),x.payer,x.amount,'Contingente · O.F. '+x.of+' · '+(x.user||'Gestark'),[],true)
- $('manual-clear-wrap').hidden=!manual.length||currentUser!==ALLOWED_USER;
- $('auto-transfer-clear-wrap').hidden=!auto.length;
+ $('bank-clear-zone').hidden=bank.length===0;
  const cashList=cashEntries();$('cash-count').textContent=cashList.length+' '+(cashList.length===1?'cobro':'cobros');
  $('cash-entries').replaceChildren();$('cash-empty').hidden=cashList.length>0;$('clear-auto-cash').hidden=!cashList.length;
  for(const x of [...cashList].reverse())appendRow($('cash-entries'),x.payer,x.amount,'O.F. '+x.of+' · '+(x.user||'Gestark')+' · efectivo recibido');
@@ -142,10 +141,44 @@ $('copy-open-excel-online').addEventListener('click',async()=>{
  }finally{button.disabled=bankRows().length===0}
 });
 $('send-wa').addEventListener('click',()=>{if(!bankRows().length)return;const msg=message(),url='https://wa.me/?text='+encodeURIComponent(msg);if(url.length>6000){copy(msg).then(ok=>toast(ok?'Lista extensa copiada para WhatsApp.':'No se pudo copiar.',!ok))}else window.location.href=url});
-$('clear').addEventListener('click',()=>{if(currentUser!==ALLOWED_USER||!manual.length)return;if(confirm('¿Ya traspasaste estas '+manual.length+' transferencias manuales a Excel?')){if(persistManual([]))toast('Lista manual vaciada ✓')}});
-$('clear-auto-transfer').addEventListener('click',()=>{const len=bankQueue().length;if(!len)return;
- if(confirm('¿Ya traspasaste estas '+len+' transferencias de Entregas contingentes a Excel? Solo se limpia la lista de cobros; las entregas permanecen en su historial.')){if(persistQueue(queue.filter(x=>x.method!=='transfer')))toast('Transferencias de entregas traspasadas ✓')}
+// Vaciar solo la lista de transferencias bancarias; efectivo e historial de entregas quedan intactos.
+const clearDialog=$('clear-bank-dialog'),clearAck=$('clear-bank-ack'),clearConfirm=$('clear-bank-confirm');
+function clearBankData(){
+ if(!active || !bankRows().length)return false;
+ const beforeManual=manual,beforeQueue=queue;
+ const nextManual=currentUser===ALLOWED_USER?[]:beforeManual;
+ const nextQueue=beforeQueue.filter(x=>x.method!=='transfer');
+ let manualWritten=false;
+ try{
+  if(currentUser===ALLOWED_USER){localStorage.setItem(PERSONAL_KEY,JSON.stringify(nextManual));manualWritten=true}
+  localStorage.setItem(QUEUE_KEY,JSON.stringify(nextQueue));
+  manual=nextManual;queue=nextQueue;
+  pruneTransferStatus();render();toast('Transferencias vaciadas. Efectivo conservado ✓');
+  return true;
+ }catch{
+  // Si falla la segunda escritura, intentar restaurar la lista manual anterior.
+  if(manualWritten){try{localStorage.setItem(PERSONAL_KEY,JSON.stringify(beforeManual))}catch{}}
+  manual=loadManual();queue=loadQueue();render();
+  toast('No se pudo vaciar completamente. Revisa la lista antes de continuar.',true);
+  return false;
+ }
+}
+function closeClearDialog(){if(clearDialog.open)clearDialog.close();clearAck.checked=false;clearConfirm.disabled=true}
+$('clear-bank').addEventListener('click',()=>{
+ if(!bankRows().length)return;
+ const n=bankRows().length;
+ $('clear-bank-description').textContent='Se eliminarán las transferencias de '+n+' '+(n===1?'cliente':'clientes')+' en este dispositivo. No se borrarán el efectivo ni el historial de entregas. Esta acción no se puede deshacer.';
+ clearAck.checked=false;clearConfirm.disabled=true;
+ if(typeof clearDialog.showModal==='function'){clearDialog.showModal();$('clear-bank-cancel').focus()}
+ else if(confirm('¿Ya traspasaste las transferencias a la planilla Excel? Esta acción no se puede deshacer.'))clearBankData();
 });
+clearAck.addEventListener('change',()=>{clearConfirm.disabled=!clearAck.checked});
+$('clear-bank-cancel').addEventListener('click',closeClearDialog);
+clearConfirm.addEventListener('click',()=>{
+ if(!clearAck.checked || !bankRows().length)return;
+ clearBankData();closeClearDialog();
+});
+clearDialog.addEventListener('close',()=>{clearAck.checked=false;clearConfirm.disabled=true});
 $('clear-auto-cash').addEventListener('click',()=>{const len=cashEntries().length;if(!len)return;
  if(confirm('¿Ya registraste estos '+len+' cobros en efectivo? Solo se limpia esta lista; las entregas permanecen en su historial.')){if(persistQueue(queue.filter(x=>x.method!=='cash')))toast('Cobros en efectivo limpiados ✓')}
 });

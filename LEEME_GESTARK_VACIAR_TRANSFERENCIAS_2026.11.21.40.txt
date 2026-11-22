@@ -1,0 +1,18 @@
+GESTARK 2026.11.21.40 — VACIAR TRANSFERENCIAS
+
+CAMBIO
+- Botón rojo «Vaciar transferencias» después de la exportación Excel.
+- Ventana de confirmación que exige marcar «Ya traspasé los datos a la planilla Excel».
+- Elimina únicamente los registros bancarios manuales y vinculados a entregas (del dispositivo).
+- Conserva el efectivo, el historial de entregas, los demás módulos y los botones de exportación.
+- Oculta el botón de vaciado cuando no hay transferencias.
+
+IMPORTANTE: el borrado no se puede deshacer. Verifica la planilla antes de confirmar.
+
+ACTUALIZAR EN GITHUB SOLO ESTOS ARCHIVOS:
+notas-transferencias.html
+notas-transferencias.js
+gestark-updates.js
+gestark-version.json
+
+No se despliega automáticamente en GitHub.
