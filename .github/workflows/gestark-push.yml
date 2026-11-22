@@ -1,0 +1,58 @@
+name: Gestark - recordatorios push
+
+on:
+  schedule:
+    - cron: '0 10 * * 1-5'
+      timezone: 'America/Santiago'
+    - cron: '30 12 * * 1-5'
+      timezone: 'America/Santiago'
+    - cron: '30 13 * * 1-5'
+      timezone: 'America/Santiago'
+    - cron: '0 17 * * 1-5'
+      timezone: 'America/Santiago'
+  workflow_dispatch:
+    inputs:
+      tipo:
+        description: 'Prueba en los dispositivos suscritos (no depende de órdenes pendientes)'
+        required: true
+        type: choice
+        default: prueba
+        options:
+          - prueba
+          - orders_1000
+          - orders_1330
+          - orders_1700
+          - checklist_1230
+      simulacion:
+        description: 'Solo comprobar datos, sin enviar notificación'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gestark-notificaciones
+  cancel-in-progress: false
+
+jobs:
+  avisos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar biblioteca Web Push
+        run: npm install --no-save --ignore-scripts web-push@3.6.7
+      - name: Ejecutar recordatorios
+        env:
+          GESTARK_PUSH_CRON: ${{ github.event.schedule }}
+          GESTARK_PUSH_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.tipo || 'auto' }}
+          GESTARK_PUSH_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.simulacion || 'false' }}
+          GESTARK_NOTIFIER_EMAIL: ${{ secrets.GESTARK_NOTIFIER_EMAIL }}
+          GESTARK_NOTIFIER_PASSWORD: ${{ secrets.GESTARK_NOTIFIER_PASSWORD }}
+          GESTARK_VAPID_PRIVATE: ${{ secrets.GESTARK_VAPID_PRIVATE }}
+        run: node scripts/gestark-send-push.mjs
