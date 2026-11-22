@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.30",
+  "version": "2026.11.21.31",
   "name": "Gestark",
-  "changes": "Inicio: se retira el acceso independiente Escáner y se actualiza el contador de herramientas. Los lectores integrados y los demás módulos se conservan sin cambios.",
+  "changes": "Menú fijo inferior: Enlaces se sustituye por Gestiones, acceso directo al Microsoft Forms de Gestiones Chicureo. Repositorio permanece en Inicio; demás funciones sin cambios.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",

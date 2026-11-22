@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   // Mantener igual a gestark-version.json en cada nueva publicación.
-  const VERSION = '2026.11.21.30';
+  const VERSION = '2026.11.21.31';
   const MANIFEST = './gestark-version.json';
   const CHECK_INTERVAL = 5 * 60 * 1000;
   let button;
@@ -34,7 +34,8 @@
     const shape = (label,href,icon,isCenter) => {
       const a = document.createElement('a');
       a.href=href;
-      a.setAttribute('aria-label',label==='Clientes'?'Abrir Entregas clientes':label);
+      a.setAttribute('aria-label',label==='Clientes'?'Abrir Entregas clientes':label==='Gestiones'?'Abrir Gestiones Chicureo':label);
+      if(label==='Gestiones'){a.target='_blank';a.rel='noopener noreferrer';}
       const isCurrent = file === (href==='./'?'index.html':href.slice(2));
       if(isCurrent){a.classList.add('is-current');a.setAttribute('aria-current','page')}
       if(isCurrent && isCenter){
@@ -57,14 +58,16 @@
       checklist:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 11l2 2 4-4M8 17h8"/></svg>',
       scanner:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V5a1 1 0 0 1 1-1h4m6 0h4a1 1 0 0 1 1 1v4M4 15v4a1 1 0 0 0 1 1h4m6 0h4a1 1 0 0 0 1-1v-4M5 12h14M9 9v6m3-6v6m3-6v6"/></svg>',
       transfer:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>',
-      links:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="m8 14 3-3 3 3 3-3"/></svg>'
+      gestiones:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/><path d="m14 17 1.5 1.5 3-3"/></svg>'
     };
+    // Abrir Gestiones Chicureo directamente, sin pasar por Repositorio.
+    const gestionesUrl = 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiUD06FKRYXJZIncdeqhvYNd9URTFXTFpDNVZROE80UkZCMk5ZV1dEWkMzNS4u';
     nav.replaceChildren(
       shape('Inicio','./',icons.home,false),
       shape('Checklist','./checklist.html',icons.checklist,false),
       shape('Clientes','./entregas-clientes.html',icons.scanner,true),
       shape('Transferencias','./notas-transferencias.html',icons.transfer,false),
-      shape('Enlaces','./repositorio.html',icons.links,false)
+      shape('Gestiones',gestionesUrl,icons.gestiones,false)
     );
   }
 

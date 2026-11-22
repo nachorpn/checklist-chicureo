@@ -1,0 +1,13 @@
+GESTARK · ACTUALIZACIÓN 2026.11.21.31
+
+CAMBIO:
+- Menú fijo inferior: se sustituye Enlaces por Gestiones.
+- Gestiones abre directamente el formulario Microsoft Forms ya configurado para Gestiones Chicureo en una pestaña externa.
+- El acceso al Repositorio de Links sigue en Inicio y no se elimina.
+- Se mantiene el botón central a Entregas clientes.
+- No cambia ningún módulo, escáner ni dato local.
+
+INSTALACIÓN:
+1. Descomprime el ZIP.
+2. Sube a la raíz del repositorio los tres archivos: index.html, gestark-updates.js y gestark-version.json; reemplaza los actuales.
+3. Abre Gestark en Inicio y pulsa Actualizar, o cierra y reabre la PWA si sigue mostrando el menú antiguo.
