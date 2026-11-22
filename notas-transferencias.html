@@ -35,46 +35,103 @@ h1{font-size:26px;letter-spacing:-.6px;margin:0 0 5px}.hero p{font-size:12px;lin
 #feedback{font-size:12px;min-height:18px;margin:10px 0 0;font-weight:650;color:#13754c}#feedback.error{color:#ac3535}.section-tag{border-radius:15px;background:#edf5ef;padding:5px 9px;color:#236247;font-size:10px;font-weight:850}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#fffdfbf2;border-top:1px solid #dde8e3;display:flex;justify-content:space-around;gap:1px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(14px)}.bottom-nav a{flex:1;max-width:170px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;padding:8px 0;border-radius:12px;color:#738381;font-size:11px;font-weight:680;min-height:48px}.bottom-nav a.active{background:#edf8f4;color:#087a66}
 @media(min-width:670px){.form{grid-template-columns:1.3fr 1fr auto;align-items:end}.actions{display:flex}.actions>*{flex:1}}
+
+
+/* Gestark v38 · Transacciones prioritarias: lista en el cuerpo central, exportación después. */
+.hero{padding-bottom:15px;margin-bottom:11px}
+.hero .back{min-height:28px}.hero .eyebrow{margin:6px 0 4px}.hero h1{font-size:24px;margin-bottom:0}
+.panel{padding:12px 13px;margin-bottom:10px;border-radius:15px}
+.panel-heading{display:flex;justify-content:space-between;gap:9px;align-items:center;margin-bottom:10px}
+.panel-heading .title{margin:0;font-size:16px;letter-spacing:-.25px;line-height:1.2}
+.section-tag{white-space:nowrap;letter-spacing:0;font-size:10px;padding:5px 8px}
+.manual-panel{background:#fcfefd}
+.manual-panel .form{gap:8px}
+.manual-panel .field label{font-size:11px}
+.manual-panel .field input{min-height:43px}
+.manual-panel .primary{min-height:43px}
+.priority-panel{border:1px solid #c4dfd0;box-shadow:0 4px 19px #133f2c12}
+.priority-panel .stat{padding:9px 12px;margin:0;background:#edf8f0;border-radius:11px}
+.stat-label{display:flex;flex-direction:column;gap:2px}
+.stat-label>span{color:#126e4e;font-size:13px;font-weight:800}
+.stat-label>small{font-size:10px;font-weight:600;color:#7a8d81}
+.priority-panel .stat strong{font-size:22px;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+.list{margin:11px 0 0;display:grid;gap:7px}
+.entry{border:1px solid #e1eae4;background:#fff;border-radius:12px;padding:10px 11px;box-shadow:0 1px 3px #1736260a}
+.entry:last-child{border:1px solid #e1eae4}
+.entry-row{align-items:center;gap:12px}
+.entry-info{flex:1;min-width:0}
+.entry-name{font-size:14px;font-weight:790;line-height:1.25;color:#183d2d}
+.entry-meta{font-size:10px;color:#879488;margin-top:4px;line-height:1.3}
+.entry-amount{font-size:18px;letter-spacing:-.4px;color:#116e4c;line-height:1.12;font-variant-numeric:tabular-nums;max-width:46%;text-align:right;white-space:normal}
+.bank-confirm-label{margin:8px 0 0;padding:0;border:0;background:transparent;justify-content:flex-start;gap:9px;min-height:34px;font-size:11px;color:#58746a}
+.bank-confirm-select{min-height:32px;min-width:73px;padding:4px 8px;font-size:13px;border-radius:8px;background:#f3f8f5}
+.entry-actions{margin-top:7px;gap:5px}
+.micro{min-height:31px;font-size:11px;padding:5px 9px}
+.add-form{margin-top:7px;padding:8px}
+.list-footer{display:flex;gap:13px;flex-wrap:wrap;margin-top:6px}
+.list-footer .small-action{font-size:11px;padding:7px 2px;margin:0}
+.empty{background:#fafcfb;border:1px dashed #d9e6de;border-radius:11px;padding:17px 12px;margin-top:11px}
+.export-panel{border-top:1px solid #e3ece5;margin-top:13px;padding-top:13px}
+.export-title{font-size:12px;color:#526c5e;margin:0 0 8px;font-weight:800}
+.export-panel .excel-online-link{margin:0;min-height:45px;background:linear-gradient(120deg,#12654a,#15865d);color:white;border:0;font-size:13px;box-shadow:0 4px 11px #11684721}
+.export-panel .excel-online-link svg{stroke:white}
+.export-panel .actions{margin-top:7px;gap:7px}
+.export-panel .actions .secondary{min-height:39px;font-size:12px}
+.export-panel .excel-online-secondary{min-height:30px;margin-top:3px;font-size:11px;text-decoration:none}
+.helper-details{border-top:1px dashed #e3ece5;margin-top:5px;padding-top:7px;font-size:11px;color:#668172}
+.helper-details summary{cursor:pointer;font-weight:720;list-style:disclosure-closed;min-height:25px}
+.helper-details[open] summary{margin-bottom:6px}
+.helper-details p{line-height:1.4;font-size:11px;margin:0 0 5px}
+.cash-panel{box-shadow:none}
+.cash-panel .stat{padding:8px 11px}
+.cash-panel .stat strong{font-size:17px}
+.cash-panel .entry{background:#fcfdfc}
+.micro-note{font-size:10px;line-height:1.35;color:#819387;margin:8px 0 0}
+.data-note{text-align:center;margin:0 8px 13px}
+#feedback:not(:empty){position:fixed;z-index:95;bottom:calc(100px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 28px);padding:11px 14px;margin:0;border:1px solid #bfdecb;background:#f1fbf5;color:#116444;box-shadow:0 8px 25px #0f45322a;border-radius:12px;font-size:12px;font-weight:750;line-height:1.4}
+#feedback.error:not(:empty){background:#fff6f4;color:#a13030;border-color:#efcac4}
+@media(max-width:390px){.panel{padding:11px}.entry{padding:9px}.entry-amount{font-size:16px}.entry-name{font-size:13px}.priority-panel .stat strong{font-size:21px}.section-tag{font-size:9px}}
+@media(min-width:670px){.form{grid-template-columns:1.3fr 1fr auto}.panel{padding:16px 17px}.priority-panel .list{grid-template-columns:1fr 1fr}.priority-panel .entry{align-self:start}}
 </style></head>
 <body>
 <div class="wrap">
-<header class="hero"><a href="./" class="back">‹ Volver a Inicio</a><div class="eyebrow">Gestark · Control de cobros</div><h1>Registro de transferencias</h1><p>Transferencias por regularizar y cobros en efectivo, diferenciados y vinculados a las entregas del mismo dispositivo.</p></header>
+<header class="hero"><a href="./" class="back">‹ Inicio</a><div class="eyebrow">Gestark · Control diario</div><h1>Transferencias</h1></header>
 <main id="workspace" hidden>
-<section class="panel" id="manual-panel" hidden>
- <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 class="title">Nueva transferencia manual</h2><span class="section-tag">Cuenta CIBC</span></div>
+<section class="panel manual-panel" id="manual-panel" hidden aria-labelledby="manual-title">
+ <div class="panel-heading"><h2 class="title" id="manual-title">Nueva transferencia</h2><span class="section-tag">Registro manual</span></div>
  <form id="note-form" class="form" autocomplete="off">
-  <div class="field"><label for="client">Nombre del cliente</label><input id="client" placeholder="Ej. Carlos Pérez" required maxlength="80" autocomplete="off" enterkeyhint="next"></div>
-  <div class="field"><label for="amount">Monto recibido ($)</label><input id="amount" inputmode="numeric" placeholder="Ej. 12000" required maxlength="12" autocomplete="off" enterkeyhint="done"></div>
+  <div class="field"><label for="client">Cliente</label><input id="client" placeholder="Nombre del cliente" required maxlength="80" autocomplete="off" enterkeyhint="next"></div>
+  <div class="field"><label for="amount">Monto ($)</label><input id="amount" inputmode="numeric" placeholder="Ej. 12000" required maxlength="12" autocomplete="off" enterkeyhint="done"></div>
   <button class="primary" type="submit">+ Guardar</button>
  </form>
- <p class="notice">Como antes, los pagos manuales con el mismo nombre se acumulan en una fila. Este registro personal se conserva solamente para la cuenta CIBC.</p>
 </section>
-<section class="panel" aria-labelledby="pending-title">
- <h2 class="title" id="pending-title">Transferencias pendientes de traspasar</h2>
- <div class="stat"><span id="record-count">0 clientes</span><strong id="record-total">$0</strong></div>
- <div class="actions"><button id="send-wa" type="button" class="primary">Enviar por WhatsApp</button><button id="copy-excel" type="button" class="secondary">Copiar para Excel</button></div>
- <button id="copy-open-excel-online" class="excel-online-link" type="button" aria-describedby="excel-online-help"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="15" height="16" rx="2"/><path d="M7 9h7M7 13h7M7 17h4"/><path d="m15 3 5 0v5M20 3l-6 6"/></svg>Copiar y abrir en navegador</button>
- <a id="open-excel-online" class="excel-online-secondary" href="https://onedrive.live.com/:x:/g/personal/2f0a067c00dc3979/IQBid1ETFEFhTJ8SI8W8owsHAeWMP2zBdIHQ5UZzPOeXjuc?rtime=zNXCPHRG30g&amp;redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy8yZjBhMDY3YzAwZGMzOTc5L0lRQmlkMUVURkVGaFRKOFNJOFc4b3dzSEFlV01QMnpCZElIUTVVWnpQT2VYanVjP2U9NDo3NlRJTlcmYXQ9OQ&amp;web=1" target="_blank" rel="external noopener noreferrer">Solo abrir Excel Online</a>
- <p id="excel-online-help" class="notice">Un toque copia <strong>Nombre, Monto y Sí/No</strong> e intenta abrir la planilla en una <strong>ventana del navegador</strong>, no mediante el protocolo de la app Excel. Después, mantén presionada una celda vacía y elige <strong>Pegar</strong>. Si iOS deriva el enlace a Excel, vuelve a Safari y abre la planilla desde OneDrive; el portapapeles permanece copiado.</p>
- <p class="notice">Cada transferencia muestra «¿Transfirió?», con <strong>No por defecto</strong>. El valor seleccionado (Sí/No) se incluirá al copiar a Excel como tercera columna, junto a Nombre y Monto. Si un cliente tiene varias transferencias, el mismo selector se aplica a todos sus montos agrupados.</p>
- <ul id="entries" class="list" aria-label="Transferencias pendientes"></ul>
- <p id="empty" class="empty">No hay transferencias pendientes.</p>
- <div id="manual-clear-wrap" hidden><button id="clear" type="button" class="small-action">Ya traspasé las transferencias manuales · Vaciar lista</button></div>
- <div id="auto-transfer-clear-wrap" hidden><button id="clear-auto-transfer" type="button" class="small-action">Ya traspasé las transferencias de entregas · Vaciar lista</button></div>
+<section class="panel priority-panel" aria-labelledby="pending-title">
+ <div class="panel-heading"><h2 class="title" id="pending-title">Clientes y montos</h2><span class="section-tag">Por traspasar</span></div>
+ <div class="stat" role="status"><div class="stat-label"><span id="record-count">0 clientes</span><small>Total acumulado</small></div><strong id="record-total">$0</strong></div>
+ <ul id="entries" class="list" aria-label="Listado de clientes con transferencias y montos"></ul>
+ <p id="empty" class="empty">Aún no hay transferencias para mostrar.</p>
+ <div class="list-footer"><div id="manual-clear-wrap" hidden><button id="clear" type="button" class="small-action">Vaciar transferencias manuales</button></div><div id="auto-transfer-clear-wrap" hidden><button id="clear-auto-transfer" type="button" class="small-action">Vaciar transferencias de entregas</button></div></div>
+ <div class="export-panel" aria-label="Compartir o exportar transferencias">
+  <h3 class="export-title">Exportar registros</h3>
+  <button id="copy-open-excel-online" class="excel-online-link" type="button" aria-describedby="excel-online-help"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="15" height="16" rx="2"/><path d="M7 9h7M7 13h7M7 17h4"/><path d="m15 3 5 0v5M20 3l-6 6"/></svg>Copiar y abrir en navegador</button>
+  <div class="actions"><button id="copy-excel" type="button" class="secondary">Solo copiar</button><button id="send-wa" type="button" class="secondary">WhatsApp</button></div>
+  <a id="open-excel-online" class="excel-online-secondary" href="https://onedrive.live.com/:x:/g/personal/2f0a067c00dc3979/IQBid1ETFEFhTJ8SI8W8owsHAeWMP2zBdIHQ5UZzPOeXjuc?rtime=zNXCPHRG30g&amp;redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy8yZjBhMDY3YzAwZGMzOTc5L0lRQmlkMUVURkVGaFRKOFNJOFc4b3dzSEFlV01QMnpCZElIUTVVWnpQT2VYanVjP2U9NDo3NlRJTlcmYXQ9OQ&amp;web=1" target="_blank" rel="external noopener noreferrer">Solo abrir Excel Online</a>
+  <details class="helper-details" id="excel-online-help"><summary>¿Cómo copiar a Excel?</summary><p>Copia Nombre, Monto y Sí/No. En Excel Online selecciona una celda vacía y toca <strong>Pegar</strong>. iPhone puede redirigir el enlace de Microsoft a su aplicación.</p></details>
+ </div>
 </section>
-<section class="panel" aria-labelledby="cash-title">
- <div style="display:flex;justify-content:space-between;align-items:center"><h2 class="title" id="cash-title">Efectivo recibido en entregas</h2><span class="section-tag">Separado</span></div>
+<section class="panel cash-panel" aria-labelledby="cash-title">
+ <div class="panel-heading"><h2 class="title" id="cash-title">Efectivo</h2><span class="section-tag">Control separado</span></div>
  <div class="stat"><span id="cash-count">0 cobros</span><strong id="cash-total">$0</strong></div>
- <p class="notice">Los cobros en efectivo se muestran para control interno. No se agregan al portapapeles de transferencias bancarias ni a la columna «¿Transfirió?».</p>
- <ul id="cash-entries" class="list"></ul><p id="cash-empty" class="empty">Sin cobros en efectivo desde Entregas contingentes.</p>
- <button id="clear-auto-cash" type="button" class="small-action" hidden>Ya registré los cobros de efectivo · Vaciar lista</button>
+ <ul id="cash-entries" class="list"></ul><p id="cash-empty" class="empty">Sin cobros en efectivo.</p>
+ <button id="clear-auto-cash" type="button" class="small-action" hidden>Vaciar efectivo registrado</button>
+ <p class="micro-note">El efectivo no se exporta con las transferencias.</p>
 </section>
-<p class="notice">Todos los cobros automáticos son locales. Cada dispositivo mantiene su propia información hasta conectar una base central. Los comprobantes bancarios requieren verificación independiente.</p>
+<p class="micro-note data-note">Registros guardados en este dispositivo. Verifica los comprobantes de pago.</p>
 <p id="feedback" aria-live="polite" role="status"></p>
 </main></div>
 <nav class="bottom-nav" aria-label="Navegación principal"><a href="./">Inicio</a><a href="./checklist.html">Checklist</a><a href="./entregas-contingentes.html">Entregas</a><a href="./notas-transferencias.html" class="active" aria-current="page">Transferencias</a></nav>
-<script src="./notas-transferencias.js?v=2026.11.21.37"></script>
+<script src="./notas-transferencias.js?v=2026.11.21.38"></script>
 <script>(()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?v=2';document.body.appendChild(a)};u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<p style="padding:20px;background:white">No se pudo cargar la lista de usuarios de Gestark.</p>')};document.body.appendChild(u)})();</script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.21.37"></script><script src="./gestark-pwa.js?v=2026.11.17.3"></script>
+<script src="./gestark-updates.js?v=2026.11.21.38"></script><script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body></html>

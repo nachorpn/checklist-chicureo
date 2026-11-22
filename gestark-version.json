@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.37",
+  "version": "2026.11.21.38",
   "name": "Gestark",
-  "changes": "Transferencias: el botón combinado copia Nombre, Monto y Sí/No y solicita abrir Excel Online en una nueva ventana del navegador, sin invocar ms-excel ni salir de Gestark. Se conserva selector y eliminación de O.F. de la versión anterior. El sistema iOS puede redirigir enlaces universales a la app.",
+  "changes": "Transferencias: lista de clientes y montos destacada en el centro, después del registro manual y antes de los botones de exportar. Encabezado, textos y selector Sí/No compactos. Sin cambios en información guardada ni en acceso Excel Online.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",

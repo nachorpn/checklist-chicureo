@@ -1,0 +1,16 @@
+GESTARK — v2026.11.21.38
+
+REDISEÑO DE TRANSFERENCIAS
+- Lista de clientes y montos situada en el centro (después del registro y antes de la exportación).
+- Nombres, montos y estado Sí/No destacados con tarjetas compactas.
+- Títulos y textos largos reducidos; ayuda de Excel plegable.
+- Conserva los mismos identificadores, registros locales, copia Excel (Nombre / Monto / Sí-No), WhatsApp y eliminación de registros.
+- Efectivo separado.
+
+REEMPLAZAR EN GITHUB SOLO:
+- notas-transferencias.html
+- notas-transferencias.js
+- gestark-updates.js
+- gestark-version.json
+
+No modifica Firebase ni otras secciones de Gestark.

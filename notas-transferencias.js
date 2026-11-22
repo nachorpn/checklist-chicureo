@@ -77,9 +77,9 @@ function render(){if(!active)return;
  for(const b of ['copy-excel','send-wa','copy-open-excel-online'])$(b).disabled=bank.length===0;
  $('empty').hidden=bank.length>0;$('entries').replaceChildren();
  for(const x of [...manual].reverse()){
-   const {actions,form}=manualActions(x);const li=appendRow($('entries'),x.name,x.amount,'Manual · '+dateStr(x.date)+(Array.isArray(x.sources)&&x.sources.length?' · Entregas previas vinculadas':''),actions);li.append(transferSelector(x.name),form);
+   const {actions,form}=manualActions(x);const li=appendRow($('entries'),x.name,x.amount,'Manual · '+dateStr(x.date)+(Array.isArray(x.sources)&&x.sources.length?' · Vinculadas':''),actions);li.append(transferSelector(x.name),form);
  }
- const auto=bankQueue();for(const x of [...auto].reverse()){const li=appendRow($('entries'),x.payer,x.amount,'Entrega contingente · O.F. '+x.of+' · '+(x.user||'Gestark')+' · pendiente de verificar');li.append(transferSelector(x.payer))}
+ const auto=bankQueue();for(const x of [...auto].reverse()){const li=appendRow($('entries'),x.payer,x.amount,'Contingente · O.F. '+x.of+' · '+(x.user||'Gestark'));li.append(transferSelector(x.payer))}
  $('manual-clear-wrap').hidden=!manual.length||currentUser!==ALLOWED_USER;
  $('auto-transfer-clear-wrap').hidden=!auto.length;
  const cashList=cashEntries();$('cash-count').textContent=cashList.length+' '+(cashList.length===1?'cobro':'cobros');$('cash-total').textContent=cash(cashList.reduce((a,x)=>a+x.amount,0));
