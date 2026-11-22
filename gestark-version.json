@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.40",
+  "version": "2026.11.21.43",
   "name": "Gestark",
-  "changes": "Transferencias: botón rojo «Vaciar transferencias» después de las opciones Excel, con confirmación explícita del traspaso; limpia registros bancarios manuales y de entregas, conserva efectivo y los historiales de entregas. Sin cambios en exportación Excel ni Nómina general.",
+  "changes": "Firebase: se activa únicamente el laboratorio aislado para probar autenticación y sincronización en vivo de datos ficticios de Transferencias y Entregas clientes; sin activar la conexión en módulos operativos ni migrar datos.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",

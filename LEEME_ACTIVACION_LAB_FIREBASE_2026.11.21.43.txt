@@ -1,0 +1,32 @@
+GESTARK v2026.11.21.43 — PRIMERA PRUEBA DE FIREBASE
+
+ANTES DE INSTALAR
+- Firebase Authentication (correo/contraseña) habilitado.
+- Base Firestore (default) creada en modo producción.
+- Reglas de Firestore piloto ya publicadas por el administrador.
+- Usuario Firebase creado y autorizado en Firestore/authorized_users/{UID} con username=CIBC, role=admin, active=true.
+- Dominio nachorpn.github.io registrado en dominios autorizados.
+
+INSTALACIÓN EN GITHUB PAGES
+Subir a la raíz del repositorio los cinco archivos de aplicación (no hace falta subir este LEEME):
+- firebase-laboratorio.html (nuevo)
+- gestark-firebase-config.js (nuevo)
+- gestark-firebase-lab.js (nuevo)
+- gestark-updates.js (reemplazar)
+- gestark-version.json (reemplazar)
+
+Abrir, estando identificado en Gestark como CIBC:
+https://nachorpn.github.io/checklist-chicureo/firebase-laboratorio.html
+Ingresar CORREO Y CONTRASEÑA DE FIREBASE (no la clave antigua de Gestark).
+
+PRUEBA
+1. Agregar transferencia de prueba: Ejemplo Prueba, $1234 (No por defecto).
+2. Abrir la misma dirección en otro dispositivo y autenticar la MISMA cuenta de Firebase.
+3. Cambiar el selector de No a Sí desde un dispositivo; debe verse el cambio en el otro.
+4. Agregar O.F. FICTICIA de nueve dígitos; cambiar Pendiente/Cerrada desde el otro teléfono.
+5. Eliminar registros de prueba al terminar.
+
+IMPORTANTE
+Las colecciones se llaman pilot_transfers y pilot_orders; no comparten datos con Transferencias o Entregas clientes reales. No se importan ni borran registros actuales. Nunca usar datos reales en este laboratorio.
+La sincronización todavía no está verificada con Firebase real hasta que se pruebe entre dispositivos.
+Si hay error de permisos revisa las reglas y el UID del documento authorized_users; no habilites reglas públicas.
