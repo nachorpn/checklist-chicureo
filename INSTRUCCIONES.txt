@@ -1,64 +1,29 @@
-GESTARK · NÓMINA OPERATIVA Y ARCHIVO POR FECHA
-Versión: 2026.11.22.16
+GESTARK · DIRECTORIO DE CLIENTES CON LECTURA MEJORADA · v2026.11.22.20
+=========================================================================
 
-QUÉ CAMBIA
-- Por cerrar: destaca las O.F. grandes, con las pendientes más antiguas primero.
-- «Confirmar cerrada»: abre una confirmación con la O.F. y el cliente.
-- Al confirmar: sale de Por cerrar y aparece en Archivo por fecha.
-- El archivo se organiza por fecha de cierre en Chile.
-- Buscar por O.F. o cliente, filtrar por fecha, ver más registros de 60 en 60.
-- «Reabrir»: previa confirmación, devuelve la O.F. a Por cerrar.
-- «Eliminar O.F.»: conserva la funcionalidad original, con confirmación.
-- Se conservan los documentos de Firestore; archivar NO elimina datos.
-- Los cierres históricos sin fecha de cierre se agrupan por fecha del retiro
-  y se identifican como «Fecha retiro · cierre antiguo».
+SUBIR AL REPOSITORIO GitHub nachorpn/checklist-chicureo (rama main).
+Reemplazar SOLO los siguientes 5 archivos de la raíz del repositorio:
+- gestark-app.html
+- directorio-clientes.html
+- directorio-clientes.js
+- gestark-sw.js
+- gestark-version.json
 
-INSTALACIÓN EN GITHUB
-1) En Entregas clientes pulsa «Respaldo» si hay datos locales pendientes.
-2) Abre https://github.com/nachorpn/checklist-chicureo
-3) Sube exactamente estos SEIS archivos a la raíz (Add file > Upload files):
+CAMBIO VISUAL:
+- Nombre de clientes: 15 px (antes 12,5 px en celular; 13 px en escritorio).
+- RUT y teléfono: 13,5 px (antes 11-12 px en celular; 12 px en escritorio).
+- Etiqueta de facturación y botones: ampliados ligeramente.
+- Se mantiene la lista compacta, con una separación mínima adicional entre filas.
+- El botón flotante sobre «Más» queda exactamente como en la versión 19.
 
-   gestark-clientes-ui.js       [NUEVO]
-   gestark-clientes-cloud.js    [REEMPLAZAR]
-   gestark-pwa.js               [REEMPLAZAR]
-   gestark-sw.js                [REEMPLAZAR]
-   gestark-app.html             [REEMPLAZAR]
-   gestark-version.json         [REEMPLAZAR]
+CONSERVADO:
+- Datos en Firebase Firestore, inicio de sesión, validación de RUT y teléfono.
+- Mini formulario, facturación opcional, búsqueda en tiempo real y exportación .xlsx.
+- Nómina operativa, órdenes O.F., transferencias y notificaciones Web Push.
+- Las reglas de Firebase NO necesitan modificación.
 
-4) Pulsa «Commit changes».
-5) Abre Safari en:
-   https://nachorpn.github.io/checklist-chicureo/gestark-app.html?actualizar=2026112216
-6) Entra en Clientes > Nómina general. Puede requerir actualizar por la caché
-   de la PWA instalada. No borres la app ni su almacenamiento.
-
-FIREBASE
-- NO debes cambiar las reglas existentes para esta mejora.
-- Continúa usando la colección gestark_client_deliveries_v1.
-- El historial es una vista: no se crea una colección aparte.
-- Los cierres nuevos guardan la fecha junto al estado en el mapa closures.
-- Los usuarios autorizados mantienen sus permisos actuales.
-
-PRUEBA RECOMENDADA
-1) Mac: crea una O.F. válida de prueba y termina el retiro.
-2) Clientes > Nómina general > Por cerrar: comprueba que aparece la O.F.
-3) Pulsa «Confirmar cerrada»; comprueba que NO cierra hasta aceptar.
-4) Acepta y comprueba que desaparece de Por cerrar.
-5) Abre «Archivo por fecha» y revisa su fecha de cierre.
-6) iPhone: verifica que la misma O.F. aparece en el archivo sin recargar.
-7) Pulsa «Reabrir», confirma, y comprueba que vuelve a Por cerrar
-   también en el otro dispositivo.
-
-PRECAUCIONES
-- La confirmación es un cierre ADMINISTRATIVO en el sistema; no reemplaza
-  ninguna constancia física ni validación externa de Starken.
-- La fecha nueva usa la hora del dispositivo que confirma el cierre,
-  mostrada en zona horaria America/Santiago (no es un sello de servidor).
-- Para cierres históricos no se inventa una fecha de cierre inexistente.
-- No se cambia el lector de códigos, la imagen para WhatsApp ni Transferencias.
-- La sincronización real necesita conexión, permisos Firestore y pruebas en iPhone;
-  la comprobación de sintaxis no sustituye la validación en producción.
-
-PRUEBAS LOCALES HECHAS
-- Javascript: node --check en los 4 archivos JS y script del contenedor.
-- 12 pruebas heredadas de sincronización.
-- 13 pruebas nuevas: archivo, fecha, cierre, reapertura, eliminación e importación.
+PRUEBA:
+1. Reemplaza los cinco archivos en GitHub.
+2. Abre Gestark y pulsa Actualizar aplicación. Cierra y vuelve a abrir si ves caché.
+3. Toca el botón flotante de directorio sobre Más y revisa nombres, RUT y teléfonos.
+4. Comprueba que puedas seguir buscando y editando; no es necesario recrear los contactos.
