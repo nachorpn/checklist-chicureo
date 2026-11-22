@@ -1,0 +1,16 @@
+GESTARK · 2026.11.21.33
+
+PROBLEMA
+En iPhone, al abrir Transferencias mediante ms-excel: con el enlace compartido de OneDrive, Microsoft Excel puede quedarse detenido en su pantalla de inicio.
+
+SOLUCIÓN
+En Repositorio de Links > Transferencias, «Abrir planilla» utiliza ahora el enlace HTTPS original de OneDrive como ruta recomendada. Al acceder, elige «Abrir en la aplicación» dentro de Microsoft si está disponible.
+«Probar app Excel» sigue disponible como acceso opcional, con aviso sobre su limitación. Se conserva «Copiar enlace» y no se hacen redirecciones automáticas ni temporizadores.
+
+ARCHIVOS A REEMPLAZAR EN GITHUB
+- repositorio.html
+- gestark-updates.js
+- gestark-version.json
+
+Los demás módulos (Entregas clientes, Contingentes, pagos, Escáner) y datos locales no se modifican.
+No garantiza que Excel móvil funcione si la propia aplicación o su cuenta están fallando.
