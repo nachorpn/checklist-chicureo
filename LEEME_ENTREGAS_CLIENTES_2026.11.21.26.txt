@@ -1,0 +1,30 @@
+GESTARK · ENTREGAS CLIENTES
+Versión 2026.11.21.26
+
+QUÉ CAMBIA
+- Imagen compartible por WhatsApp rediseñada con la marca tipográfica Gestark, sin logotipo adicional ni Greenbox.
+- Fondo blanco, verde sobrio, mensaje correctamente puntuado y datos reales del retiro.
+- Muestra cliente, fecha, cantidad total y cada O.F. sin sustituir ni inventar dígitos.
+- Listas largas se dividen en varias imágenes, con número de página visible.
+- Conserva Nómina general: O.F. | Cliente | Fecha, una fila por orden y filtro desplegable de fechas.
+- Sin alteraciones en el escáner continuo ni Entregas contingentes ni Transferencias.
+- El historial permanece en el almacenamiento del navegador; no activa sincronización entre dispositivos.
+
+INSTALACIÓN EN GITHUB PAGES
+Sube/reemplaza estos archivos en la raíz del repositorio:
+- index.html
+- entregas-clientes.html
+- entregas-clientes.js
+- gestark-updates.js
+- gestark-version.json
+
+La imagen se genera dinámicamente desde JavaScript; NO hay que subir un PNG de ejemplo.
+Después de publicar usa el botón Actualizar de Gestark para actualizar la PWA.
+
+PRUEBA
+1. Abre Entregas clientes y escribe nombre.
+2. Escanea o ingresa 3 O.F. y finaliza el retiro.
+3. Revisa que la imagen compartible muestre Gestark, el nombre, la fecha y las O.F. exactas.
+4. Comprueba Nómina general y selecciona una fecha en el filtro.
+
+OBSERVACIÓN: En algunos navegadores la hoja nativa para compartir requiere interacción directa del usuario. Se proporciona una alternativa para guardar la imagen.

@@ -1,4 +1,4 @@
-/* Gestark · Entregas clientes · 2026.11.21.24
+/* Gestark · Entregas clientes · 2026.11.21.26
  * Escáner continuo usando motor aprobado de Contingentes/Laboratorio 2026.11.21.15.
  * Sin directorio ni sincronización central en esta versión.
  */
@@ -9,11 +9,11 @@ const core=window.GestarkLabCore;
 const SCAN_LIB='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
 const HISTORY_KEY='gestark:clients:rosters:v1'; // nómina general en este navegador
 const DRAFT_PREFIX='gestark:clients:draft:v1:';
-const SHARE_TEXT='¡Hola! Hoy retiraste estos pedidos, en unos minutos te enviamos el total a pagar.';
+const SHARE_TEXT='¡Hola! Hoy retiraste estos pedidos. En unos minutos te enviaremos el total a pagar.';
 const MAX_ROSTER=500;
 let active=false,currentUser='',operatorName='',draftKey='',draft={client:'',orders:[]},history=[],view='scan';
 let scanner=null,cameraOn=false,working=false,stopping=false,flashOn=false;
-let lastDuplicateOf='',lastDuplicateAt=0,toastTimer=null,preparedFiles=[],preparedEntry=null,historyShow=30;
+let lastDuplicateOf='',lastDuplicateAt=0,toastTimer=null,preparedFiles=[],preparedEntry=null,historyShow=80;
 let sharePreviewUrl='';
 const cleanName=s=>String(s||'').replace(/\s+/g,' ').trim().slice(0,80);
 const validOF=s=>/^\d{9}$/.test(String(s||''));
@@ -331,20 +331,37 @@ function setView(which){
  window.scrollTo({top:0,behavior:'instant'});
 }
 function renderHistory(){
- history=readHistory();const root=$('history-list');root.replaceChildren();$('history-count').textContent=String(history.length);
- if(!history.length){const p=document.createElement('p');p.className='empty';p.textContent='Aún no hay retiros finalizados en este dispositivo.';root.append(p);$('history-more').hidden=true;return}
- const selected=[...history].sort((a,b)=>b.at-a.at).slice(0,historyShow);
- for(const item of selected){
-  const card=document.createElement('article');card.className='history-card';
-  const head=document.createElement('div');head.className='history-head';const title=document.createElement('strong');title.textContent=item.client;
-  const date=document.createElement('small');date.textContent=fmtDay(item.at)+' · '+fmtTime(item.at);head.append(title,date);
-  const sub=document.createElement('div');sub.className='history-sub';sub.textContent=item.orders.length+' O.F. · '+(item.operator||item.user||'Gestark');
-  const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Ver '+item.orders.length+' órdenes';summary.style.cssText='color:#176a4a;font-size:12px;font-weight:800;cursor:pointer;padding:5px 0';
-  const values=document.createElement('p');values.className='history-details';values.textContent=item.orders.map(x=>x.of).join(' · ');details.append(summary,values);
-  const actions=document.createElement('div');actions.className='mini-actions';const share=document.createElement('button');share.type='button';share.dataset.shareId=item.id;share.textContent='Compartir imagen';actions.append(share);
-  card.append(head,sub,details,actions);root.append(card);
+ history=readHistory();
+ const root=$('history-list'),selector=$('history-date-filter');root.replaceChildren();
+ // La nómina es plana: cada O.F. ocupa UNA fila, sin tarjetas por cliente ni lote.
+ const rows=history.flatMap(retire=>retire.orders.map(order=>({of:order.of,client:retire.client,at:retire.at,scannedAt:order.at})));
+ const dates=[...new Set(rows.map(row=>numDay(row.at)))].sort().reverse();
+ const selection=selector.value;
+ selector.replaceChildren();
+ const all=document.createElement('option');all.value='all';all.textContent='Todas las fechas';selector.append(all);
+ for(const day of dates){
+  const opt=document.createElement('option');opt.value=day;opt.textContent=day.slice(6,8)+'/'+day.slice(4,6)+'/'+day.slice(0,4);selector.append(opt);
  }
- $('history-more').hidden=history.length<=historyShow;
+ selector.value=selection==='all'||dates.includes(selection)?selection:'all';
+ const filtered=(selector.value==='all'?rows:rows.filter(row=>numDay(row.at)===selector.value));
+ $('history-count').textContent=String(filtered.length);
+ const columns=document.createElement('div');columns.className='history-columns';columns.setAttribute('role','row');
+ for(const name of ['O.F.','Cliente','Fecha']){const cell=document.createElement('span');cell.setAttribute('role','columnheader');cell.textContent=name;columns.append(cell)}
+ root.append(columns);
+ if(!filtered.length){
+  const empty=document.createElement('p');empty.className='empty';empty.textContent=rows.length?'No hay órdenes para esta fecha.':'Todavía no hay órdenes registradas en este dispositivo.';root.append(empty);$('history-more').hidden=true;return;
+ }
+ filtered.sort((a,b)=>b.at-a.at||b.scannedAt-a.scannedAt);
+ const frag=document.createDocumentFragment();
+ for(const item of filtered.slice(0,historyShow)){
+  const row=document.createElement('div');row.className='history-row';row.setAttribute('role','row');
+  const of=document.createElement('span');of.className='history-of';of.textContent=item.of;of.setAttribute('role','cell');
+  const client=document.createElement('span');client.className='history-client';client.textContent=item.client;client.setAttribute('role','cell');
+  const date=document.createElement('span');date.className='history-date';date.textContent=fmtDay(item.at);date.setAttribute('role','cell');
+  row.append(of,client,date);frag.append(row);
+ }
+ root.append(frag);
+ $('history-more').hidden=filtered.length<=historyShow;
 }
 function newDraft(){draft={client:'',orders:[]};$('client').value='';clientError('');$('manual-order').value='';lastDuplicateOf='';lastDuplicateAt=0;persistDraft();renderOrders();}
 function finalize(){
@@ -361,66 +378,107 @@ function finalize(){
 const SHARE_CHUNK=24;
 const COLS_THRESHOLD=12;
 const CANVAS_W=1080;
+const FONT='-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif';
+// Diseño aprobado Gestark: limpio, tipográfico, sin logos ni imágenes IA incrustadas.
+// Cada PNG se dibuja a partir de la nómina real y conserva exactamente sus O.F.
 function rounded(ctx,x,y,w,h,r,fill,stroke){
- const radius=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+radius,y);ctx.arcTo(x+w,y,x+w,y+h,radius);ctx.arcTo(x+w,y+h,x,y+h,radius);ctx.arcTo(x,y+h,x,y,radius);ctx.arcTo(x,y,x+w,y,radius);ctx.closePath();
+ const radius=Math.min(r,w/2,h/2);
+ ctx.beginPath();ctx.moveTo(x+radius,y);ctx.arcTo(x+w,y,x+w,y+h,radius);ctx.arcTo(x+w,y+h,x,y+h,radius);ctx.arcTo(x,y+h,x,y,radius);ctx.arcTo(x,y,x+w,y,radius);ctx.closePath();
  if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke()}
 }
-function drawPackage(ctx,x,y,size,color){
- ctx.save();ctx.strokeStyle=color;ctx.lineWidth=3.7;ctx.lineCap='round';ctx.lineJoin='round';const s=size;
- ctx.beginPath();ctx.moveTo(x,y-s*.28);ctx.lineTo(x+s*.37,y-s*.48);ctx.lineTo(x+s*.72,y-s*.28);ctx.lineTo(x+s*.72,y+s*.26);ctx.lineTo(x+s*.36,y+s*.49);ctx.lineTo(x,y+s*.26);ctx.closePath();ctx.moveTo(x,y-s*.28);ctx.lineTo(x+s*.36,y-s*.06);ctx.lineTo(x+s*.72,y-s*.28);ctx.moveTo(x+s*.36,y-s*.06);ctx.lineTo(x+s*.36,y+s*.49);ctx.moveTo(x+s*.18,y-s*.39);ctx.lineTo(x+s*.54,y-s*.18);ctx.stroke();ctx.restore();
+function canvasFont(ctx,weight,size){ctx.font=`${weight} ${size}px ${FONT}`}
+function fitFont(ctx,text,maxWidth,weight,size,min=22){
+ for(let px=size;px>=min;px-=1){canvasFont(ctx,weight,px);if(ctx.measureText(text).width<=maxWidth)return px}
+ return min;
 }
-function fitted(ctx,str,maxWidth,px,min=22){let size=px;do{ctx.font=`700 ${size}px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif`;if(ctx.measureText(str).width<=maxWidth)return str;size-=2}while(size>=min);
- ctx.font=`700 ${min}px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif`;
- let result=str;while(result.length>1&&ctx.measureText(result+'…').width>maxWidth)result=result.slice(0,-1);return result+'…';}
+function textLines(ctx,value,maxWidth,weight,size){
+ canvasFont(ctx,weight,size);
+ const words=String(value).split(/\s+/).filter(Boolean),lines=[];let current='';
+ for(const word of words){
+  const next=current?current+' '+word:word;
+  if(ctx.measureText(next).width<=maxWidth){current=next;continue}
+  if(current){lines.push(current);current=''}
+  let splitWord='';
+  for(const ch of word){
+   if(splitWord&&ctx.measureText(splitWord+ch).width>maxWidth){lines.push(splitWord);splitWord=ch}
+   else splitWord+=ch;
+  }
+  current=splitWord;
+ }
+ if(current)lines.push(current);
+ return lines;
+}
+function drawShareCard(ctx,entry,clientLines,detailTop,detailH,colors){
+ const {deep,ink,muted,border}=colors;
+ rounded(ctx,28,detailTop,1024,detailH,25,'#ffffff',border);
+ const colA=465,colB=764;
+ ctx.strokeStyle=border;ctx.lineWidth=2.2;
+ ctx.beginPath();ctx.moveTo(colA,detailTop+40);ctx.lineTo(colA,detailTop+detailH-40);ctx.moveTo(colB,detailTop+40);ctx.lineTo(colB,detailTop+detailH-40);ctx.stroke();
+ ctx.fillStyle=muted;canvasFont(ctx,500,27);ctx.fillText('Cliente:',73,detailTop+62);
+ ctx.fillStyle=ink;canvasFont(ctx,700,34);
+ clientLines.forEach((line,i)=>ctx.fillText(line,73,detailTop+112+i*43));
+ ctx.fillStyle=muted;canvasFont(ctx,500,27);ctx.fillText('Fecha:',502,detailTop+62);
+ ctx.fillStyle=ink;canvasFont(ctx,700,35);ctx.fillText(fmtDay(entry.at),502,detailTop+111);
+ ctx.fillStyle=muted;canvasFont(ctx,500,26);ctx.fillText('Cantidad de',797,detailTop+54);ctx.fillText('pedidos:',797,detailTop+86);
+ rounded(ctx,834,detailTop+108,134,75,15,deep);
+ ctx.textAlign='center';ctx.fillStyle='#ffffff';canvasFont(ctx,750,53);ctx.fillText(String(entry.orders.length),901,detailTop+162);ctx.textAlign='start';
+}
 function renderShareCanvas(entry,orders,pageIndex,totalPages){
  const cols=orders.length>COLS_THRESHOLD?2:1;
  const rows=Math.ceil(orders.length/cols);
- const rowH=80,listTop=516,listHeader=76;
- const listHeight=listHeader+Math.max(1,rows)*rowH;
- const footerY=listTop+listHeight+44;
- const height=footerY+160+48;
- const cv=document.createElement('canvas');cv.width=CANVAS_W;cv.height=height;
+ const cv=document.createElement('canvas');cv.width=CANVAS_W;
  const ctx=cv.getContext('2d');if(!ctx)throw Error('Canvas no disponible');
- const deep='#064d41',green='#a2f124',ink='#102f27',muted='#536f61',mint='#e7f5ef';
+ const deep='#064c3b',ink='#092f25',muted='#516b5e',border='#bad6c6',green='#37a819';
+ const client=cleanName(entry.client);
+ let clientSize=34,clientLines=[];
+ do{clientLines=textLines(ctx,client,367,700,clientSize);if(clientLines.length<=3)break;clientSize-=1}while(clientSize>25);
+ const lineH=clientSize+10;
+ const detailTop=457,detailH=Math.max(210,110+clientLines.length*lineH+25);
+ const rowH=78,listTop=detailTop+detailH+42,listHeader=80;
+ const listHeight=listHeader+Math.max(1,rows)*rowH;
+ const height=listTop+listHeight+150;
+ cv.height=height;ctx.textBaseline='alphabetic';
+ const colors={deep,ink,muted,border};
  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,CANVAS_W,height);
- // Header con nombre de la app, sin logo adicional ni marca Greenbox.
- rounded(ctx,0,0,CANVAS_W,128,25,deep);
- ctx.fillStyle='#a3f223';ctx.beginPath();ctx.moveTo(990,128);ctx.lineTo(1080,35);ctx.lineTo(1080,128);ctx.closePath();ctx.fill();
- ctx.textBaseline='alphabetic';ctx.font='800 64px -apple-system, "Segoe UI", Arial, sans-serif';ctx.fillStyle='#ffffff';ctx.fillText('Ges',47,82);
- const offset=47+ctx.measureText('Ges').width;ctx.fillStyle=green;ctx.fillText('tark',offset,82);
- ctx.strokeStyle='#9dd9bd';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(420,28);ctx.lineTo(420,101);ctx.stroke();
- ctx.fillStyle='#ffffff';ctx.font='700 45px -apple-system, "Segoe UI", Arial, sans-serif';ctx.fillText('Retiro de pedidos',451,79);
- // Mensaje
- rounded(ctx,30,151,1020,154,27,'#e8f6f3');
- ctx.strokeStyle='#078152';ctx.lineWidth=5;ctx.beginPath();ctx.arc(94,226,25,0,Math.PI*2);ctx.stroke();
- ctx.fillStyle='#078152';ctx.beginPath();[83,94,105].forEach(x=>{ctx.moveTo(x+3,226);ctx.arc(x,226,3,0,Math.PI*2)});ctx.fill();
- ctx.font='650 34px -apple-system,"Segoe UI",Arial,sans-serif';ctx.fillStyle='#142d29';ctx.fillText('¡Hola! Hoy retiraste estos pedidos,',154,215);ctx.fillText('en unos minutos te enviamos el total a pagar.',154,263);
- // Cliente y fecha
- rounded(ctx,30,333,1020,135,25,'#f4f6f5');ctx.font='500 25px -apple-system,"Segoe UI",Arial,sans-serif';ctx.fillStyle=muted;ctx.fillText('Cliente:',157,375);
- ctx.fillStyle=ink;ctx.font='700 37px -apple-system,"Segoe UI",Arial,sans-serif';ctx.fillText(fitted(ctx,entry.client,515,37,24),157,425);
- ctx.lineWidth=3;ctx.strokeStyle='#b7c9c1';ctx.beginPath();ctx.moveTo(720,358);ctx.lineTo(720,445);ctx.stroke();
- ctx.fillStyle=muted;ctx.font='500 25px -apple-system,"Segoe UI",Arial,sans-serif';ctx.fillText('Fecha:',748,375);
- ctx.fillStyle=ink;ctx.font='700 35px -apple-system,"Segoe UI",Arial,sans-serif';ctx.fillText(fmtDay(entry.at),748,425);
- ctx.strokeStyle='#0e5e4a';ctx.lineWidth=3;ctx.beginPath();ctx.arc(112,371,17,0,Math.PI*2);ctx.moveTo(82,428);ctx.quadraticCurveTo(112,382,142,428);ctx.stroke();
- // Lista de O.F.
- rounded(ctx,30,listTop,1020,listHeight,23,'#ffffff','#c9d7ce');ctx.save();ctx.beginPath();ctx.rect(30,listTop,1020,listHeader);ctx.clip();rounded(ctx,30,listTop,1020,93,23,deep);ctx.restore();
- ctx.fillStyle='#ffffff';ctx.font='750 42px -apple-system,"Segoe UI",Arial,sans-serif';const label=totalPages>1?`Órdenes retiradas · ${pageIndex+1}/${totalPages}`:'Órdenes retiradas';ctx.fillText(label,78,listTop+52);
- const colW=1020/cols;
- orders.forEach((o,i)=>{
-   const col=Math.floor(i/rows),row=i%rows;
-   const x=30+col*colW,y=listTop+listHeader+row*rowH;
-   if(row>0){ctx.strokeStyle='#d9e1de';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+colW,y);ctx.stroke()}
-   drawPackage(ctx,x+41,y+rowH/2,45,deep);
-   ctx.fillStyle=ink;ctx.font=`800 ${cols===1?43:34}px ui-monospace,SFMono-Regular,Menlo,monospace`;
-   ctx.fillText(o.of,x+123,y+rowH/2+14);
- });
- if(cols===2){ctx.beginPath();ctx.moveTo(540,listTop+listHeader);ctx.lineTo(540,listTop+listHeight);ctx.strokeStyle='#d9e1de';ctx.lineWidth=2;ctx.stroke()}
- // Recuento total, diseño Gestark.
- rounded(ctx,30,footerY,1020,152,25,mint);
- drawPackage(ctx,83,footerY+72,85,deep);
- ctx.fillStyle=ink;ctx.font='600 41px -apple-system,"Segoe UI",Arial,sans-serif';ctx.fillText('Total de órdenes:',286,footerY+89);
- rounded(ctx,710,footerY+29,104,93,15,deep);
- ctx.fillStyle='#ffffff';ctx.font='800 65px -apple-system,"Segoe UI",Arial,sans-serif';ctx.textAlign='center';ctx.fillText(String(entry.orders.length),762,footerY+99);ctx.textAlign='start';
+ // Marca tipográfica Gestark: la escritura es exacta y no depende de generación de imágenes.
+ canvasFont(ctx,750,94);
+ const word1='Gest',word2='ark',brandWidth=ctx.measureText(word1+word2).width;
+ const brandX=(CANVAS_W-brandWidth)/2;
+ ctx.fillStyle=deep;ctx.fillText(word1,brandX,113);
+ ctx.fillStyle=green;ctx.fillText(word2,brandX+ctx.measureText(word1).width,113);
+ const subtitle='Resumen de pedidos retirados';
+ canvasFont(ctx,450,39);ctx.fillStyle='#435e50';ctx.textAlign='center';ctx.fillText(subtitle,CANVAS_W/2,182);ctx.textAlign='start';
+ const subtitleWidth=ctx.measureText(subtitle).width;
+ ctx.strokeStyle='#158347';ctx.lineWidth=2.5;
+ ctx.beginPath();ctx.moveTo(67,175);ctx.lineTo((CANVAS_W-subtitleWidth)/2-30,175);ctx.moveTo((CANVAS_W+subtitleWidth)/2+30,175);ctx.lineTo(1013,175);ctx.stroke();
+ // Mensaje claro y sin signos ni frases duplicadas.
+ rounded(ctx,26,235,1028,189,27,'#e9f6f1');
+ rounded(ctx,63,277,9,108,5,green);
+ ctx.fillStyle=ink;
+ const first='¡Hola! Hoy retiraste estos pedidos.';
+ canvasFont(ctx,750,42);
+ ctx.fillText(first,94,315);
+ const second='En unos minutos te enviaremos el total a pagar.';
+ const secondSize=fitFont(ctx,second,928,450,36,29);
+ canvasFont(ctx,450,secondSize);ctx.fillText(second,94,378);
+ drawShareCard(ctx,entry,clientLines,detailTop,detailH,colors);
+ // Nómina visual: una línea por O.F., números exactos, sin iconografía decorativa.
+ rounded(ctx,28,listTop,1024,listHeight,23,'#ffffff',border);
+ ctx.save();ctx.beginPath();ctx.rect(28,listTop,1024,listHeader);ctx.clip();
+ rounded(ctx,28,listTop,1024,102,23,deep);ctx.restore();
+ const title=totalPages>1?`Pedidos retirados · ${pageIndex+1}/${totalPages}`:'Pedidos retirados';
+ ctx.fillStyle='#ffffff';canvasFont(ctx,700,43);ctx.fillText(title,73,listTop+55);
+ const cw=1024/cols;
+ for(let i=0;i<orders.length;i++){
+  const col=Math.floor(i/rows),row=i%rows,x=28+col*cw,y=listTop+listHeader+row*rowH;
+  if(row>0){ctx.strokeStyle=border;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+cw,y);ctx.stroke()}
+  ctx.fillStyle=ink;canvasFont(ctx,700,cols===1?45:40);
+  ctx.fillText(orders[i].of,x+50,y+54);
+ }
+ if(cols===2){ctx.strokeStyle=border;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(540,listTop+listHeader);ctx.lineTo(540,listTop+listHeight);ctx.stroke()}
+ // Detalle verde de marca, discreto, sin degradados ni elementos tridimensionales.
+ ctx.fillStyle='#0a6148';ctx.beginPath();ctx.moveTo(974,height);ctx.quadraticCurveTo(1053,height-39,1080,height-98);ctx.lineTo(1080,height);ctx.closePath();ctx.fill();
+ ctx.fillStyle=green;ctx.beginPath();ctx.moveTo(1032,height);ctx.quadraticCurveTo(1061,height-40,1080,height-60);ctx.lineTo(1080,height);ctx.closePath();ctx.fill();
  return cv;
 }
 function pngFile(canvas,name){const data=canvas.toDataURL('image/png');const binary=atob(data.split(',')[1]);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new File([bytes],name,{type:'image/png'})}
@@ -465,8 +523,8 @@ function init(){
   const removed=draft.orders[i].of;draft.orders.splice(i,1);if(!persistDraft()){draft.orders.splice(i,0,{of:removed,at:Date.now()});return}renderOrders();toast('O.F. '+removed+' retirada de la nómina')});
  $('finish').addEventListener('click',finalize);
  $('tab-scan').addEventListener('click',()=>setView('scan'));$('tab-history').addEventListener('click',()=>setView('history'));
- $('history-list').addEventListener('click',e=>{const b=e.target.closest('button[data-share-id]');if(!b)return;const item=history.find(x=>x.id===b.dataset.shareId);if(item)shareEntry(item)});
- $('history-more').addEventListener('click',()=>{historyShow+=30;renderHistory()});
+ $('history-date-filter').addEventListener('change',()=>{historyShow=80;renderHistory()});
+ $('history-more').addEventListener('click',()=>{historyShow+=80;renderHistory()});
  $('share-close').addEventListener('click',closeShareFallback);$('share-download').addEventListener('click',downloadImages);
  $('share-retry').addEventListener('click',()=>{closeShareFallback();if(preparedEntry)shareEntry(preparedEntry)});
  $('share-copy').addEventListener('click',async()=>{const ok=await copyText(SHARE_TEXT);toast(ok?'Mensaje copiado':'No se pudo copiar el mensaje',ok?'ok':'warn')});
