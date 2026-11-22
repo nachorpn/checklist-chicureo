@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.34",
+  "version": "2026.11.21.35",
   "name": "Gestark",
-  "changes": "Transferencias: nuevo botón Abrir Excel Online desde Registro de transferencias y acceso web explícito en Repositorio de Links. Se conserva la planilla compartida y las funciones locales.",
+  "changes": "Transferencias: nuevo botón de una acción que copia las filas Nombre, Monto y no, y después abre Excel Online para pegar. Se conserva apertura sola y copia independiente. Sin cambios en otros módulos.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",

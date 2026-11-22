@@ -1,4 +1,4 @@
-/* Gestark · Transferencias v2026.11.21.23. Conserva notas CIBC v1 y lee cobros de contingencia locales. */
+/* Gestark · Transferencias v2026.11.21.35. Acceso combinado: copiar filas y abrir Excel Online. */
 (()=>{
 'use strict';
 const ALLOWED_USER='CIBC', PERSONAL_KEY='gestark:notas-transferencias:v1:CIBC',QUEUE_KEY='gestark:contingency:payments:v1';
@@ -45,7 +45,7 @@ function manualActions(item){
 }
 function render(){if(!active)return;
  const bank=bankRows();$('record-count').textContent=bank.length+' '+(bank.length===1?'cliente':'clientes');$('record-total').textContent=cash(bank.reduce((a,x)=>a+x.amount,0));
- for(const b of ['copy-excel','send-wa'])$(b).disabled=bank.length===0;
+ for(const b of ['copy-excel','send-wa','copy-open-excel-online'])$(b).disabled=bank.length===0;
  $('empty').hidden=bank.length>0;$('entries').replaceChildren();
  for(const x of [...manual].reverse()){
    const {actions,form}=manualActions(x);const li=appendRow($('entries'),x.name,x.amount,'Manual · '+dateStr(x.date)+(Array.isArray(x.sources)&&x.sources.length?' · Entregas previas vinculadas':''),actions);li.append(form);
@@ -71,6 +71,22 @@ $('note-form').addEventListener('submit',e=>{e.preventDefault();if(currentUser!=
  if(ok){$('client').value='';$('amount').value='';$('client').focus();toast('Transferencia anotada ✓')}
 });
 $('copy-excel').addEventListener('click',async()=>{const rows=bankRows();if(!rows.length)return;toast(await copy(excel())?'Copiados '+rows.length+' cliente(s): Nombre · Monto · no':'No se pudo copiar para Excel.',false)});
+$('copy-open-excel-online').addEventListener('click',async()=>{
+ const rows=bankRows();if(!rows.length){toast('No hay transferencias bancarias para copiar.',true);return}
+ const button=$('copy-open-excel-online');if(button.disabled)return;
+ // Es necesario iniciar la copia directamente desde el toque del usuario en iPhone.
+ // Tras completar la copia, navegar EN LA MISMA PESTAÑA evita bloqueadores de popups de iOS.
+ const data=excel(),url=$('open-excel-online').href;
+ button.disabled=true;
+ try{
+  const ok=await copy(data);
+  if(!ok){toast('No se pudo copiar. Usa «Copiar para Excel» y «Solo abrir Excel Online».',true);return}
+  toast('Copiados '+rows.length+' cliente(s). Abriendo Excel Online…');
+  window.location.assign(url);
+ }catch{
+  toast('No se pudo copiar. Usa los botones separados.',true);
+ }finally{button.disabled=bankRows().length===0}
+});
 $('send-wa').addEventListener('click',()=>{if(!bankRows().length)return;const msg=message(),url='https://wa.me/?text='+encodeURIComponent(msg);if(url.length>6000){copy(msg).then(ok=>toast(ok?'Lista extensa copiada para WhatsApp.':'No se pudo copiar.',!ok))}else window.location.href=url});
 $('clear').addEventListener('click',()=>{if(currentUser!==ALLOWED_USER||!manual.length)return;if(confirm('¿Ya traspasaste estas '+manual.length+' transferencias manuales a Excel?')){if(persistManual([]))toast('Lista manual vaciada ✓')}});
 $('clear-auto-transfer').addEventListener('click',()=>{const len=bankQueue().length;if(!len)return;

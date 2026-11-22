@@ -1,0 +1,15 @@
+GESTARK v2026.11.21.35 — COPIAR Y ABRIR EXCEL ONLINE
+
+Nuevo botón en Registro de transferencias: «Copiar y abrir Excel Online».
+Copia de una vez las transferencias bancarias (Nombre / Monto / no), agrupadas por cliente, separadas por tabulaciones, sin encabezados; luego abre la misma planilla de OneDrive en el navegador actual.
+Una vez cargada, seleccionar primera celda vacía y elegir «Pegar».
+
+Respaldo: «Copiar para Excel» (ya existente) y «Solo abrir Excel Online» (nuevo enlace secundario).
+Si el permiso de portapapeles falla, NO se navega automáticamente para evitar que el usuario pierda el aviso; usar opciones separadas.
+No se exporta efectivo ni se borra ningún registro al copiar. No se escribe a Excel automáticamente.
+
+INSTALACIÓN: Subir/actualizar estos 5 archivos en la raíz del repositorio GitHub:
+notas-transferencias.html, notas-transferencias.js, repositorio.html, gestark-updates.js y gestark-version.json.
+Este LEEME es opcional.
+
+Si no se ha instalado v34, no importa: este paquete contiene el registro actualizado, pero para tener el botón web actualizado también en el Repositorio, subir repositorio.html.
