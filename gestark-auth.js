@@ -1,8 +1,8 @@
-/* Gestark · Inicio de sesión 100% Firebase Auth · 2026.11.22.5
- * No verifica contraseñas locales ni lee usuarios.js.
- * Requiere la cuenta de Authentication Y authorized_users/{uid} activo.
- * El correo se utiliza solo para iniciar sesión con Firebase.
- * No contiene contraseñas ni credenciales administrativas.
+/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.6)
+ * Sin autenticar contra usuarios.js ni contraseñas locales.
+ * El usuario/alias se vincula solamente DESPUES de autenticar y autorizar Firebase.
+ * Las asociaciones usuario->correo se guardan SOLO en el navegador actual.
+ * En un navegador nuevo se requiere correo Firebase una vez; no se publica un directorio de correos.
  */
 (() => {
 'use strict';
@@ -10,6 +10,7 @@ const SDK = 'https://www.gstatic.com/firebasejs/12.11.0/';
 const OLD_SESSION = 'gestark:session:v1';
 const OLD_OVERRIDES = 'gestark:users:overrides:v1';
 const OLD_PAUSE = 'gestark:firebase:automatic-login-paused:v1';
+const LOGIN_ALIAS_KEY = 'gestark:firebase:login-alias:v1';
 const usernameRE = /^[A-Z0-9_-]{2,30}$/;
 let activeUser = null;
 let clientPromise = null;
@@ -17,6 +18,40 @@ let screen = null;
 const $ = selector => screen?.querySelector(selector) || null;
 
 function cleanName(value) { return String(value || '').trim().replace(/\s+/g,' ').slice(0,80); }
+
+// Cache no-autoritativa: nunca autoriza usuarios; solo resuelve una dirección de correo
+// para que Firebase Authentication compruebe la contraseña y Firestore valide el perfil.
+function readAliases() {
+  try {
+    const raw=JSON.parse(localStorage.getItem(LOGIN_ALIAS_KEY) || '{}');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    const result={};
+    for(const [name,email] of Object.entries(raw)) {
+      if(usernameRE.test(name) && typeof email==='string' &&
+        email.length<=254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) result[name]=email;
+    }
+    return result;
+  } catch(_) { return {}; }
+}
+function rememberAlias(profile, firebaseUser) {
+  const name=String(profile?.username || '').toUpperCase();
+  const email=String(firebaseUser?.email || '').trim();
+  if(!usernameRE.test(name) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+  try {
+    const aliases=readAliases();
+    aliases[name]=email;
+    localStorage.setItem(LOGIN_ALIAS_KEY,JSON.stringify(aliases));
+  } catch(_) { /* En modo privado la memoria local puede estar restringida. */ }
+}
+function resolveEmail(input) {
+  const value=String(input || '').trim();
+  if(value.includes('@')) return value;
+  const username=value.toUpperCase();
+  if(!usernameRE.test(username)) throw Error('Escribe tu usuario o correo de Firebase.');
+  const email=readAliases()[username];
+  if(!email) throw Error('Primera vez con '+username+' en este navegador: ingresa tu correo Firebase una vez. Después podrás usar solo '+username+'.');
+  return email;
+}
 function clearOldLocalCredentials() {
   try {
     localStorage.removeItem(OLD_SESSION);
@@ -116,15 +151,15 @@ function mountShell() {
     <div class="ga-spinner" aria-hidden="true"></div>
     <div class="ga-sub" id="ga-loading" role="status">Verificando sesión segura…</div>
     <form class="ga-form" id="ga-form" autocomplete="on" hidden>
-      <label for="ga-email">Correo de Firebase</label>
-      <input id="ga-email" type="email" autocomplete="username" inputmode="email" placeholder="correo@empresa.cl" required>
+      <label for="ga-email">Usuario o correo Firebase</label>
+      <input id="ga-email" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="254" placeholder="Ej.: MJXM" required>
       <label for="ga-pass">Contraseña</label>
       <input id="ga-pass" type="password" autocomplete="current-password" required>
       <button type="submit" id="ga-submit">Iniciar sesión</button>
       <div class="ga-err" id="ga-error" role="alert" aria-live="polite"></div>
     </form>
     <button type="button" class="ga-link" id="ga-reset" hidden>¿Olvidaste tu contraseña?</button>
-    <div class="ga-foot" id="ga-foot" hidden>Acceso protegido con Firebase Authentication.</div>
+    <div class="ga-foot" id="ga-foot" hidden>Usa tu usuario habitual. En un dispositivo nuevo, escribe tu correo Firebase una sola vez. Acceso protegido con Firebase.</div>
   </div>`;
   document.body.append(screen);
   $('#ga-form').addEventListener('submit',handleSubmit);
@@ -145,12 +180,16 @@ async function handleSubmit(event) {
   button.disabled = true;
   $('#ga-error').textContent='';
   button.textContent='Comprobando Firebase…';
-  const email=$('#ga-email').value.trim();
+  const login=$('#ga-email').value.trim();
   const password=$('#ga-pass').value;
   try {
+    const email=resolveEmail(login);
     const client=await firebaseClient();
     const credentials=await client.authSDK.signInWithEmailAndPassword(client.auth,email,password);
     const profile=await authorizedIdentity(client,credentials.user);
+    if (!login.includes('@') && profile.username !== login.toUpperCase())
+      throw Error('El usuario ingresado no coincide con la cuenta Firebase. Usa tu correo una vez para actualizar el acceso.');
+    rememberAlias(profile,credentials.user);
     $('#ga-pass').value='';
     showAuthenticated(profile);
   } catch (error) {
@@ -167,9 +206,10 @@ async function handleSubmit(event) {
   }
 }
 async function resetPassword() {
-  const email=$('#ga-email')?.value.trim() || '';
-  if(!email){$('#ga-error').textContent='Escribe primero tu correo Firebase.';return;}
+  const login=$('#ga-email')?.value.trim() || '';
+  if(!login){$('#ga-error').textContent='Escribe tu usuario o correo Firebase.';return;}
   try {
+    const email=resolveEmail(login);
     const client=await firebaseClient();
     await client.authSDK.sendPasswordResetEmail(client.auth,email);
     $('#ga-error').textContent='Si el correo está registrado, recibirás las instrucciones para restablecer la contraseña.';
@@ -230,6 +270,7 @@ async function start() {
     });
     if (!firebaseUser) {showLogin();return;}
     const profile=await authorizedIdentity(client,firebaseUser);
+    rememberAlias(profile,firebaseUser);
     showAuthenticated(profile);
   } catch(error) {
     showLogin(errorMessage(error));

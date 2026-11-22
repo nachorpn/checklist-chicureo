@@ -1,32 +1,39 @@
-GESTARK — CORTE A FIREBASE AUTH ÚNICO — 2026.11.22.5
+GESTARK · ACCESO POR USUARIO CON FIREBASE · v2026.11.22.6
 
-IMPORTANTE: El ingreso con solo siglas de usuario NO está implementado aún.
-Esta versión usa correo y contraseña de Firebase, ya probados con los 5 perfiles.
-No subas a GitHub los archivos JSON de importación ni contraseñas.
+CAMBIO: login con usuario o correo Firebase y contraseña, sin autenticar localmente.
 
-QUÉ REEMPLAZAR EN LA RAÍZ DE checklist-chicureo:
-  1. gestark-auth.js          -> elimina el inicio local y permite solo Firebase
-  2. usuarios.js              -> catálogo vacío, sin hashes ni sales
-  3. admin.html               -> página segura transitoria (gestión por Firebase Console)
-  4. gestark-sw.js            -> renueva caché PWA; expulsa caché antigua al actualizar
+INSTALACION EN GITHUB
+Subir SOLO estos dos archivos a la raiz del repositorio checklist-chicureo,
+reemplazando sus versiones anteriores:
+- gestark-auth.js
+- gestark-sw.js
+NO modificar usuarios.js, Firestore ni Authentication. No subir INSTRUCCIONES.txt.
 
-NO CAMBIAR: las reglas de Firestore, los datos de Transferencias,
-los perfiles authorized_users, la configuración Firebase, ni otros archivos.
+COMO FUNCIONA
+- Se mantiene Firebase Authentication y autorizacion authorized_users/{uid}.
+- En el navegador donde ya existe una sesion Firebase valida, Gestark recuerda
+  localmente la relacion entre identificador (ej. MJXM) y el correo Firebase real.
+- Despues de cerrar sesion, permite ingresar MJXM + contraseña habitual.
+- En un navegador, perfil o PWA nuevos, todavia hay que iniciar con el CORREO
+  una sola vez para vincular el nombre de usuario en ESE navegador.
+- No existe una lista publica de correos; nada se publica en GitHub.
+- El alias de usuario NO autentica: Firebase verifica siempre la contraseña
+  y Firestore verifica siempre que el perfil exista y este activo.
 
-PASOS
-1. Respalda los cuatro archivos actuales desde GitHub o descarga un ZIP del repositorio.
-2. Subelos juntos mediante GitHub > Add file > Upload files > Commit changes.
-3. Abre Gestark en ventana privada. Debe pedir CORREO y contraseña Firebase; nunca clave local.
-4. Inicia sesión con CIBC y comprueba Transferencias. Comprueba un trabajador en otro equipo.
-5. En iPhone, abre la PWA con internet, actualízala y confirma acceso.
-6. Si algo falla, restaura los cuatro archivos anteriores desde el respaldo.
+PRUEBA RECOMENDADA
+1. Mantener tu sesion Firebase actual, instalar los 2 archivos en GitHub.
+2. Abrir Gestark con sesion valida y pulsar Salir.
+3. Iniciar sesion con CIBC + contraseña de Firebase.
+4. Confirmar que aparece 'Firebase' en el encabezado y se conserva el acceso.
+5. En ventana privada NUEVA, probar con correo + contraseña (primera vez).
+6. Salir y entrar con las siglas en esa misma ventana (si almacenamiento habilitado).
 
-LIMITACIONES
-- La administración de cuentas desde la propia Gestark requiere un backend protegido;
-  por ahora la página de administración enlaza a la consola Firebase.
-- Los hashes antiguos siguen en el historial de GitHub; cambia las contraseñas
-  por contraseñas fuertes y exclusivas después de la migración.
-- Las páginas HTML existentes todavía intentan cargar usuarios.js: por eso lo
-  conservamos como archivo vacío, sin credenciales.
-- El modo offline no debe otorgar acceso a módulos sensibles si no hay sesión validada.
-- Las reglas de Firestore, y NO el ocultamiento visual de GitHub Pages, protegen los datos.
+PRECAUCIONES
+- El correo se guarda localmente, asociado al identificador, SOLO en ese navegador.
+  En dispositivos compartidos puede persistir localmente hasta borrar datos del sitio.
+- Un usuario que conozca las credenciales Firebase sigue siendo necesario.
+- Esto NO resuelve el inicio por siglas en un equipo que NUNCA inicio con correo.
+  Para eso hara falta una solucion de resolucion de identidad segura del lado servidor.
+- No elimina hashes historicos de los commits viejos de GitHub.
+- No cambia las reglas, permisos ni las colecciones operativas.
+- Si la carga falla, restaurar gestark-auth.js y gestark-sw.js de la version anterior.
