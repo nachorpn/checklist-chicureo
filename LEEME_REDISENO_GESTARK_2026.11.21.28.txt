@@ -1,0 +1,24 @@
+GESTARK · Actualización visual 2026.11.21.28
+
+CAMBIOS
+- Barra inferior consistente de cinco accesos: Inicio, Checklist, Clientes (central), Transferencias y Enlaces.
+- «Clientes» usa un acceso elevado verde, directo a Entregas clientes.
+- Actualizar continúa disponible como pequeño botón encima del extremo derecho de la barra.
+- Pantalla Inicio más compacta, con la marca y los verdes originales.
+- Nómina general: filtro desplegable por fecha y por estado; O.F. grandes; pendientes primero; estados Pendiente / Cerrada.
+- Entregas contingentes y Transferencias: retoques visuales compactos sin alterar su funcionalidad.
+- Sin cambios de base de datos, credenciales, cámara, API, pagos ni almacenamiento de datos.
+
+INSTALACIÓN
+1. Conservar el respaldo anterior: commit 806183ac51f54243bfc6d6fd2b99a519f6712933.
+2. Descomprimir el ZIP.
+3. Subir únicamente los archivos de actualización a la RAÍZ del repositorio GitHub, reemplazando sus homólogos.
+4. Esperar la publicación en GitHub Pages y entrar a Gestark con conexión.
+5. Pulsar «Actualizar» en la aplicación. Si el acceso fijo no cambia, cerrar y volver a abrir la PWA.
+
+NOTAS
+- El nuevo menú también aparece en Checklist porque esa página ya carga gestark-updates.js. No es necesario modificar su formulario.
+- «Gestiones» y «Contingentes» se siguen abriendo desde Inicio; no se elimina ninguna funcionalidad.
+- Los movimientos, nóminas y cierres guardados en localStorage se conservan; no se borran ni migran.
+- El ZIP no actualiza GitHub automáticamente.
+- Pruebas automatizadas en navegador; se recomienda prueba real en iPhone SE, especialmente safe-area, navegación y cámara.

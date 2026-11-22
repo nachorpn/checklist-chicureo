@@ -51,8 +51,14 @@ main{max-width:680px;margin:0 auto;padding:12px 12px calc(95px + env(safe-area-i
   </section>
   <section id="view-history" role="tabpanel" aria-labelledby="tab-history" hidden>
     <div class="card"><h2 class="card-title">Nómina general</h2>
-      <div class="history-toolbar"><div class="history-filter"><label for="history-date-filter">Filtrar nómina por fecha</label><select id="history-date-filter" aria-label="Seleccionar fecha del retiro"><option value="all">Todas las fechas</option><option value="today">Hoy</option></select></div><div class="history-total"><span>Órdenes registradas</span><strong id="history-count">0</strong></div></div>
-      <div class="history-list" id="history-list" role="list" aria-label="Órdenes registradas con su estado de cierre"></div><p class="history-help">Estado de cierre en sistema: todas las O.F. comienzan en «No entregado». Toca el estado para marcar «Entregado» cuando completes el cierre.</p>
+      <div class="history-toolbar">
+        <div class="gestark-filter-grid">
+          <div class="history-filter"><label for="history-date-filter">Fecha</label><select id="history-date-filter" aria-label="Filtrar por fecha del retiro"><option value="all">Todas las fechas</option><option value="today">Hoy</option></select></div>
+          <div class="history-filter"><label for="history-state-filter">Cierre en sistema</label><select id="history-state-filter" aria-label="Filtrar por estado de cierre"><option value="all">Todos</option><option value="pending">Pendientes</option><option value="closed">Cerradas</option></select></div>
+        </div>
+        <div class="history-total"><span><strong id="history-pending-count">0</strong> <span id="history-pending-label">pendientes</span> · <strong id="history-closed-count">0</strong> <span id="history-closed-label">cerradas</span></span><span><strong id="history-count">0</strong> O.F.</span></div>
+      </div>
+      <div class="history-list" id="history-list" role="list" aria-label="Órdenes registradas con su estado de cierre"></div><p class="history-help">Las O.F. comienzan pendientes. Marca «Cerrada» solo después de completar su cierre en el sistema. Puedes deshacer el cambio.</p>
       <button type="button" class="btn outline full" id="history-more" hidden style="margin-top:10px">Ver más órdenes</button>
       <p class="helper">Nómina guardada en este dispositivo; la conexión entre teléfonos quedará para la base de datos compartida.</p></div>
   </section>
@@ -61,10 +67,10 @@ main{max-width:680px;margin:0 auto;padding:12px 12px calc(95px + env(safe-area-i
 <div id="share-dialog" class="dialog-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="share-title"><div class="dialog-panel"><h2 id="share-title">Retiro guardado · Compartir</h2><p id="share-description">Si no aparece el menú para compartir, guarda la imagen y envíala desde WhatsApp.</p><img id="share-preview" class="share-preview" alt="Vista previa del retiro de pedidos Gestark"><div class="dialog-actions"><button type="button" id="share-retry" class="btn primary">Compartir imagen</button><button type="button" id="share-download" class="btn secondary">Guardar imagen</button><button type="button" id="share-copy" class="btn outline">Copiar mensaje</button><button type="button" id="share-close" class="btn outline">Cerrar</button></div></div></div>
 <nav class="bottom-nav" aria-label="Navegación Gestark"><a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-8h6v8"/></svg>Inicio</a><a href="./entregas-contingentes.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="m7 12 3 3 7-7"/></svg>Contingentes</a><a href="./notas-transferencias.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9h8M8 14h8"/></svg>Transferencias</a></nav>
 <script src="./laboratorio-core.js?v=2026.11.21.15"></script>
-<script src="./entregas-clientes.js?v=2026.11.21.27"></script>
+<script src="./entregas-clientes.js?v=2026.11.21.28"></script>
 <script>(()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?v=2';a.onerror=()=>document.body.insertAdjacentHTML('beforeend','<div id="gestark-login" style="padding:25px;background:white">No fue posible cargar el acceso de Gestark.</div>');document.body.appendChild(a)};u.onerror=()=>document.body.insertAdjacentHTML('beforeend','<div id="gestark-login" style="padding:25px;background:white">No fue posible cargar los usuarios de Gestark.</div>');document.body.appendChild(u)})();</script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.21.27"></script>
+<script src="./gestark-updates.js?v=2026.11.21.28"></script>
 <script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body>
 </html>

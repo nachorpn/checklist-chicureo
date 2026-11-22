@@ -1,4 +1,4 @@
-/* Gestark · Entregas clientes · 2026.11.21.27
+/* Gestark · Entregas clientes · 2026.11.21.28
  * Escáner continuo usando motor aprobado de Contingentes/Laboratorio 2026.11.21.15.
  * Sin directorio ni sincronización central en esta versión.
  */
@@ -343,7 +343,7 @@ function setClosure(entryId,of,closed){
  if(closed)saved[key]=true;else delete saved[key];
  try{localStorage.setItem(STATUS_KEY,JSON.stringify(saved))}
  catch(_){toast('No se pudo guardar el estado. Revisa el almacenamiento.','warn');return false}
- renderHistory();toast('O.F. '+of+' · '+(closed?'Entregado':'No entregado'));return true;
+ renderHistory();toast('O.F. '+of+' · '+(closed?'Cerrada':'Pendiente'));return true;
 }
 function renderHistory(){
  history=readHistory();
@@ -360,21 +360,33 @@ function renderHistory(){
  }
  selector.value=selection==='all'||selection==='today'||dates.includes(selection)?selection:'all';
  const daySelected=selector.value==='today'?numDay(Date.now()):selector.value;
- const filtered=daySelected==='all'?rows:rows.filter(row=>numDay(row.at)===daySelected);
+ const byDate=daySelected==='all'?rows:rows.filter(row=>numDay(row.at)===daySelected);
+ const closures=readClosure(),closed=item=>closures[item.id+':'+item.of]===true;
+ const pendingTotal=byDate.filter(item=>!closed(item)).length,closedTotal=byDate.length-pendingTotal;
+ $('history-pending-count').textContent=String(pendingTotal);
+ $('history-pending-label').textContent=pendingTotal===1?'pendiente':'pendientes';
+ $('history-closed-count').textContent=String(closedTotal);
+ $('history-closed-label').textContent=closedTotal===1?'cerrada':'cerradas';
+ const stateFilter=$('history-state-filter').value;
+ const filtered=byDate.filter(item=>stateFilter==='all'||(stateFilter==='closed'?closed(item):!closed(item)));
  $('history-count').textContent=String(filtered.length);
  if(!filtered.length){
-  const empty=document.createElement('p');empty.className='empty';empty.textContent=rows.length?'No hay órdenes registradas en la fecha seleccionada.':'Todavía no hay órdenes registradas en este dispositivo.';root.append(empty);$('history-more').hidden=true;return;
+  const empty=document.createElement('p');empty.className='empty';
+  empty.textContent=rows.length?'No hay O.F. que coincidan con los filtros.':'Todavía no hay órdenes registradas en este dispositivo.';
+  root.append(empty);$('history-more').hidden=true;return;
  }
- filtered.sort((a,b)=>b.at-a.at||b.scannedAt-a.scannedAt);
- const closures=readClosure(),frag=document.createDocumentFragment();
+ // Prioridad operativa: primero lo pendiente de cerrar, luego los cierres confirmados.
+ filtered.sort((a,b)=>Number(closed(a))-Number(closed(b))||b.at-a.at||b.scannedAt-a.scannedAt);
+ const frag=document.createDocumentFragment();
  for(const item of filtered.slice(0,historyShow)){
   const row=document.createElement('div');row.className='history-row';row.setAttribute('role','listitem');
   const top=document.createElement('div');top.className='history-row-top';
   const of=document.createElement('span');of.className='history-of';of.textContent=item.of;
-  const key=item.id+':'+item.of;
-  const delivered=closures[key]===true;
-  const state=document.createElement('button');state.type='button';state.className='history-state'+(delivered?' delivered':'');state.textContent=delivered?'✓ Entregado':'No entregado';state.setAttribute('aria-pressed',String(delivered));state.setAttribute('aria-label','O.F. '+item.of+': '+(delivered?'Entregado':'No entregado')+'. Cambiar estado de cierre en sistema');
-  state.addEventListener('click',()=>setClosure(item.id,item.of,!delivered));
+  const isClosed=closed(item);
+  const state=document.createElement('button');state.type='button';state.className='history-state'+(isClosed?' delivered':'');
+  state.textContent=isClosed?'✓ Cerrada':'Pendiente';state.setAttribute('aria-pressed',String(isClosed));
+  state.setAttribute('aria-label','O.F. '+item.of+': '+(isClosed?'Cerrada':'Pendiente')+'. Cambiar estado de cierre en sistema');
+  state.addEventListener('click',()=>setClosure(item.id,item.of,!isClosed));
   top.append(of,state);
   const bottom=document.createElement('div');bottom.className='history-row-bottom';
   const client=document.createElement('span');client.className='history-client';client.textContent=item.client;
@@ -545,6 +557,7 @@ function init(){
  $('finish').addEventListener('click',finalize);
  $('tab-scan').addEventListener('click',()=>setView('scan'));$('tab-history').addEventListener('click',()=>setView('history'));
  $('history-date-filter').addEventListener('change',()=>{historyShow=80;renderHistory()});
+ $('history-state-filter').addEventListener('change',()=>{historyShow=80;renderHistory()});
  $('history-more').addEventListener('click',()=>{historyShow+=80;renderHistory()});
  $('share-close').addEventListener('click',closeShareFallback);$('share-download').addEventListener('click',downloadImages);
  $('share-retry').addEventListener('click',()=>{closeShareFallback();if(preparedEntry)shareEntry(preparedEntry)});

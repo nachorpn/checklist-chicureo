@@ -1,10 +1,10 @@
 {
-  "version": "2026.11.21.27",
+  "version": "2026.11.21.28",
   "name": "Gestark",
-  "changes": "Entregas clientes: nómina general con selector de fecha visible a todo ancho (Todas las fechas, Hoy y días registrados), O.F. grandes y estado por orden No entregado/Entregado para cierre en sistema. Imagen WhatsApp y cámara sin cambios.",
+  "changes": "Rediseño operativo Gestark: marca verde consistente, pantallas más compactas, menú fijo unificado con acceso central destacado a Entregas clientes y control de cierre pendiente/cerrado con filtros de fecha y estado. Escáner, pagos y datos locales sin cambios.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
-  "clientsVersion": "2026.11.21.27"
+  "clientsVersion": "2026.11.21.28"
 }
