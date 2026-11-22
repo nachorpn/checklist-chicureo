@@ -1,0 +1,58 @@
+GESTARK v24 — SEGURIDAD OPERATIVA + NOMBRE IGNACIO BURGOS
+=======================================================
+
+ATENCIÓN: Para que el respaldo en nube funcione, hay que añadir una regla
+nueva de Firestore. Las reglas de otras colecciones NO se reemplazan.
+
+PASO 1 — FIREBASE
+1. Firebase Console > proyecto gestark-213f7 > Firestore Database > Reglas.
+2. Haz una copia de las reglas vigentes.
+3. Si las reglas actuales corresponden a Gestark v22, puedes utilizar
+   FIREBASE_NO_SUBIR_A_GITHUB/FIRESTORE_REGLAS_COMPLETAS_COMENTADAS_v24.rules.
+   Si entretanto cambiaste reglas, conserva tu versión y añade solo el bloque
+   FIREBASE_NO_SUBIR_A_GITHUB/FIRESTORE_AGREGAR_BLOQUE_v24.rules
+   DENTRO de match /databases/{database}/documents, antes del catch-all.
+4. Publica las reglas y verifica que no haya errores.
+
+PASO 2 — GITHUB
+Sube a la RAÍZ de nachorpn/checklist-chicureo los siete archivos:
+  gestark-app.html               REEMPLAZAR
+  gestark-auth.js                REEMPLAZAR
+  gestark-pwa.js                 REEMPLAZAR
+  gestark-sw.js                  REEMPLAZAR
+  gestark-version.json          REEMPLAZAR
+  gestark-operational-alerts.js AGREGAR (nuevo)
+  gestark-retire-draft.js       AGREGAR (nuevo)
+No subas los archivos .rules, ni el directorio FIREBASE_NO_SUBIR_A_GITHUB.
+No cambies el directorio, el escáner base ni los scripts de la nómina.
+
+PASO 3 — PRUEBA CONTROLADA
+1. Abre Gestark, comprueba en el encabezado que dice «Ignacio Burgos»
+   desde el usuario administrador CIBC.
+2. Con una O.F. de prueba válida escanea y NO finalices. Desde Inicio
+   verifica que aparezca «Retiro sin finalizar».
+3. Regresa a Clientes y comprueba el mensaje «respaldadas en Firebase».
+4. Cierra y abre la app; debe mantenerse el retiro y poder recuperarse.
+5. Finaliza retiro, con Internet conectado, espera el historial de Firebase:
+   el aviso de retiro sin finalizar desaparece SOLO tras confirmación remota.
+6. Si esa O.F. sigue abierta en sistema, Inicio mostrará órdenes sin cerrar;
+   al abrir/reabrir Gestark aparece la burbuja durante 3 segundos.
+7. Desactiva Wi-Fi/datos durante un escaneo de prueba y comprueba que la
+   app avise que el borrador continúa local. Restaura Internet y comprueba
+   su sincronización. Evita usar números reales en las pruebas.
+
+SEGURIDAD Y LIMITACIONES
+- La nueva colección gestark_client_scan_drafts_v1 guarda borradores en la nube.
+- Un usuario ve sus borradores; un administrador ve los de todos.
+- Las O.F. cerradas conservan su estado en gestark_client_deliveries_v1.
+- No se borra un borrador finalizado hasta comprobar que su ID y todas
+  sus O.F. están incorporadas al historial compartido.
+- La recuperación de un borrador de otra sesión requiere tocar «Recuperar»;
+  no se reemplazan automáticamente registros ya escaneados.
+- El nombre «Ignacio Burgos» es la presentación de la cuenta admin CIBC.
+  El nombre guardado en authorized_users/UID sigue siendo el valor anterior,
+  salvo que lo cambies también manualmente desde la consola de Firebase.
+- No sustituye copias de seguridad periódicas de Firestore: el almacenamiento
+  local del navegador puede borrarse por el sistema o el usuario.
+- Esta versión se preparó con la fuente del repositorio verificada v23.
+  Es una implementación lista para probar; no es una comprobación en producción.

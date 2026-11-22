@@ -1,4 +1,4 @@
-/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.13 — sesión persistente entre secciones)
+/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.24 — sesión persistente entre secciones)
  * Sin autenticar contra usuarios.js ni contraseñas locales.
  * El usuario/alias se vincula solamente DESPUES de autenticar y autorizar Firebase.
  * Las asociaciones usuario->correo se guardan SOLO en el navegador actual.
@@ -128,7 +128,7 @@ async function authorizedIdentity(client, firebaseUser) {
     throw Error('Tu cuenta no está autorizada en Gestark.');
   return {
     username:profile.username,
-    name:cleanName(profile.name) || profile.username,
+    name:(profile.role === 'admin' && String(profile.username).toUpperCase() === 'CIBC') ? 'Ignacio Burgos' : (cleanName(profile.name) || profile.username),
     role:profile.role,
     provider:'firebase',
     uid:firebaseUser.uid

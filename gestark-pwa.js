@@ -1,4 +1,4 @@
-/* Gestark · instalador PWA 2026.11.22.17.
+/* Gestark · instalador PWA 2026.11.22.24.
  * El contenedor nativo registra el Service Worker una sola vez.
  * Los módulos abiertos dentro de iframes NO lo registran nuevamente.
  */
@@ -36,6 +36,26 @@
      script.onerror=()=>{window.__gestarkClientsUiRequested=false;console.warn('Gestark: vista de archivo no disponible; se conserva la nómina anterior.')};
      document.head.append(script);
    };
+   // v24: espejo de borradores de escaneo. Se inicializa tras autenticación,
+   // y protege también el acceso clásico fuera del contenedor nativo.
+   const loadDraftSafety=()=>{
+     if(window.__gestarkDraftSafetyRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
+     window.__gestarkDraftSafetyRequested=true;
+     const script=document.createElement('script');
+     script.src='./gestark-retire-draft.js?v=2026.11.22.24';
+     script.async=true;
+     script.onerror=()=>{
+       window.__gestarkDraftSafetyRequested=false;
+       const warning=document.createElement('p');
+       warning.setAttribute('role','alert');
+       warning.style.cssText='padding:11px;background:#fff2e5;color:#834325;border-radius:10px;font:700 12px system-ui;margin:12px';
+       warning.textContent='Sin respaldo de borradores en la nube. Conserva la pantalla y revisa la conexión.';
+       (document.getElementById('workspace')||document.body).prepend(warning);
+     };
+     document.head.append(script);
+   };
+   document.addEventListener('gestark:ready',loadDraftSafety);
+   if(window.GestarkAuth?.getUser?.()?.uid)loadDraftSafety();
    document.addEventListener('gestark:ready',loadClientsCloud);
    document.addEventListener('gestark:ready',loadClientsUi);
    if(window.GestarkAuth?.getUser?.()?.uid){loadClientsCloud();loadClientsUi()}

@@ -49,12 +49,29 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 #gestark-directory-fab:focus-visible{outline:3px solid #58c7a3;outline-offset:3px}
 @media (hover:hover){#gestark-directory-fab:hover{transform:translateY(-2px);box-shadow:0 8px 20px #0f49343d}}
 @media (prefers-reduced-motion:reduce){#gestark-directory-fab{transition:none}}
+
+/* Gestark v24 · avisos operativos permanentes en Inicio y aviso de 3 segundos. */
+#pane-home.active{display:flex;flex-direction:column}
+#pane-home > iframe{flex:1 1 auto;min-height:0;height:0}
+#gestark-home-alerts[hidden],#gestark-open-bubble[hidden]{display:none!important}
+#gestark-home-alerts{flex:none;max-height:min(34dvh,230px);overflow-y:auto;overscroll-behavior:contain;background:#fff8e8;border-bottom:1px solid #f1ddbb;padding:9px max(11px,env(safe-area-inset-right)) 9px max(11px,env(safe-area-inset-left));display:grid;gap:7px;z-index:3}
+.gs-alert{width:100%;padding:10px 12px;border:1px solid #e7d6b8;border-radius:11px;display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer;background:#fff;color:#443a29;box-shadow:0 1px 5px #342b1c0c;font:inherit}
+.gs-alert:focus-visible{outline:3px solid #178b63;outline-offset:2px}
+.gs-alert-critical{border-color:#e9b7aa;background:#fff7f5;color:#813d30}
+.gs-alert-warning{border-color:#eddbac;background:#fffdf6;color:#735323}
+.gs-alert-symbol{font-size:20px;line-height:1;flex:none}
+.gs-alert-content{display:grid;gap:3px;flex:1;min-width:0}
+.gs-alert-title{font-weight:850;font-size:13px;line-height:1.25}
+.gs-alert-detail{font-size:11px;line-height:1.35;opacity:.85}
+.gs-alert-arrow{font-size:17px;opacity:.65}
+#gestark-open-bubble{position:absolute;z-index:12;top:12px;left:50%;transform:translateX(-50%);max-width:min(350px,92vw);width:max-content;padding:11px 15px;border:1px solid #e0bf7c;background:#fff9e8;box-shadow:0 8px 24px #422d1533;border-radius:14px;color:#715018;font-size:12px;font-weight:800;text-align:center;pointer-events:none;animation:gsBubbleIn .18s ease-out}
+@keyframes gsBubbleIn{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
 </style>
 </head>
 <body>
 <header id="native-header"><div class="header-brand"><img src="./icon-192.png" alt=""><div class="brand-copy"><div class="brand-title">Gestark</div><div class="brand-sub" id="person-label">Sucursal Chicureo</div></div></div><div class="header-actions"><span id="online-pill" aria-label="Estado de conectividad"><span class="status-dot"></span><span id="online-label">En línea</span></span><button id="refresh-section" class="icon-button" aria-label="Actualizar sección" title="Actualizar sección"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 1-2.2-5.8M20 4v6h-6"/></svg></button><button id="open-app-menu" class="icon-button" aria-label="Opciones de Gestark" title="Opciones de Gestark"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button></div></header>
 <main id="app-body">
- <section class="pane active" id="pane-home" aria-label="Inicio"><iframe id="frame-home" src="./" title="Inicio de Gestark" allow="camera; clipboard-write" referrerpolicy="same-origin"></iframe></section>
+ <section class="pane active" id="pane-home" aria-label="Inicio"><div id="gestark-home-alerts" hidden aria-live="polite"></div><iframe id="frame-home" src="./" title="Inicio de Gestark" allow="camera; clipboard-write" referrerpolicy="same-origin"></iframe></section>
  <section class="pane" id="pane-checklist" aria-label="Checklist"></section>
  <section class="pane" id="pane-clients" aria-label="Clientes"></section>
  <section class="pane" id="pane-transfers" aria-label="Transferencias"></section>
@@ -71,6 +88,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
  </div><p class="app-footnote">Gestark · Navegación rápida · Firebase</p></div></div></section>
  <section class="pane" id="pane-extra" aria-label="Herramienta"><div id="extra-banner"><button id="back-more" type="button">‹ Volver</button><span id="extra-title">Herramienta</span></div><div id="extra-slot" style="height:100%"></div></section>
  <div id="native-toast" role="status" aria-live="polite" hidden></div>
+ <div id="gestark-open-bubble" role="status" hidden></div>
 </main>
 <button type="button" id="gestark-directory-fab" hidden aria-label="Abrir Directorio de clientes" title="Directorio de clientes">
   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 3v18M12 9a2 2 0 1 1 4 0a2 2 0 0 1-4 0M11 16c.5-2 4.5-2 5 0"/></svg>
@@ -86,7 +104,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 <script>
 (() => {
 'use strict';
- const BUILD='2026.11.22.23';
+ const BUILD='2026.11.22.24';
 const base=new URL('./',location.href);
 const available={
  home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
@@ -225,6 +243,7 @@ function authorized(user){if(signingOut)return;
  $('admin-action').hidden=user.role!=='admin';$('lab-action').hidden=user.role!=='admin';$('traslados-action').hidden=user.username!=='SCMN';
  window.__gestarkPendingPushUser=user;
  window.GestarkPush?.init?.(user);
+ window.GestarkOperationalAlerts?.init?.(user);
  const requested=parseHash();history.replaceState({tab:requested},'', '#'+requested);
  if(requested!=='home')select(requested,false);
  }
@@ -261,5 +280,6 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>{
 })();
 </script>
 <script src="./gestark-push.js?v=2026.11.22.17"></script>
+<script src="./gestark-operational-alerts.js?v=2026.11.22.24"></script>
 </body>
 </html>
