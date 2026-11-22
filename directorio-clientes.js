@@ -1,4 +1,4 @@
-/* Gestark · Directorio de clientes · v2026.11.22.20
+/* Gestark · Directorio de clientes · v2026.11.22.21
  * Fuente única: Firestore. No guarda los datos del directorio en GitHub ni localStorage.
  * RUT módulo 11; móvil Chile +56 9 XXXXXXXX; XLSX auténtico autocontenido.
  */
@@ -78,10 +78,12 @@ function render(){
  const head=el('div','head');['Nombre','RUT','Teléfono','Factura',''].forEach(s=>head.append(el('span','',s)));host.append(head);
  const frag=document.createDocumentFragment();
  for(const c of matches){
-  const row=el('div','entry');
+  const row=el('div',c.factura?'entry needs-invoice':'entry');
   row.append(el('div','person cell',c.nombre),el('div','rut cell',c.rut));
   const link=el('a','phone cell',c.telefono);link.href='tel:'+c.telefono.replace(/\s+/g,'');link.title='Llamar';row.append(link);
-  row.append(el('div',c.factura?'tag is-invoice':'tag',c.factura?'Factura':'—'));
+  const badge=el('div',c.factura?'tag is-invoice':'tag',c.factura?'⚠ Requiere factura':'—');
+  if(c.factura)badge.title='Este cliente requiere factura. Comprueba sus datos tributarios antes de emitir.';
+  row.append(badge);
   const actions=el('div','rowactions');
   const edit=el('button','iconbtn','Editar');edit.type='button';edit.dataset.edit=c.id;edit.setAttribute('aria-label','Editar '+c.nombre);
   const del=el('button','iconbtn','×');del.type='button';del.dataset.delete=c.id;del.title='Eliminar';del.setAttribute('aria-label','Eliminar '+c.nombre);

@@ -101,6 +101,25 @@ main#directory{max-width:1080px;padding:19px 15px 42px}
   .entry .tag{font-size:10.5px}
   .entry .iconbtn{font-size:11.5px;min-height:34px}
 }
+
+/* Gestark v21 · Aviso de facturación visible y accesible, sin ampliar las tarjetas. */
+.entry.needs-invoice{background:#fffdf7;box-shadow:inset 3px 0 0 #d69e35}
+.entry.needs-invoice:hover{background:#fff9ea}
+.entry .tag.is-invoice{
+  background:#fff0c9;color:#714500;border:1px solid #e6bd68;
+  font-size:11px;font-weight:850;line-height:1.25;
+  padding:5px 8px;min-height:28px;white-space:nowrap;
+}
+/* La nueva etiqueta requiere un poco más de ancho sin agrandar las filas. */
+.head,.entry{grid-template-columns:minmax(120px,2fr) minmax(105px,1.1fr) minmax(125px,1.2fr) minmax(139px,.9fr) 76px}
+.invoice-warning{
+  color:#745015;background:#fff7e4;border:1px solid #e5c77c;border-radius:9px;
+  padding:9px 11px;margin:0 0 12px;font-size:12px;font-weight:700;line-height:1.4;
+}
+@media(max-width:650px){
+  .entry{grid-template-columns:minmax(0,1fr) 128px}
+  .entry .tag.is-invoice{font-size:10.5px;padding:5px 6px}
+}
 </style>
 </head>
 <body>
@@ -120,6 +139,7 @@ main#directory{max-width:1080px;padding:19px 15px 42px}
     </div>
     <label class="check"><input id="invoice-enabled" type="checkbox"> Agregar datos de facturación</label>
     <section class="invoice" id="invoice-fields" hidden>
+      <p class="invoice-warning" role="note">⚠ Verifica los datos tributarios antes de emitir la factura.</p>
       <div class="fields">
         <label class="full">Razón social<input id="invoice-name" maxlength="120" autocomplete="organization"></label>
         <label>RUT de facturación<input id="invoice-rut" maxlength="14" placeholder="12.345.678-5"><span class="help" id="invoice-rut-hint"></span></label>
@@ -147,7 +167,7 @@ main#directory{max-width:1080px;padding:19px 15px 42px}
   </div>
 </dialog>
 <script src="./gestark-auth.js?v=2" defer></script>
-<script src="./directorio-clientes.js?v=2026.11.22.20" defer></script>
+<script src="./directorio-clientes.js?v=2026.11.22.21" defer></script>
 <noscript>Gestark requiere JavaScript.</noscript>
 </body>
 </html>
