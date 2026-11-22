@@ -1,3 +1,17 @@
-Gestark - Orden original de checklist
+Gestark — Modo de navegación rápida (piloto separado)
 
-Sube los 8 archivos al directorio raíz de nachorpn/checklist-chicureo en GitHub y elige Commit changes. Esta entrega conserva la PWA, los usuarios, el check de Instagram, el reporte PNG, los clientes captados y el contenido restante. Los cambios de versión permiten que el sistema detecte correctamente la actualización.
+INSTALACIÓN
+1. Sube únicamente "gestark-rapido.html" a la RAÍZ del repositorio de GitHub.
+2. Abre https://nachorpn.github.io/checklist-chicureo/gestark-rapido.html
+3. Inicia sesión si corresponde. Tras ingresar, Inicio, Checklist y Transferencias
+   quedan precargados. Cambia entre las tres pestañas; se conserva su estado.
+
+IMPORTANTE
+- No se modifica la página Inicio normal ni Firebase ni los demás módulos.
+- Es un piloto de navegación por iframes del mismo dominio; no es una SPA definitiva.
+- La primera entrada a cada pestaña puede seguir tardando mientras carga su iframe.
+- Una vez precargadas, las transiciones entre estas tres secciones son locales.
+- Las otras herramientas conservan navegación normal y salen del modo rápido.
+- No pruebes aquí acciones críticas hasta comprobar cuidadosamente la navegación.
+- Para regresar al modo habitual, abre el enlace normal de Gestark.
+- Si el modo rápido da problemas, simplemente elimina este archivo de GitHub.

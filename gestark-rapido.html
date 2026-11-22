@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b4b44">
+<title>Gestark | Navegación rápida (prueba)</title>
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#153e32;background:#edf4ef;font-synthesis:none}
+*{box-sizing:border-box}html,body{height:100%;height:100dvh;margin:0;overflow:hidden}
+body{display:flex;flex-direction:column}
+header{height:58px;min-height:58px;padding:0 max(14px,env(safe-area-inset-right)) 0 max(14px,env(safe-area-inset-left));background:linear-gradient(115deg,#0b4b44,#127452);color:#fff;display:none;align-items:center;justify-content:space-between;gap:10px}
+header.visible{display:flex}.brand{display:flex;align-items:center;gap:9px;min-width:0}.brand img{width:32px;height:32px;border-radius:8px}.brand-name{font-size:18px;font-weight:800;letter-spacing:-.6px}.sub{font-size:10px;opacity:.82}.user-area{display:flex;align-items:center;gap:9px;min-width:0}.who{font-size:11px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#exit{border:1px solid #ffffff77;background:#ffffff20;color:#fff;border-radius:9px;padding:8px 10px;cursor:pointer;font-weight:700}
+#content{flex:1;position:relative;min-height:0;overflow:hidden}
+.pane{position:absolute;inset:0;display:none;background:#f3f7f5}
+.pane.active{display:block}
+.pane iframe{border:0;display:block;width:100%;height:100%;background:#f3f7f5}
+.placeholder{height:100%;display:grid;place-items:center;text-align:center;color:#527267;padding:24px;font-size:13px}
+#tabs{display:none;flex-shrink:0;justify-content:space-around;background:white;box-shadow:0 -2px 14px #0c2c1b15;padding:7px max(8px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));z-index:2}
+#tabs.visible{display:flex}#tabs button{border:0;background:transparent;color:#5c776b;font:650 11px system-ui;cursor:pointer;flex:1;min-width:0;min-height:49px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#tabs button[aria-selected="true"]{color:#0c8055;background:#e9f6ee;border-radius:11px;font-weight:800}#tabs svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.dot{height:5px;width:5px;border-radius:50%;background:#b5c8bd;display:inline-block;vertical-align:middle;margin-left:4px}.dot.ready{background:#22b468}
+#note{position:absolute;z-index:5;right:9px;top:9px;background:#f3fbf6;color:#336f50;border:1px solid #d8e9dc;border-radius:8px;font-size:11px;padding:5px 8px;pointer-events:none;transition:opacity .3s}#note:empty{display:none}
+@media (min-width:850px){#content{width:100%;margin:0 auto}.pane iframe{width:100%}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header id="shell-header"><div class="brand"><img src="./icon-192.png" alt=""><div><div class="brand-name">Gestark</div><div class="sub">Navegación rápida · Prueba</div></div></div><div class="user-area"><span class="who" id="shell-user"></span><button id="exit" type="button">Salir</button></div></header>
+<main id="content">
+ <section class="pane active" id="pane-home" aria-label="Inicio"><iframe id="frame-home" src="./" title="Inicio de Gestark" allow="camera; clipboard-write" referrerpolicy="same-origin"></iframe></section>
+ <section class="pane" id="pane-checklist" aria-label="Checklist"><div class="placeholder">Preparando Checklist…</div></section>
+ <section class="pane" id="pane-transfers" aria-label="Transferencias"><div class="placeholder">Preparando Transferencias…</div></section>
+ <span id="note" role="status" aria-live="polite"></span>
+</main>
+<nav id="tabs" aria-label="Secciones de Gestark">
+ <button type="button" data-tab="home" aria-selected="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3zM9 21v-8h6v8"/></svg><span>Inicio</span></button>
+ <button type="button" data-tab="checklist" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 11l2 2 4-4M8 17h8"/></svg><span>Checklist <span class="dot" id="dot-checklist"></span></span></button>
+ <button type="button" data-tab="transfers" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>Transferencias <span class="dot" id="dot-transfers"></span></span></button>
+</nav>
+<script>
+(() => {
+'use strict';
+const prefix=new URL('./',location.href);
+const panes={home:document.getElementById('pane-home'),checklist:document.getElementById('pane-checklist'),transfers:document.getElementById('pane-transfers')};
+const destinations={home:'./',checklist:'./checklist.html',transfers:'./notas-transferencias.html'};
+const routes=new Map([[prefix.pathname,'home'],[prefix.pathname+'index.html','home'],[prefix.pathname+'checklist.html','checklist'],[prefix.pathname+'notas-transferencias.html','transfers']]);
+const frames={};let active='home';let authorized=false;let prewarming=false;let loggedOut=false;
+const note=document.getElementById('note');
+const getFrame=key=>frames[key]||document.getElementById('frame-'+key);
+function notify(s){note.textContent=s;}
+function normalPath(url){return url.pathname;}
+function select(key,markHistory=true){
+ if(!Object.hasOwn(panes,key)||!authorized||loggedOut)return;
+ if(!frames[key])prepare(key);
+ for(const [name,pane] of Object.entries(panes))pane.classList.toggle('active',name===key);
+ active=key;
+ document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===key)));
+ if(markHistory)history.pushState({tab:key},'', '#'+key);
+ const frame=getFrame(key);
+ if(!frame?.dataset.ready)notify('Preparando sección…'); else notify('');
+}
+function freeze(){loggedOut=true;authorized=false;document.getElementById('shell-header').classList.remove('visible');document.getElementById('tabs').classList.remove('visible');for(const p of Object.values(panes))p.style.visibility='hidden';notify('Cerrando sesión…');}
+async function signOut(){
+ if(loggedOut)return;
+ const f=getFrame('home')||getFrame(active);
+ const fn=f?.contentWindow?.GestarkAuth?.logout;
+ freeze();
+ try{if(typeof fn==='function')await fn();}catch(_){/* La página de acceso volverá a validar */}
+ location.replace('./');
+}
+function attach(key,iframe){
+ const doc=iframe.contentDocument;
+ if(!doc)return;
+ const style=doc.createElement('style');
+ style.textContent='.bottom-nav,section.gestark-account-bar{display:none!important}';
+ (doc.head||doc.documentElement).append(style);
+ // Cambios de pestaña: no abrir otra página ni recargar los módulos existentes.
+ doc.addEventListener('click',event=>{
+   const target=event.target;
+   const out=target?.closest?.('.gestark-account-bar button');
+   if(out&&out.textContent.trim()==='Salir'){
+     event.preventDefault();event.stopImmediatePropagation();void signOut();return;
+   }
+   const a=target?.closest?.('a[href]');
+   if(!a||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.altKey||event.shiftKey||a.target==='_blank'||a.hasAttribute('download'))return;
+   let url;try{url=new URL(a.href,iframe.contentWindow.location.href)}catch(_){return}
+   if(url.origin!==location.origin||!url.pathname.startsWith(prefix.pathname))return;
+   const next=routes.get(normalPath(url));
+   if(next){event.preventDefault();event.stopImmediatePropagation();if(authorized)select(next);return;}
+   // En módulos no incluidos en el piloto se mantiene la navegación habitual.
+   event.preventDefault();event.stopImmediatePropagation();location.href=url.href;
+ },true);
+ const readyHandler=()=>{
+   const profile=iframe.contentWindow?.GestarkAuth?.getUser?.();
+   if(!profile)return;
+   iframe.dataset.ready='1';
+   if(key==='home')activate(profile);
+   const dot=document.getElementById('dot-'+key);if(dot)dot.classList.add('ready');
+   if(active===key)notify('');
+ };
+ doc.addEventListener('gestark:ready',readyHandler);
+ readyHandler();
+}
+function prepare(key){
+ if(frames[key])return;
+ const pane=panes[key];
+ const frame=document.createElement('iframe');frame.title=key==='checklist'?'Checklist de Gestark':'Transferencias de Gestark';
+ frame.loading='eager';frame.allow='clipboard-write';
+ frame.src=destinations[key];
+ frame.addEventListener('load',()=>attach(key,frame));
+ frames[key]=frame;pane.replaceChildren(frame);
+}
+function activate(profile){
+ if(loggedOut)return;
+ if(!authorized){
+   authorized=true;
+   document.getElementById('shell-header').classList.add('visible');
+   document.getElementById('tabs').classList.add('visible');
+   document.getElementById('shell-user').textContent=profile.name||profile.username;
+ }
+ if(!prewarming){
+   prewarming=true;
+   // Precarga después del acceso, sin recargar el apartado ya abierto.
+   const idle=window.requestIdleCallback?f=>requestIdleCallback(f,{timeout:1200}):f=>setTimeout(f,200);
+   idle(()=>{if(!authorized)return;prepare('checklist');setTimeout(()=>{if(authorized)prepare('transfers');},450);});
+ }
+}
+const home=document.getElementById('frame-home');frames.home=home;
+home.addEventListener('load',()=>attach('home',home));
+document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>select(b.dataset.tab)));
+document.getElementById('exit').addEventListener('click',()=>void signOut());
+window.addEventListener('popstate',()=>{const k=location.hash.replace(/^#/,'');if(Object.hasOwn(panes,k))select(k,false);});
+})();
+</script>
+</body>
+</html>
