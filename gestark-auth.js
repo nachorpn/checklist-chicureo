@@ -1,4 +1,4 @@
-/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.7 — navegación silenciosa)
+/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.10 — barra única nativa)
  * Sin autenticar contra usuarios.js ni contraseñas locales.
  * El usuario/alias se vincula solamente DESPUES de autenticar y autorizar Firebase.
  * Las asociaciones usuario->correo se guardan SOLO en el navegador actual.
@@ -125,8 +125,18 @@ async function authorizedIdentity(client, firebaseUser) {
   };
 }
 function css() {
+  // Un módulo dentro de gestark-app.html nunca muestra su barra inferior;
+  // la barra única pertenece al contenedor, no al iframe.
+  let embedded=false;
+  try {
+    embedded=window.parent!==window &&
+      window.parent.location.origin===location.origin &&
+      window.parent.location.pathname.endsWith('/gestark-app.html');
+  } catch(_) { embedded=false; }
+  if(embedded) document.documentElement.classList.add('gestark-native-embedded');
   const style = document.createElement('style');
   style.textContent = `
+html.gestark-native-embedded .bottom-nav,html.gestark-native-embedded .gestark-account-bar{display:none!important;visibility:hidden!important}
 html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}
 /* No se muestra el modal de verificación al entrar a cada sección. */
 html.gestark-checking,html.gestark-checking body{background:#f3f7f5!important}

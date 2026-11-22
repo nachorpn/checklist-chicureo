@@ -1,43 +1,29 @@
-GESTARK · EXPERIENCIA NATIVA · v2026.11.22.9
+GESTARK · Corrección barra inferior duplicada · 2026.11.22.10
 
-ARCHIVOS PARA SUBIR A LA RAIZ DE GITHUB (3):
-- gestark-app.html     (nuevo: no reemplaza el modo rápido probado)
-- manifest.webmanifest  (reemplazar)
-- gestark-sw.js  (reemplazar)
+PROBLEMA
+En iPhone se mostraban simultáneamente la navegación original de Transferencias (dentro del iframe) y la navegación fija nueva de Gestark.
 
-NO MODIFICAR: index.html, gestark-auth.js, notas-transferencias.js, checklist.html,
-colecciones Firestore, reglas, cuentas ni registros.
+ARCHIVOS PARA REEMPLAZAR EN LA RAÍZ DE GITHUB
+1. gestark-app.html
+2. gestark-auth.js
+3. gestark-sw.js
 
-ABRIR DESPUES DE PUBLICAR:
-https://nachorpn.github.io/checklist-chicureo/gestark-app.html
+INSTALACIÓN
+- GitHub → repositorio nachorpn/checklist-chicureo → Add file → Upload files.
+- Reemplaza exactamente estos tres archivos y confirma el commit.
+- Abre https://nachorpn.github.io/checklist-chicureo/gestark-app.html
+- Si persiste el estilo anterior en Safari, pulsa actualizar dos veces o cierra y vuelve a abrir la pestaña tras unos segundos. El nuevo service worker invalida la caché vieja.
 
-NOVEDADES:
-- 5 accesos: Inicio, Checklist, Clientes, Transferencias y Más.
-- Cambios instantáneos sin descargar de nuevo las secciones ya preparadas.
-- Inicio, Checklist y Transferencias se cargan al iniciar sesión; Clientes al abrir.
-- Detención de la cámara del módulo Clientes al cambiar de sección.
-- Menú Más: Repositorio, Contingencias, Calendario, Gestiones y herramientas según rol.
-- Navegación con botón Atrás, diseño seguro para iPhone y aspecto app instalada.
-- Botones de refrescar sección, actualizar aplicación y cerrar sesión.
-- El manifest apunta al nuevo inicio para nuevas instalaciones de la PWA.
+QUÉ CAMBIA
+- Oculta la barra y la banda de cuenta propias de los módulos cuando se abren dentro del contenedor nativo.
+- El contenedor vuelve a ocultarlas si un módulo las crea dinámicamente.
+- Conserva la navegación única de 5 pestañas, la sesión Firebase y la lógica de Transferencias.
 
-SEGURIDAD: cada módulo sigue verificando la sesión Firebase y permisos Firestore.
-No se cachean consultas a Firebase. La sincronización de Firestore sigue activa.
+QUÉ NO CAMBIA
+- No se modifican colecciones Firestore, reglas, registros, credenciales ni el funcionamiento interno de Transferencias.
+- Los módulos abiertos directamente fuera de la app siguen mostrando su navegación original.
+- La app clásica permanece accesible en el enlace principal /.
 
-RETORNO A LA VERSION CLASICA:
-https://nachorpn.github.io/checklist-chicureo/?modo=clasico
-La raíz clásica index.html y el modo rápido gestark-rapido.html NO han sido reemplazados.
-También puedes restaurar el
-manifest y el Service Worker anteriores mediante GitHub History/Revert.
-
-PRUEBA RECOMENDADA:
-1. Abrir la app nueva en Mac e iPhone.
-2. Probar Inicio/Checklist/Transferencias.
-3. Agregar una transferencia de prueba en Mac y confirmar en iPhone.
-4. Eliminarla desde el iPhone y verificar que desaparece en Mac.
-5. Probar el lector de Clientes y que la cámara se detiene al salir.
-
-NOTA: en iOS una PWA instalada previamente puede conservar el inicio antiguo.
-Antes de reinstalar, comprobar en Safari que la nueva URL funciona y que no
-hay datos pendientes exclusivamente en almacenamiento local. No borrar datos
-ni desinstalar hasta comprobarlo.
+VERIFICACIÓN
+- Abrir Transferencias y Checklist en iPhone: debe quedar una sola barra inferior (Inicio, Checklist, Clientes, Transferencias, Más).
+- Confirmar que un registro de prueba se actualice entre Mac y iPhone.

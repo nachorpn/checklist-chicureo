@@ -11,7 +11,7 @@
 <meta name="application-name" content="Gestark">
 <meta name="description" content="Gestark · Operaciones Sucursal Chicureo">
 <title>Gestark · App</title>
-<link rel="manifest" href="./manifest.webmanifest?v=2026.11.22.9">
+<link rel="manifest" href="./manifest.webmanifest?v=2026.11.22.10">
 <link rel="icon" type="image/png" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <style>
@@ -72,7 +72,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 <script>
 (() => {
 'use strict';
-const BUILD='2026.11.22.9';
+const BUILD='2026.11.22.10';
 const base=new URL('./',location.href);
 const available={
  home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
@@ -127,9 +127,33 @@ function handleLink(key,frame,event){
  // Otras páginas internas conservan su comportamiento original fuera de este shell.
  event.preventDefault();event.stopImmediatePropagation();location.href=url.href;
 }
+// La interfaz nativa ya contiene su barra inferior. Ocultar las barras propias
+// de los módulos incluso si el tema vuelve a crearlas después del primer render.
+function hideEmbeddedChrome(d){
+ if(!d?.documentElement)return;
+ d.documentElement.classList.add('gestark-native-embedded');
+ let rule=d.getElementById('gestark-native-hide-chrome');
+ if(!rule){
+  rule=d.createElement('style');rule.id='gestark-native-hide-chrome';
+  rule.textContent='html.gestark-native-embedded nav.bottom-nav,html.gestark-native-embedded .bottom-nav,html.gestark-native-embedded .gestark-account-bar{display:none!important;visibility:hidden!important}';
+  (d.head||d.documentElement).append(rule);
+ }
+ const hide=()=>{
+  for(const element of d.querySelectorAll('.bottom-nav,.gestark-account-bar')){
+   element.style.setProperty('display','none','important');
+   element.setAttribute('aria-hidden','true');
+  }
+ };
+ hide();
+ if(d.body&&!d.body.dataset.gestarkNativeWatching){
+  d.body.dataset.gestarkNativeWatching='1';
+  const watch=new MutationObserver(hide);
+  watch.observe(d.body,{childList:true});
+ }
+}
 function attach(key,frame){
  let d;try{d=frame.contentDocument}catch(_){return};if(!d)return;
- const style=d.createElement('style');style.textContent='.bottom-nav,.gestark-account-bar{display:none!important}';(d.head||d.documentElement).append(style);
+ hideEmbeddedChrome(d);
  d.addEventListener('click',e=>handleLink(key,frame,e),true);
  const detect=()=>{let user;try{user=frame.contentWindow?.GestarkAuth?.getUser?.()}catch(_){return};if(!user||user.provider!=='firebase')return;
   // No mezclar contenidos de perfiles diferentes dentro de una misma aplicación.
