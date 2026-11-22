@@ -1,69 +1,37 @@
-<!doctype html><html lang="es-CL"><head>
-<meta name="robots" content="noindex, nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#103e38">
-<title>Gestark | Administración de usuarios</title>
+<!doctype html>
+<html lang="es-CL"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#103e38">
+<title>Gestark | Administración Firebase</title>
+<link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <style>
 html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}
-:root{font-family:system-ui,-apple-system,Arial,sans-serif;background:#f3f7f5;color:#183930}*{box-sizing:border-box}body{margin:0}main{max-width:720px;margin:auto;padding:24px 16px 80px}
-a{color:#137b59}h1{font-size:25px;letter-spacing:-1px;margin:0 0 6px}h2{font-size:18px;letter-spacing:-.3px}p{color:#637d73;font-size:13px;line-height:1.55}header{background:#10463d;color:#fff;padding:25px 18px;border-radius:0 0 24px 24px}header .wrap{max-width:688px;margin:auto}header p{color:#c9e7dc;margin:7px 0 0}.panel{background:white;border:1px solid #dce9e3;border-radius:18px;padding:20px;margin:19px 0;box-shadow:0 6px 18px #1f48400a}
-label{display:block;font-weight:750;color:#386052;font-size:12px;margin-bottom:6px}input{width:100%;border:1px solid #cbded4;border-radius:10px;padding:12px;font-size:16px;margin-bottom:15px}
-button{border:0;border-radius:10px;background:#177d5a;color:white;font-weight:750;padding:12px 14px;cursor:pointer;min-height:43px}
-button.secondary{background:#e5f3ec;color:#146247}button.warn{background:#f7e9e9;color:#963c3c}.row{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}.user{padding:14px 0;border-bottom:1px solid #e2eee9}.user:last-child{border-bottom:0}.user-title{font-size:14px;font-weight:750}.muted{font-size:12px;color:#73867e}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}.chips button{font-size:11px;padding:7px 10px;min-height:32px}
-#admin-msg{margin-top:14px;color:#146b4f;font-size:13px;min-height:21px}small{font-size:11px;color:#799186}.callout{background:#f0f5f1;padding:13px;border-radius:12px;font-size:12px;color:#47665a;line-height:1.6}
-</style><link rel="manifest" href="./manifest.webmanifest?v=2026.11.17.3">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Gestark">
-<link rel="apple-touch-icon" href="./apple-touch-icon.png">
-<style id="gestark-native-feel">
-/* Gestark PWA: interacción de aplicación en pantalla táctil.
-   touch-action: manipulation evita doble toque para zoom y mantiene el zoom de accesibilidad con dos dedos. */
-html { touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-button, a, summary, [role="button"] {
-  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
-}
-input, textarea, select { touch-action: manipulation; }
-/* Evitar zoom automático de Safari al enfocar formularios pequeños. */
-@media (pointer: coarse) {
-  input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: max(16px, 1em) !important; }
-  .date-card input[type="date"] { width: 145px; max-width: 100%; }
-}
-@media (display-mode: standalone) {
-  html, body { min-height: 100%; }
-  body { overscroll-behavior-y: contain; }
-}
-</style>
-</head><body>
-<header><div class="wrap"><a style="color:#d2f1df" href="./">← Volver a Gestark</a><h1>Administración de usuarios</h1><p>Solo CIBC · Gestión de cuentas de la agencia</p></div></header>
+*{box-sizing:border-box}body{margin:0;background:#f3f7f5;color:#173c30;font-family:system-ui,-apple-system,sans-serif}
+header{background:#10463d;color:#fff;padding:24px 18px;border-radius:0 0 22px 22px}header .wrap{max-width:710px;margin:auto}header a{color:#e8fff3}h1{font-size:25px;margin:10px 0 3px}header p{color:#c9e7dc;font-size:13px;margin:0}
+main{max-width:745px;margin:auto;padding:18px 16px 80px}.panel{border:1px solid #d6e6dd;background:#fff;padding:20px;border-radius:17px;margin:14px 0;box-shadow:0 7px 20px #1f484010}h2{font-size:18px;margin:0 0 10px}p,li{font-size:14px;line-height:1.55;color:#456d5d}a.action{display:inline-block;padding:11px 14px;background:#167456;color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:10px;margin:5px 6px 5px 0}.alert{padding:11px;border:1px solid #efdcb0;background:#fff9e9;border-radius:10px}code{font-size:12px;background:#edf5f0;padding:2px 5px;border-radius:4px}#who{font-size:13px;font-weight:650;color:#2d6d55}
+</style></head><body>
+<header><div class="wrap"><a href="./">← Inicio de Gestark</a><h1>Administración Firebase</h1><p>Cuentas y permisos centralizados</p></div></header>
 <main>
-<section class="panel"><h2>Crear usuario</h2><p>Elige el identificador que utiliza tu organización. Las cuentas nuevas comienzan con la contraseña temporal <strong>1234</strong>.</p>
-<form id="create-form"><label for="new-user">Usuario</label><input id="new-user" required placeholder="Ej.: MNPQ" autocomplete="off" maxlength="30" pattern="[A-Za-z0-9_-]{2,30}" title="De 2 a 30 caracteres, letras, números, - o _"><label for="new-name">Nombre visible</label><input id="new-name" required placeholder="Nombre Apellido" maxlength="80"><button type="submit" id="create-button">Crear usuario</button></form><div id="admin-msg" role="status" aria-live="polite"></div></section>
-<section class="panel"><div class="row"><h2 style="margin:0">Usuarios de Gestark</h2><span class="muted" id="user-total">—</span></div><div id="user-list"></div></section>
-<section class="panel"><h2>Publicar cambios en otros celulares</h2><p>Los usuarios nuevos funcionan de inmediato en este dispositivo. Para que también puedan iniciar sesión en otros celulares, debes subir el archivo actualizado a GitHub.</p>
-<button id="export-users" type="button">Descargar usuarios.js actualizado</button><p class="callout">Después sube el nuevo <code>usuarios.js</code> a la raíz de <strong>checklist-chicureo</strong> en GitHub, reemplazando el existente. No necesitas volver a subir los otros archivos.</p>
-<small>GitHub Pages es público: esta autenticación es solo un acceso de conveniencia, no una medida de seguridad para datos confidenciales.</small></section>
+<section class="panel"><h2>Acceso del administrador</h2><p id="who">Verificando perfil…</p><p>Gestark ya no utiliza las cuentas locales de <code>usuarios.js</code>.</p></section>
+<section class="panel"><h2>Gestión de usuarios</h2>
+<p>Durante esta transición, la creación de cuentas, los restablecimientos y las bajas se hacen desde las consolas oficiales. No se pueden crear usuarios seguros de Authentication directamente desde una página pública de GitHub Pages sin un servicio administrativo protegido.</p>
+<a class="action" href="https://console.firebase.google.com/project/gestark-213f7/authentication/users" target="_blank" rel="noopener noreferrer">Cuentas · Authentication</a>
+<a class="action" href="https://console.firebase.google.com/project/gestark-213f7/firestore/data" target="_blank" rel="noopener noreferrer">Perfiles · Firestore</a>
+<p>Para suspender el acceso a los datos de Gestark, cambia <code>active</code> a <code>false</code> en el documento <code>authorized_users/{uid}</code>. Para una revocación más completa, deshabilita también la cuenta en Firebase Authentication.</p>
+</section>
+<section class="panel"><h2>Seguridad después de la migración</h2><p class="alert">Los hashes antiguos pueden seguir accesibles en el historial público de GitHub, aunque el archivo actual haya sido limpiado. Cambia las contraseñas migradas por contraseñas fuertes y exclusivas.</p>
+<p>Esta pantalla es transitoria. La futura administración dentro de Gestark necesitará un servicio confiable que compruebe el rol de administrador antes de crear, modificar o desactivar cuentas.</p></section>
 </main>
 <script>
-(() => {
- const u=document.createElement('script');
- u.src='./usuarios.js?actualizacion='+Date.now();
- u.onload=()=>{const auth=document.createElement('script');auth.src='./gestark-auth.js?v=2';auth.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div id="gestark-login" style="padding:30px;color:#a22;background:#fff">No se pudo cargar el acceso de Gestark. Comprueba tu conexión.</div>')};document.body.appendChild(auth)};
- u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<div id="gestark-login" style="padding:30px;color:#a22;background:#fff">No se pudo cargar el catálogo de usuarios. Comprueba tu conexión.</div>')};
- document.body.appendChild(u);
+(()=>{
+  const auth=document.createElement('script');auth.src='./gestark-auth.js?v=2026.11.22.5';document.body.append(auth);
 })();
+document.addEventListener('gestark:ready', event=>{
+  const user=event.detail;
+  const who=document.getElementById('who');
+  if(who)who.textContent=user?.name+' · '+user?.username+' · Administrador Firebase';
+});
 </script>
-<script>
-'use strict';
-const ga=()=>window.GestarkAuth;
-const msg=document.getElementById('admin-msg');
-function say(text){msg.textContent=text}
-function refresh(){const root=document.getElementById('user-list');root.replaceChildren();const arr=ga().users();document.getElementById('user-total').textContent=arr.length+' cuentas';for(const u of arr){const item=document.createElement('div');item.className='user';const top=document.createElement('div');top.className='row';const txt=document.createElement('div');const label=document.createElement('div');label.className='user-title';label.textContent=u.username+' · '+u.name;const sub=document.createElement('div');sub.className='muted';sub.textContent=(u.role==='admin'?'Administrador':'Trabajador')+' · '+(u.enabled?'Activo':'Desactivado');txt.append(label,sub);top.append(txt);item.append(top);
- if(u.role!=='admin'){const controls=document.createElement('div');controls.className='chips';const reset=document.createElement('button');reset.className='secondary';reset.textContent='Restablecer clave a 1234';reset.onclick=async()=>{if(!confirm('¿Restablecer la contraseña de '+u.username+' a 1234?'))return;reset.disabled=true;try{const ver=await ga().makeVerifier('1234');ga().localSave({...u,...ver});say('Clave temporal configurada. Descarga usuarios.js para compartir el cambio.');refresh()}catch(e){say('Error: '+e.message);reset.disabled=false}};controls.append(reset);
- const toggle=document.createElement('button');toggle.className=u.enabled?'warn':'secondary';toggle.textContent=u.enabled?'Desactivar':'Activar';toggle.onclick=()=>{ga().localSave({...u,enabled:!u.enabled});say('Estado actualizado. Exporta usuarios.js para sincronizar otros dispositivos.');refresh()};controls.append(toggle);item.append(controls)}root.append(item)}}
-document.getElementById('create-form').onsubmit=async e=>{e.preventDefault();const username=document.getElementById('new-user').value.trim().toUpperCase(),name=document.getElementById('new-name').value.trim().replace(/\s+/g,' ');if(!/^[A-Z0-9_-]{2,30}$/.test(username)){say('El identificador debe tener entre 2 y 30 letras, números, _ o -.');return}if(name.length<2){say('Ingresa un nombre válido.');return}if(ga().getById(username)){say('Ese usuario ya existe.');return}const button=document.getElementById('create-button');button.disabled=true;try{const verifier=await ga().makeVerifier('1234');ga().localSave({username,name,role:'user',enabled:true,...verifier});say('Usuario '+username+' creado con contraseña temporal 1234. Descarga usuarios.js para compartirlo.');e.target.reset();refresh()}catch(error){say('No se pudo crear: '+error.message)}finally{button.disabled=false}};
-document.getElementById('export-users').onclick=()=>{const payload='/* Gestark: verificadores de acceso local. No colocar contraseñas en texto plano. */\nwindow.GESTARK_USERS = '+JSON.stringify(ga().users(),null,2)+';\n';const blob=new Blob([payload],{type:'text/javascript;charset=utf-8'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='usuarios.js';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000)};
-document.addEventListener('gestark:ready',refresh);
-</script><noscript>Activa JavaScript para administrar las cuentas.</noscript>
-<script src="./gestark-updates.js?v=2026.11.17.3"></script>
+<noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
 <script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body></html>

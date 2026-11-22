@@ -1,32 +1,32 @@
-GESTARK · Transferencias principales con Firebase · v2026.11.22.5
+GESTARK — CORTE A FIREBASE AUTH ÚNICO — 2026.11.22.5
 
-1) ANTES: comprueba que las reglas de gestark_transfers_v1 están publicadas.
-2) En GitHub /nachorpn/checklist-chicureo/ carga a la raíz:
-   notas-transferencias.js (REEMPLAZA el archivo anterior)
-   No toques entregas-contingentes.js ni la autenticación.
-3) Al desplegar GitHub Pages, vuelve a abrir:
-   https://nachorpn.github.io/checklist-chicureo/notas-transferencias.html
-4) Si el navegador conserva la versión anterior, refresca la PWA / limpia su
-   caché y recarga. El HTML original incluye un número de versión antiguo
-   en la ruta JS, que conviene actualizar en una siguiente publicación.
-5) Inicia sesión con correo Firebase y perfil autorizado. Los usuarios
-   con acceso LOCAL todavía no cuentan automáticamente con acceso Firebase.
-6) Prueba con cliente ficticio, dos dispositivos y dos cuentas distintas.
+IMPORTANTE: El ingreso con solo siglas de usuario NO está implementado aún.
+Esta versión usa correo y contraseña de Firebase, ya probados con los 5 perfiles.
+No subas a GitHub los archivos JSON de importación ni contraseñas.
 
-FUNCIONES
-- Crear, editar, sumar monto, cambiar Sí/No y eliminar en Firebase.
-- Usuarios activos con roles 'admin' o 'user' tienen permisos equivalentes.
-- Exportación agrupada a Excel y WhatsApp.
-- Botón Vaciar transferencias elimina en Firebase en TODOS los dispositivos.
-- Cobros en efectivo siguen almacenados localmente (no sincronizados).
-- Cobros contingentes por transferencia se importan al entrar a esta
-  pantalla y se retiran de la cola local SOLO después de confirmación
-  de Firestore. No toca el historial de entregas.
-- No se importan automáticamente anotaciones manuales anteriores.
+QUÉ REEMPLAZAR EN LA RAÍZ DE checklist-chicureo:
+  1. gestark-auth.js          -> elimina el inicio local y permite solo Firebase
+  2. usuarios.js              -> catálogo vacío, sin hashes ni sales
+  3. admin.html               -> página segura transitoria (gestión por Firebase Console)
+  4. gestark-sw.js            -> renueva caché PWA; expulsa caché antigua al actualizar
 
-IMPORTANTE
-La sincronización del prototipo independiente ya se comprobó, pero
-ESTE ARCHIVO PRINCIPAL NO HA SIDO PROBADO TODAVÍA en producción.
-Guarda una copia del JS original por si necesitas volver atrás.
-Las eliminaciones son definitivas. No uses datos reales hasta confirmar
-el funcionamiento de esta integración.
+NO CAMBIAR: las reglas de Firestore, los datos de Transferencias,
+los perfiles authorized_users, la configuración Firebase, ni otros archivos.
+
+PASOS
+1. Respalda los cuatro archivos actuales desde GitHub o descarga un ZIP del repositorio.
+2. Subelos juntos mediante GitHub > Add file > Upload files > Commit changes.
+3. Abre Gestark en ventana privada. Debe pedir CORREO y contraseña Firebase; nunca clave local.
+4. Inicia sesión con CIBC y comprueba Transferencias. Comprueba un trabajador en otro equipo.
+5. En iPhone, abre la PWA con internet, actualízala y confirma acceso.
+6. Si algo falla, restaura los cuatro archivos anteriores desde el respaldo.
+
+LIMITACIONES
+- La administración de cuentas desde la propia Gestark requiere un backend protegido;
+  por ahora la página de administración enlaza a la consola Firebase.
+- Los hashes antiguos siguen en el historial de GitHub; cambia las contraseñas
+  por contraseñas fuertes y exclusivas después de la migración.
+- Las páginas HTML existentes todavía intentan cargar usuarios.js: por eso lo
+  conservamos como archivo vacío, sin credenciales.
+- El modo offline no debe otorgar acceso a módulos sensibles si no hay sesión validada.
+- Las reglas de Firestore, y NO el ocultamiento visual de GitHub Pages, protegen los datos.
