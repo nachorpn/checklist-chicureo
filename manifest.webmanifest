@@ -2,47 +2,23 @@
   "id": "./",
   "name": "Gestark · Greenbox",
   "short_name": "Gestark",
-  "description": "Gestark: operaciones, checklist diario, enlaces y gestiones de agencia.",
-  "start_url": "./",
+  "description": "Gestark: operaciones, checklist, clientes y transferencias de Sucursal Chicureo.",
+  "start_url": "./gestark-app.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone"],
   "background_color": "#f3f7f5",
-  "theme_color": "#103d38",
+  "theme_color": "#0c493d",
   "lang": "es-CL",
-  "icons": [
-    {
-      "src": "./icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "./icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "./icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ],
-  "display_override": [
-    "standalone"
-  ],
   "orientation": "any",
+  "icons": [
+    {"src":"./icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"./icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ],
   "shortcuts": [
-    {
-      "name": "Checklist",
-      "short_name": "Checklist",
-      "url": "./checklist.html"
-    },
-    {
-      "name": "Repositorio",
-      "short_name": "Enlaces",
-      "url": "./repositorio.html"
-    }
+    {"name":"Checklist","short_name":"Checklist","url":"./gestark-app.html#checklist"},
+    {"name":"Clientes","short_name":"Clientes","url":"./gestark-app.html#clients"},
+    {"name":"Transferencias","short_name":"Transferencias","url":"./gestark-app.html#transfers"}
   ]
 }

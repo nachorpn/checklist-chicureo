@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c493d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gestark">
+<meta name="application-name" content="Gestark">
+<meta name="description" content="Gestark · Operaciones Sucursal Chicureo">
+<title>Gestark · App</title>
+<link rel="manifest" href="./manifest.webmanifest?v=2026.11.22.9">
+<link rel="icon" type="image/png" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<style>
+:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#f3f7f5;color:#173f34;font-synthesis:none}
+*{box-sizing:border-box}
+html,body{height:100%;height:100dvh;margin:0;overflow:hidden}
+body{display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+button,a{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button{font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2px}
+[hidden]{display:none!important}
+#native-header{min-height:calc(57px + env(safe-area-inset-top));padding:env(safe-area-inset-top) max(13px,env(safe-area-inset-right)) 0 max(13px,env(safe-area-inset-left));background:linear-gradient(120deg,#0b463e,#137753);color:white;display:none;align-items:center;justify-content:space-between;gap:8px;box-shadow:0 2px 14px #0d493824;z-index:5}
+#native-header.visible{display:flex}.header-brand{display:flex;align-items:center;gap:9px;min-width:0}.header-brand img{width:33px;height:33px;border-radius:9px;box-shadow:0 1px 4px #022b2044}.brand-copy{min-width:0}.brand-title{font-size:17px;line-height:1.12;font-weight:850;letter-spacing:-.55px}.brand-sub{margin-top:3px;font-size:10px;opacity:.83;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-actions{display:flex;gap:7px;align-items:center}.icon-button{display:grid;place-items:center;width:37px;height:37px;flex:none;border:1px solid #ffffff55;border-radius:11px;background:#ffffff1c;color:white}.icon-button svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+#online-pill{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:#f7fff9}.status-dot{width:6px;height:6px;border-radius:50%;background:#66e4aa}#online-pill.offline .status-dot{background:#ffc36a}
+#app-body{position:relative;flex:1;min-height:0;background:#f3f7f5}
+.pane{position:absolute;inset:0;display:none;overflow:hidden;background:#f3f7f5}.pane.active{display:block}.pane iframe{display:block;width:100%;height:100%;border:0;background:#f3f7f5}
+#pane-home{display:block}#pane-home:not(.active){display:none}
+#native-tabs{z-index:6;display:none;flex-shrink:0;gap:2px;justify-content:center;align-items:stretch;border-top:1px solid #dbe9e2;background:#fffffff2;-webkit-backdrop-filter:blur(17px);backdrop-filter:blur(17px);box-shadow:0 -4px 17px #163a2d10;padding:6px max(6px,env(safe-area-inset-right)) calc(5px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
+#native-tabs.visible{display:flex}#native-tabs button{min-width:0;max-width:160px;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;min-height:51px;padding:5px 2px;border:0;background:transparent;border-radius:12px;font-size:10px;font-weight:700;white-space:nowrap;color:#74877c}#native-tabs button[aria-selected="true"]{background:#e8f5ee;color:#08754e;font-weight:850}#native-tabs svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#more-view{height:100%;overflow:auto;overscroll-behavior:contain;padding:16px 16px 30px;background:#f3f7f5}#more-view>.more-inner{max-width:740px;margin:auto}#more-view h1{font-size:24px;letter-spacing:-.65px;margin:6px 0 4px}#more-view .subtitle{color:#688276;font-size:13px;margin:0 0 17px}.section-label{font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:1px;color:#658074;margin:22px 3px 9px}.menu-group{background:white;border:1px solid #e1ede6;border-radius:17px;overflow:hidden;box-shadow:0 4px 18px #153b2920}.menu-row{width:100%;min-height:57px;padding:11px 13px;display:flex;align-items:center;gap:11px;text-decoration:none;text-align:left;border:0;border-bottom:1px solid #eef2ef;background:white;color:#224f3c;font-weight:760;font-size:13px}.menu-row:last-child{border-bottom:0}.menu-row:active{background:#eff8f2}.menu-glyph{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:#e8f6ef;font-size:17px;flex:none}.menu-copy{flex:1;min-width:0}.menu-copy small{display:block;color:#6c8277;font-size:11px;font-weight:500;margin-top:2px}.menu-chevron{color:#94a69a;font-size:20px;font-weight:400}.app-footnote{color:#87978d;font-size:11px;text-align:center;margin:23px 0}
+#extra-banner{position:absolute;top:0;left:0;right:0;min-height:44px;display:flex;align-items:center;gap:9px;padding:6px max(12px,env(safe-area-inset-right)) 6px max(12px,env(safe-area-inset-left));background:#e6f4eb;color:#175842;font-weight:750;font-size:12px;z-index:2;border-bottom:1px solid #cce6d6}#extra-banner button{border:0;background:#ccead8;color:#13593e;padding:7px 9px;border-radius:9px;font-weight:750}#pane-extra iframe{padding-top:44px}
+#native-toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);padding:8px 13px;background:#f4faf5;border:1px solid #cfebdc;border-radius:12px;color:#215f44;font-size:12px;font-weight:700;box-shadow:0 3px 13px #11332614;z-index:7;pointer-events:none;max-width:min(340px,92%);text-align:center}
+#app-menu{position:fixed;inset:0;z-index:20;display:none;align-items:flex-end;justify-content:center;background:#0b231b85;padding:15px 12px calc(16px + env(safe-area-inset-bottom))}#app-menu.open{display:flex}.sheet{width:min(100%,420px);padding:17px;border-radius:22px;background:white;box-shadow:0 20px 54px #001b1244}.sheet h2{margin:0 0 4px;font-size:18px}.sheet p{margin:0 0 14px;font-size:12px;color:#75877d}.sheet button,.sheet a{display:block;width:100%;padding:12px;border:0;border-radius:11px;text-decoration:none;text-align:left;background:#eef6f0;color:#1a6246;font-size:13px;font-weight:760;margin:6px 0;cursor:pointer}.sheet .danger{color:#a72a3c;background:#fff0f0}.sheet .neutral{color:#65766e;background:#f3f5f3}
+@media(min-width:850px){#native-header{padding-left:max(calc((100% - 850px)/2),20px);padding-right:max(calc((100% - 850px)/2),20px)}#more-view>.more-inner{max-width:720px}#native-tabs button{min-height:53px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header id="native-header"><div class="header-brand"><img src="./icon-192.png" alt=""><div class="brand-copy"><div class="brand-title">Gestark</div><div class="brand-sub" id="person-label">Sucursal Chicureo</div></div></div><div class="header-actions"><span id="online-pill" aria-label="Estado de conectividad"><span class="status-dot"></span><span id="online-label">En línea</span></span><button id="refresh-section" class="icon-button" aria-label="Actualizar sección" title="Actualizar sección"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 1-2.2-5.8M20 4v6h-6"/></svg></button><button id="open-app-menu" class="icon-button" aria-label="Opciones de Gestark" title="Opciones de Gestark"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button></div></header>
+<main id="app-body">
+ <section class="pane active" id="pane-home" aria-label="Inicio"><iframe id="frame-home" src="./" title="Inicio de Gestark" allow="camera; clipboard-write" referrerpolicy="same-origin"></iframe></section>
+ <section class="pane" id="pane-checklist" aria-label="Checklist"></section>
+ <section class="pane" id="pane-clients" aria-label="Clientes"></section>
+ <section class="pane" id="pane-transfers" aria-label="Transferencias"></section>
+ <section class="pane" id="pane-more" aria-label="Más herramientas"><div id="more-view"><div class="more-inner"><h1>Más herramientas</h1><p class="subtitle">Accesos de Sucursal Chicureo</p><div class="section-label">Operaciones</div><div class="menu-group">
+  <button class="menu-row" data-open="repositorio"><span class="menu-glyph">🔗</span><span class="menu-copy">Repositorio de links<small>Formularios y archivos de trabajo</small></span><span class="menu-chevron">›</span></button>
+  <button class="menu-row" data-open="contingencias"><span class="menu-glyph">📦</span><span class="menu-copy">Entregas contingentes<small>Registro de contingencias</small></span><span class="menu-chevron">›</span></button>
+  <button class="menu-row" data-open="calendario"><span class="menu-glyph">📆</span><span class="menu-copy">Calendario<small>Fechas y feriados</small></span><span class="menu-chevron">›</span></button>
+  <button class="menu-row" id="traslados-action" data-open="traslados" hidden><span class="menu-glyph">🚐</span><span class="menu-copy">Registro de traslados<small>Acceso según permisos</small></span><span class="menu-chevron">›</span></button>
+ </div><div class="section-label">Herramientas adicionales</div><div class="menu-group">
+  <a class="menu-row" href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiUD06FKRYXJZIncdeqhvYNd9URTFXTFpDNVZROE80UkZCMk5ZV1dEWkMzNS4u" target="_blank" rel="noopener noreferrer"><span class="menu-glyph">📝</span><span class="menu-copy">Gestiones Chicureo<small>Abrir formulario de Microsoft</small></span><span class="menu-chevron">↗</span></a>
+  <a class="menu-row" href="./escaner.html" target="_blank" rel="noopener noreferrer"><span class="menu-glyph">▦</span><span class="menu-copy">Escáner independiente<small>Se abre aparte para gestionar su cámara</small></span><span class="menu-chevron">↗</span></a>
+  <button class="menu-row" id="admin-action" data-open="admin" hidden><span class="menu-glyph">⚙️</span><span class="menu-copy">Administración Firebase<small>Solo administradores</small></span><span class="menu-chevron">›</span></button>
+  <button class="menu-row" id="lab-action" data-open="laboratorio" hidden><span class="menu-glyph">🧪</span><span class="menu-copy">Laboratorio<small>Solo administradores</small></span><span class="menu-chevron">›</span></button>
+ </div><p class="app-footnote">Gestark · Navegación rápida · Firebase</p></div></div></section>
+ <section class="pane" id="pane-extra" aria-label="Herramienta"><div id="extra-banner"><button id="back-more" type="button">‹ Volver</button><span id="extra-title">Herramienta</span></div><div id="extra-slot" style="height:100%"></div></section>
+ <div id="native-toast" role="status" aria-live="polite" hidden></div>
+</main>
+<nav id="native-tabs" aria-label="Navegación principal de Gestark">
+ <button type="button" data-tab="home" aria-label="Inicio" aria-selected="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3zM9 21v-8h6v8"/></svg><span>Inicio</span></button>
+ <button type="button" data-tab="checklist" aria-label="Checklist" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 11l2 2 4-4M8 17h8"/></svg><span>Checklist</span></button>
+ <button type="button" data-tab="clients" aria-label="Clientes" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 5h5M4 5v5M15 5h5v5M4 15v5h5M20 15v5M5 12h14M9 9v6m3-6v6m3-6v6"/></svg><span>Clientes</span></button>
+ <button type="button" data-tab="transfers" aria-label="Transferencias" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>Transferencias</span></button>
+ <button type="button" data-tab="more" aria-label="Más herramientas" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>Más</span></button>
+</nav>
+<div id="app-menu" role="dialog" aria-modal="true" aria-labelledby="menu-title"><div class="sheet"><h2 id="menu-title">Opciones de Gestark</h2><p id="menu-user">Sesión Firebase</p><button id="reload-app">Actualizar aplicación</button><a href="./?modo=clasico" id="classic-link">Abrir versión clásica</a><button id="install-help">Instalar en pantalla de inicio</button><button id="exit-account" class="danger">Cerrar sesión</button><button id="close-app-menu" class="neutral">Cancelar</button></div></div>
+<script>
+(() => {
+'use strict';
+const BUILD='2026.11.22.9';
+const base=new URL('./',location.href);
+const available={
+ home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
+ clients:{path:'./entregas-clientes.html',title:'Clientes'}, transfers:{path:'./notas-transferencias.html',title:'Transferencias'},
+ repositorio:{path:'./repositorio.html',title:'Repositorio de links'},
+ contingencias:{path:'./entregas-contingentes.html',title:'Entregas contingentes'},
+ calendario:{path:'./calendario.html',title:'Calendario'},
+ traslados:{path:'./traslados.html',title:'Registro de traslados'},
+ admin:{path:'./admin.html',title:'Administración Firebase',admin:true},
+ laboratorio:{path:'./laboratorio.html',title:'Laboratorio',admin:true}
+};
+const core=new Set(['home','checklist','clients','transfers']);
+const routes=new Map([[base.pathname,'home'],[base.pathname+'index.html','home']]);
+for(const [key,val] of Object.entries(available)) routes.set(new URL(val.path,base).pathname,key);
+const panes={};for(const key of ['home','checklist','clients','transfers','more','extra']) panes[key]=document.getElementById('pane-'+key);
+const frames={home:document.getElementById('frame-home')};
+const $=id=>document.getElementById(id);
+let profile=null;let active='home';let signingOut=false;let warmStarted=false;
+let toastTimeout=null;
+function showToast(message,duration=1800){const el=$('native-toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.hidden=true,duration)}
+function setOnline(){const ok=navigator.onLine;$('online-pill').classList.toggle('offline',!ok);$('online-label').textContent=ok?'En línea':'Sin red';$('online-pill').title=ok?'Conectividad del dispositivo; el módulo confirma la sincronización Firebase.':'Sin conexión de red'}
+function parseHash(){const key=decodeURIComponent(location.hash.slice(1));return Object.hasOwn(available,key)||key==='more'?key:'home'}
+function stopCamera(key){if(key!=='clients')return;const f=frames[key];if(!f)return;try{const d=f.contentDocument;const b=d?.getElementById('stop-cam');if(b&&!b.disabled)b.click();}catch(_){}}
+function markTab(key){const selected=core.has(key)?key:key==='more'?'more':'more';for(const b of document.querySelectorAll('#native-tabs button')){const on=b.dataset.tab===selected;b.setAttribute('aria-selected',String(on));if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')}}
+function frameFor(key){if(frames[key])return frames[key];const data=available[key];if(!data)return null;const frame=document.createElement('iframe');frame.title=data.title;frame.src=data.path;frame.loading='eager';frame.setAttribute('allow','camera; microphone; clipboard-write');frame.setAttribute('referrerpolicy','same-origin');frames[key]=frame;frame.addEventListener('load',()=>attach(key,frame));if(core.has(key)){panes[key].replaceChildren(frame)}else{$('extra-slot').append(frame);frame.hidden=true;}return frame;}
+function showExtra(key){const frame=frameFor(key);if(!frame)return;$('extra-title').textContent=available[key].title;for(const [k,f] of Object.entries(frames))if(!core.has(k))f.hidden=k!==key;}
+function select(key,push=true){
+ if(!profile||signingOut)return;
+ if(!Object.hasOwn(available,key)&&key!=='more')return;
+ if((available[key]?.admin&&profile.role!=='admin')||(key==='traslados'&&profile.username!=='SCMN')){showToast('No tienes permiso para esta sección.');return}
+ if(key===active){if(key==='more')$('more-view').scrollTop=0;return}
+ stopCamera(active);
+ const paneName=core.has(key)?key:key==='more'?'more':'extra';
+ if(core.has(key)) frameFor(key);
+ else if(key!=='more')showExtra(key);
+ for(const [k,p] of Object.entries(panes)){const on=k===paneName;p.classList.toggle('active',on);p.setAttribute('aria-hidden',String(!on));}
+ active=key;markTab(key);
+ if(push)history.pushState({tab:key},'', '#'+key);
+ if(available[key]&&frames[key]&&!frames[key].dataset.ready)showToast('Abriendo '+available[key].title+'…',1500);
+}
+function freeze(){signingOut=true;profile=null;$('native-header').classList.remove('visible');$('native-tabs').classList.remove('visible');$('app-menu').classList.remove('open');for(const p of Object.values(panes))p.style.visibility='hidden';}
+async function signOut(){if(signingOut)return;const home=frames.home;const fn=home?.contentWindow?.GestarkAuth?.logout;freeze();try{if(typeof fn==='function')await fn();}catch(_){}location.replace('./gestark-app.html');}
+function handleLink(key,frame,event){
+ const element=event.target;if(!element||typeof element.closest!=='function')return;
+ const a=element.closest('a[href]');
+ if(!a||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.altKey||event.shiftKey||a.hasAttribute('download')||a.target==='_blank'||a.target==='_top')return;
+ let url;try{url=new URL(a.href,frame.contentWindow.location.href)}catch(_){return}
+ if(url.origin!==location.origin||!url.pathname.startsWith(base.pathname))return;
+ if(url.pathname===frame.contentWindow.location.pathname&&url.hash&&url.hash!==frame.contentWindow.location.hash)return;
+ const next=routes.get(url.pathname);
+ if(next){event.preventDefault();event.stopImmediatePropagation();if(profile)select(next);return}
+ // Otras páginas internas conservan su comportamiento original fuera de este shell.
+ event.preventDefault();event.stopImmediatePropagation();location.href=url.href;
+}
+function attach(key,frame){
+ let d;try{d=frame.contentDocument}catch(_){return};if(!d)return;
+ const style=d.createElement('style');style.textContent='.bottom-nav,.gestark-account-bar{display:none!important}';(d.head||d.documentElement).append(style);
+ d.addEventListener('click',e=>handleLink(key,frame,e),true);
+ const detect=()=>{let user;try{user=frame.contentWindow?.GestarkAuth?.getUser?.()}catch(_){return};if(!user||user.provider!=='firebase')return;
+  // No mezclar contenidos de perfiles diferentes dentro de una misma aplicación.
+  if(profile&&profile.uid!==user.uid){freeze();location.replace('./gestark-app.html');return}
+  frame.dataset.ready='1';if(key==='home')authorized(user);
+ };
+ d.addEventListener('gestark:ready',detect);detect();
+}
+function authorized(user){if(signingOut)return;
+ if(!profile){profile=user;
+ $('native-header').classList.add('visible');$('native-tabs').classList.add('visible');$('person-label').textContent=user.name||user.username;
+ $('menu-user').textContent=(user.name||user.username)+' · '+user.username+' · Firebase';
+ $('admin-action').hidden=user.role!=='admin';$('lab-action').hidden=user.role!=='admin';$('traslados-action').hidden=user.username!=='SCMN';
+ const requested=parseHash();history.replaceState({tab:requested},'', '#'+requested);
+ if(requested!=='home')select(requested,false);
+ }
+ if(!warmStarted){warmStarted=true;const idle=window.requestIdleCallback?cb=>requestIdleCallback(cb,{timeout:1800}):cb=>setTimeout(cb,240);
+   idle(()=>{if(!profile)return;frameFor('checklist');setTimeout(()=>{if(profile)frameFor('transfers');},350)});
+ }
+}
+function refreshCurrent(){if(!profile)return;const key=active;if(key==='more'){location.reload();return}const f=frames[key];if(!f)return;const u=new URL(available[key].path,base);u.searchParams.set('actualizar',String(Date.now()));f.dataset.ready='';f.src=u.href;showToast('Actualizando '+available[key].title+'…',1500)}
+function menu(open){$('app-menu').classList.toggle('open',open)}
+function installHelp(){menu(false);if(/iPad|iPhone|iPod/.test(navigator.userAgent)){alert('En Safari, toca Compartir y después «Agregar a pantalla de inicio». Si ya tenías Gestark instalada, abre esta nueva versión antes de agregarla.');}else alert('En Chrome o Edge, utiliza el menú del navegador y elige «Instalar aplicación».');}
+const home=frames.home;home.addEventListener('load',()=>attach('home',home));
+for(const b of document.querySelectorAll('#native-tabs button'))b.addEventListener('click',()=>select(b.dataset.tab));
+for(const b of document.querySelectorAll('[data-open]'))b.addEventListener('click',()=>select(b.dataset.open));
+$('back-more').addEventListener('click',()=>select('more'));
+$('refresh-section').addEventListener('click',refreshCurrent);
+$('open-app-menu').addEventListener('click',()=>menu(true));$('close-app-menu').addEventListener('click',()=>menu(false));
+$('app-menu').addEventListener('click',e=>{if(e.target===$('app-menu'))menu(false)});
+$('exit-account').addEventListener('click',()=>void signOut());
+$('reload-app').addEventListener('click',()=>location.reload());
+$('install-help').addEventListener('click',installHelp);
+window.addEventListener('online',setOnline);window.addEventListener('offline',setOnline);setOnline();
+window.addEventListener('popstate',()=>{if(profile){const key=parseHash();if(key!==active)select(key,false)}});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('app-menu').classList.contains('open'))menu(false)});
+// Evitar que vuelva a quedar activa una cámara al abandonar Gestark.
+window.addEventListener('pagehide',()=>stopCamera(active));
+// Mantener la URL del shell compatible con el botón atrás de iPhone/Android.
+if(!location.hash)history.replaceState({tab:'home'},'', '#home');
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{
+  navigator.serviceWorker.register(new URL('./gestark-sw.js?v='+BUILD,base),{scope:base.pathname}).then(reg=>reg.update()).catch(()=>{});
+});}
+})();
+</script>
+</body>
+</html>
