@@ -1,10 +1,10 @@
-/* Gestark · instalador PWA 2026.11.22.16.
+/* Gestark · instalador PWA 2026.11.22.17.
  * El contenedor nativo registra el Service Worker una sola vez.
  * Los módulos abiertos dentro de iframes NO lo registran nuevamente.
  */
 (() => {
  'use strict';
- const VERSION='2026.11.22.16';
+ const VERSION='2026.11.22.17';
  const appBase=new URL('./',document.currentScript?.src||location.href);
  // Activar la sincronización de Entregas clientes después de validar Firebase.
  // Compatible con la pestaña nativa (iframe) y el acceso clásico directo.
@@ -13,7 +13,7 @@
      if(window.__gestarkClientsCloudRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
      window.__gestarkClientsCloudRequested=true;
      const script=document.createElement('script');
-     script.src='./gestark-clientes-cloud.js?v=2026.11.22.16';
+     script.src='./gestark-clientes-cloud.js?v=2026.11.22.17';
      script.async=true;
      script.onerror=()=>{
        window.__gestarkClientsCloudRequested=false;
@@ -31,7 +31,7 @@
      if(window.__gestarkClientsUiRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
      window.__gestarkClientsUiRequested=true;
      const script=document.createElement('script');
-     script.src='./gestark-clientes-ui.js?v=2026.11.22.16';
+     script.src='./gestark-clientes-ui.js?v=2026.11.22.17';
      script.async=true;
      script.onerror=()=>{window.__gestarkClientsUiRequested=false;console.warn('Gestark: vista de archivo no disponible; se conserva la nómina anterior.')};
      document.head.append(script);

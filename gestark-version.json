@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.22.16",
+  "version": "2026.11.22.17",
   "name": "Gestark",
-  "changes": "Entregas clientes: Nómina operativa prioriza O.F. pendientes; confirmación de cierre, archivo por fecha de cierre, reapertura sincronizada y compatibilidad con cierres históricos.",
+  "changes": "Notificaciones push: Checklist 12:30, O.F. pendientes 10:00/13:30/17:00 de lunes a viernes, horarios de Santiago; suscripción por dispositivo con Firestore y GitHub Actions.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",

@@ -74,7 +74,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 <script>
 (() => {
 'use strict';
-const BUILD='2026.11.22.16';
+const BUILD='2026.11.22.17';
 const base=new URL('./',location.href);
 const available={
  home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
@@ -195,6 +195,8 @@ function authorized(user){if(signingOut)return;
  $('native-header').classList.add('visible');$('native-tabs').classList.add('visible');$('person-label').textContent=user.name||user.username;
  $('menu-user').textContent=(user.name||user.username)+' · '+user.username+' · Firebase';
  $('admin-action').hidden=user.role!=='admin';$('lab-action').hidden=user.role!=='admin';$('traslados-action').hidden=user.username!=='SCMN';
+ window.__gestarkPendingPushUser=user;
+ window.GestarkPush?.init?.(user);
  const requested=parseHash();history.replaceState({tab:requested},'', '#'+requested);
  if(requested!=='home')select(requested,false);
  }
@@ -227,5 +229,6 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>{
 });}
 })();
 </script>
+<script src="./gestark-push.js?v=2026.11.22.17"></script>
 </body>
 </html>
