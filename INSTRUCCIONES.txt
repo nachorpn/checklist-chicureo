@@ -1,27 +1,32 @@
-GESTARK · NAVEGACIÓN SIN PANTALLA DE VERIFICACIÓN · 2026.11.22.7
+GESTARK — PARCHE DE AUDITORÍA 2026.11.22.13
+===========================================
+El ZIP no modifica tu GitHub ni Firebase automáticamente.
 
-OBJETIVO
-- Evitar que aparezca la pantalla verde «Verificando sesión segura…» en
-  cada navegación entre módulos cuando el usuario ya está conectado.
-- Mantener Firebase Authentication y una validación fresca de authorized_users/{uid}.
-- No revelar el contenido de los módulos mientras la autorización está pendiente.
-- Mostrar el formulario de inicio de sesión únicamente cuando se necesita.
+ANTES DE PUBLICAR
+- Guarda una copia del repositorio o identifica el commit actual para poder revertir.
+- Lee AUDITORIA_GESTARK.md, en particular riesgos no resueltos.
 
-INSTALACIÓN
-1. Antes de subir, conserva los archivos anteriores como copia de respaldo.
-2. En GitHub, repositorio nachorpn/checklist-chicureo (raíz), sustituye:
-   - gestark-auth.js
-   - gestark-sw.js
-3. Publica ambos archivos mediante Commit changes.
-4. Abre https://nachorpn.github.io/checklist-chicureo/
-5. Navega entre Inicio, Checklist, Transferencias y demás secciones.
+ARCHIVOS A SUSTITUIR EN LA RAÍZ DE GITHUB
+  gestark-app.html
+  gestark-auth.js
+  gestark-updates.js
+  gestark-pwa.js
+  gestark-sw.js
+  gestark-version.json
 
-IMPORTANTE
-- El paso de un documento HTML a otro sigue recargando la página. Durante la
-  verificación Firebase verás brevemente un fondo neutro, no el modal verde.
-  La velocidad depende de la red; no es una SPA ni evita la validación de sesión.
-- Si no hay sesión activa o Firebase rechaza el acceso, aparece el inicio de sesión.
-- No cambia usuarios, contraseñas, reglas Firestore, ni datos de Transferencias.
-- Para revertir, utiliza las versiones anteriores guardadas de ambos archivos.
-- En iPhone instalado, usa el botón Actualizar de Gestark o cierra y reabre
-  la aplicación si la caché tarda en renovar los archivos.
+No subas las carpetas de pruebas, ZIP anteriores ni claves privadas.
+No borres la PWA instalada ni localStorage.
+No hay cambios a los datos o reglas Firestore.
+
+ABRIR VERSIÓN NUEVA
+https://nachorpn.github.io/checklist-chicureo/gestark-app.html?actualizar=2026112213
+
+VERIFICACIÓN MANUAL
+1) Inicio → Transferencias → Checklist → Inicio sin una segunda pantalla login.
+2) Una sola barra inferior.
+3) Transferencia ficticia Mac/iPhone: crear, editar y eliminar en vivo.
+4) Cerrar sesión: confirmar que aparezca pantalla de acceso y no continúe una sección abierta.
+5) Si aparece un error: volver al commit anterior; no borrar información local.
+
+AUDITORIA_GESTARK.md describe límites y tareas pendientes.
+SHA256_ARCHIVOS.txt permite verificar la integridad del ZIP.

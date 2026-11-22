@@ -11,7 +11,7 @@
 <meta name="application-name" content="Gestark">
 <meta name="description" content="Gestark · Operaciones Sucursal Chicureo">
 <title>Gestark · App</title>
-<link rel="manifest" href="./manifest.webmanifest?v=2026.11.22.12">
+<link rel="manifest" href="./manifest.webmanifest?v=2026.11.22.13">
 <link rel="icon" type="image/png" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <style>
@@ -74,7 +74,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 <script>
 (() => {
 'use strict';
-const BUILD='2026.11.22.12';
+const BUILD='2026.11.22.13';
 const base=new URL('./',location.href);
 const available={
  home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
@@ -99,7 +99,7 @@ function setOnline(){const ok=navigator.onLine;$('online-pill').classList.toggle
 function parseHash(){const key=decodeURIComponent(location.hash.slice(1));return Object.hasOwn(available,key)||key==='more'?key:'home'}
 function stopCamera(key){if(key!=='clients')return;const f=frames[key];if(!f)return;try{const d=f.contentDocument;const b=d?.getElementById('stop-cam');if(b&&!b.disabled)b.click();}catch(_){}}
 function markTab(key){const selected=core.has(key)?key:key==='more'?'more':'more';for(const b of document.querySelectorAll('#native-tabs button')){const on=b.dataset.tab===selected;b.setAttribute('aria-selected',String(on));if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')}}
-function frameFor(key){if(frames[key])return frames[key];const data=available[key];if(!data)return null;const frame=document.createElement('iframe');frame.title=data.title;frame.src=data.path;frame.loading='eager';frame.setAttribute('allow','camera; microphone; clipboard-write');frame.setAttribute('referrerpolicy','same-origin');frames[key]=frame;frame.addEventListener('load',()=>attach(key,frame));if(core.has(key)){panes[key].replaceChildren(frame)}else{$('extra-slot').append(frame);frame.hidden=true;}return frame;}
+function frameFor(key){if(frames[key])return frames[key];const data=available[key];if(!data)return null;const frame=document.createElement('iframe');frame.id='frame-'+key;frame.title=data.title;frame.src=data.path;frame.loading='eager';frame.setAttribute('allow','camera; microphone; clipboard-write');frame.setAttribute('referrerpolicy','same-origin');frames[key]=frame;frame.addEventListener('load',()=>attach(key,frame));if(core.has(key)){panes[key].replaceChildren(frame)}else{$('extra-slot').append(frame);frame.hidden=true;}return frame;}
 function showExtra(key){const frame=frameFor(key);if(!frame)return;$('extra-title').textContent=available[key].title;for(const [k,f] of Object.entries(frames))if(!core.has(k))f.hidden=k!==key;}
 function select(key,push=true){
  if(!profile||signingOut)return;
@@ -116,7 +116,28 @@ function select(key,push=true){
  if(available[key]&&frames[key]&&!frames[key].dataset.ready)showToast('Abriendo '+available[key].title+'…',1500);
 }
 function freeze(){signingOut=true;profile=null;$('native-header').classList.remove('visible');$('native-tabs').classList.remove('visible');$('app-menu').classList.remove('open');for(const p of Object.values(panes))p.style.visibility='hidden';}
-async function signOut(){if(signingOut)return;const home=frames.home;const fn=home?.contentWindow?.GestarkAuth?.logout;freeze();try{if(typeof fn==='function')await fn();}catch(_){}location.replace('./gestark-app.html');}
+async function signOut(){
+ if(signingOut)return;
+ // No aparentar una salida exitosa cuando el iframe de Inicio se descargó de memoria.
+ let fn=null;
+ for(const f of Object.values(frames)){
+   try{const candidate=f?.contentWindow?.GestarkAuth?.logout;
+     if(typeof candidate==='function'){fn=candidate;break;}}
+   catch(_){}
+ }
+ if(!fn){showToast('No se pudo localizar la sesión Firebase. Recarga la aplicación e inténtalo nuevamente.',4500);return;}
+ signingOut=true;
+ try{
+   const done=await fn();
+   if(done===false)throw Error('Firebase no confirmó la salida.');
+   freeze();
+   location.replace('./gestark-app.html');
+ }catch(error){
+   signingOut=false;
+   showToast('No se pudo cerrar la sesión Firebase. Comprueba la conexión e inténtalo nuevamente.',5000);
+   console.warn('Gestark: salida no confirmada',error?.code||error?.message||'Error desconocido');
+ }
+}
 function handleLink(key,frame,event){
  const element=event.target;if(!element||typeof element.closest!=='function')return;
  const a=element.closest('a[href]');
@@ -155,7 +176,6 @@ function hideEmbeddedChrome(d){
 }
 function attach(key,frame){
  let d;try{d=frame.contentDocument}catch(_){return};if(!d)return;
- console.info('[Gestark] Sección cargada:',key,'versión',BUILD);
  hideEmbeddedChrome(d);
  d.addEventListener('click',e=>handleLink(key,frame,e),true);
  const detect=()=>{let user;try{user=frame.contentWindow?.GestarkAuth?.getUser?.()}catch(_){return};if(!user||user.provider!=='firebase')return;
@@ -163,7 +183,12 @@ function attach(key,frame){
   if(profile&&profile.uid!==user.uid){freeze();location.replace('./gestark-app.html');return}
   frame.dataset.ready='1';if(key==='home')authorized(user);
  };
- d.addEventListener('gestark:ready',detect);detect();
+ d.addEventListener('gestark:ready',detect);
+ // El cierre de sesión en otra ventana debe bloquear también el contenedor.
+ d.addEventListener('gestark:sessionlost',()=>{
+   if(key==='home'&&profile&&!signingOut){freeze();location.replace('./gestark-app.html');}
+ });
+ detect();
 }
 function authorized(user){if(signingOut)return;
  if(!profile){profile=user;

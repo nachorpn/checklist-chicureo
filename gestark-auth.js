@@ -1,4 +1,4 @@
-/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.12 — sesión persistente entre secciones)
+/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.13 — sesión persistente entre secciones)
  * Sin autenticar contra usuarios.js ni contraseñas locales.
  * El usuario/alias se vincula solamente DESPUES de autenticar y autorizar Firebase.
  * Las asociaciones usuario->correo se guardan SOLO en el navegador actual.
@@ -23,6 +23,7 @@ const EMBEDDED = embeddedInNative();
 let activeUser = null;
 let clientPromise = null;
 let screen = null;
+let topSessionMonitor = null;
 const $ = selector => screen?.querySelector(selector) || null;
 
 function cleanName(value) { return String(value || '').trim().replace(/\s+/g,' ').slice(0,80); }
@@ -213,6 +214,7 @@ async function handleSubmit(event) {
     rememberAlias(profile,credentials.user);
     $('#ga-pass').value='';
     showAuthenticated(profile);
+    monitorTopSession(client);
   } catch (error) {
     $('#ga-pass').value='';
     $('#ga-error').textContent=errorMessage(error);
@@ -236,16 +238,36 @@ async function resetPassword() {
     $('#ga-error').textContent='Si el correo está registrado, recibirás las instrucciones para restablecer la contraseña.';
   } catch (error) {$('#ga-error').textContent=errorMessage(error);}
 }
+function sessionLost() {
+  if(!activeUser)return;
+  activeUser=null;
+  document.documentElement.classList.remove('gestark-unlocked');
+  document.dispatchEvent(new CustomEvent('gestark:sessionlost'));
+  if(!EMBEDDED)location.replace('./');
+}
+function monitorTopSession(client) {
+  if(EMBEDDED||topSessionMonitor)return;
+  topSessionMonitor=client.authSDK.onAuthStateChanged(client.auth,user=>{
+    if(activeUser && (!user || user.uid!==activeUser.uid))sessionLost();
+  },error=>console.warn('Gestark: fallo observando sesión Firebase',error?.code||'sin código'));
+}
 async function logOut() {
-  activeUser = null;
+  // No ocultar errores: si Firebase no confirma el cierre, el usuario debe saberlo.
+  const client=await firebaseClient();
+  await client.authSDK.signOut(client.auth);
+  activeUser=null;
   clearOldLocalCredentials();
-  try {const client=await firebaseClient();await client.authSDK.signOut(client.auth);} catch (_) {}
-  location.href='./';
+  document.documentElement.classList.remove('gestark-unlocked');
+  document.dispatchEvent(new CustomEvent('gestark:sessionlost'));
+  if(!EMBEDDED)location.href='./';
+  return true;
 }
 function showAuthenticated(user) {
   if (activeUser) return;
   clearOldLocalCredentials();
   activeUser = user;
+  // Al restablecer una sesión, no duplicar la barra ni el saludo anterior.
+  document.querySelectorAll('.gestark-account-bar,.gestark-greeting').forEach(node=>node.remove());
   if (screen) {screen.remove();screen=null;}
   if (location.pathname.endsWith('/admin.html') && user.role!=='admin') {
     document.body.replaceChildren();
@@ -269,7 +291,7 @@ function showAuthenticated(user) {
   if(user.role==='admin') {
     const adminLink=document.createElement('a');adminLink.href='./admin.html';adminLink.textContent='Administración Firebase';buttons.append(adminLink);
   }
-  const exit=document.createElement('button');exit.type='button';exit.textContent='Salir';exit.addEventListener('click',()=>{void logOut();});buttons.append(exit);
+  const exit=document.createElement('button');exit.type='button';exit.textContent='Salir';exit.addEventListener('click',()=>{void logOut().catch(error=>alert('No se pudo cerrar la sesión Firebase: '+errorMessage(error)));});buttons.append(exit);
   bar.append(buttons);document.body.prepend(bar);
   const brand=document.querySelector('.header-inner .brand')||document.querySelector('header.hero .brand');
   if (brand) {
@@ -312,10 +334,7 @@ async function waitForNativeSession(client) {
     if(retryTimer){clearTimeout(retryTimer);retryTimer=null;}
     if(!firebaseUser){
       // Esperar la sincronización entre ventanas; jamás mostrar login en un módulo.
-      if(activeUser){
-        activeUser=null;
-        document.documentElement.classList.remove('gestark-unlocked');
-      }
+      if(activeUser)sessionLost();
       retryTimer=setTimeout(()=>warning('No se ha podido recuperar la sesión de esta sección. Puedes reintentar sin volver a escribir tu contraseña.'),6500);
       return;
     }
@@ -354,6 +373,7 @@ async function start() {
     const profile=await authorizedIdentity(client,firebaseUser);
     rememberAlias(profile,firebaseUser);
     showAuthenticated(profile);
+    monitorTopSession(client);
   } catch(error) {
     if(EMBEDDED) {
       // Si falla Firebase aquí, la pantalla permanece cerrada y el módulo

@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.43",
+  "version": "2026.11.22.13",
   "name": "Gestark",
-  "changes": "Firebase: se activa únicamente el laboratorio aislado para probar autenticación y sincronización en vivo de datos ficticios de Transferencias y Entregas clientes; sin activar la conexión en módulos operativos ni migrar datos.",
+  "changes": "Auditoría: navegación sin recargas forzadas, una sola instancia de registro PWA, cierre de sesión verificado y consistencia de versiones. Los datos en Firebase y las credenciales no cambian.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
