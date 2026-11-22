@@ -1,4 +1,4 @@
-/* Gestark · acceso progresivo Firebase Auth · 2026.11.22.1
+/* Gestark · acceso progresivo Firebase Auth · 2026.11.22.2
  * COMPATIBILIDAD: preserva el acceso local existente mientras se valida Firebase.
  * Firebase solo autoriza perfiles de authorized_users/{uid} con active === true.
  * No conecta ni migra módulos de datos operativos; esos siguen usando almacenamiento local.
@@ -135,7 +135,7 @@ async function restoreFirebase(){
   const user=await firebaseInitialUser(client);
   if(!user||activeUser||(getLocalUser()&&!preferRemoteInPilot()))return;
   const identity=await authorizedIdentity(client,user);
-  if(!activeUser&&(!getLocalUser()||preferRemoteInPilot()))showAuthenticated(identity);
+  if(!activeUser&&localStorage.getItem(REMOTE_PAUSED)!=='1'&&(!getLocalUser()||preferRemoteInPilot()))showAuthenticated(identity);
  }catch(e){
   // El login local siempre permanece disponible durante esta fase de transición.
   console.info('Gestark: inicio Firebase no disponible:',errorMessage(e));
@@ -161,6 +161,15 @@ html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:non
 .gestark-account-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;max-width:790px;margin:0 auto;padding:11px 18px;background:#e7f3ed;color:#1b5848;font:600 12px system-ui,sans-serif}.gestark-account-bar strong{font-weight:800}.gestark-account-buttons{display:flex;gap:12px;align-items:center}.gestark-account-buttons a,.gestark-account-buttons button{border:0;background:none;color:#126149;text-decoration:underline;cursor:pointer;font-size:12px;font-weight:740;padding:2px}
 .gestark-greeting{font-weight:700;font-size:13px;letter-spacing:0;color:#c6f6df;margin:10px 0 -5px}
 .ga-modal{position:fixed;inset:0;background:#092b21bb;display:grid;place-items:center;padding:18px;z-index:99999}.ga-modal .ga-card{max-width:390px}.ga-modal .ga-form{margin-top:12px}.ga-modal-close{background:none;border:0;color:#376b58;text-decoration:underline;cursor:pointer;font-size:12px;margin-top:12px}
+
+.ga-loading .ga-card{display:flex;flex-direction:column;align-items:center;gap:7px;padding-block:36px}
+.ga-loading .ga-title{margin-top:2px}
+.ga-loading-sub{font-size:12px;color:#668275;margin-bottom:12px}
+.ga-spinner{width:29px;height:29px;display:block;margin:8px auto 4px;border:3px solid #d0eadd;border-top-color:#137a59;border-radius:50%;animation:ga-wait-spin 1s linear infinite}
+.ga-loading-message{font-size:13px;font-weight:700;color:#30594b}
+.ga-loading .ga-switch{margin-top:20px}
+@keyframes ga-wait-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.ga-spinner{animation:none;border-top-color:#137a59}}
 `;document.head.append(style);
 }
 function firebaseForm(form,onSuccess){
@@ -178,6 +187,18 @@ function remoteFormHTML(){
  return `<label for="ga-email">Correo de Firebase</label><input id="ga-email" type="email" autocomplete="username" required placeholder="correo@empresa.cl">
  <label for="ga-fb-pass">Contraseña de Firebase</label><input id="ga-fb-pass" type="password" autocomplete="current-password" required>
  <button type="submit">Iniciar sesión con Firebase</button><div class="ga-err" role="alert" aria-live="polite"></div>`;
+}
+function showLoadingScreen(){
+ const mount=document.createElement('div');mount.id='gestark-login';mount.className='ga-loading';
+ const card=document.createElement('div');card.className='ga-card';
+ const icon=document.createElement('img');icon.className='ga-logo';icon.src='./icon-192.png';icon.alt='';
+ const title=document.createElement('div');title.className='ga-title';title.textContent='Gestark';
+ const sub=document.createElement('div');sub.className='ga-loading-sub';sub.textContent='Greenbox · Acceso de trabajadores';
+ const spinner=document.createElement('span');spinner.className='ga-spinner';spinner.setAttribute('aria-hidden','true');
+ const message=document.createElement('div');message.className='ga-loading-message';message.setAttribute('role','status');message.textContent='Verificando sesión segura…';
+ const fallback=document.createElement('button');fallback.type='button';fallback.className='ga-switch';fallback.textContent='Entrar con usuario anterior';
+ fallback.addEventListener('click',()=>{localStorage.setItem(REMOTE_PAUSED,'1');mount.remove();htmlLogin()});
+ card.append(icon,title,sub,spinner,message,fallback);mount.append(card);document.body.append(mount);
 }
 function htmlLogin(){
  const mount=document.createElement('div');mount.id='gestark-login';
@@ -258,8 +279,13 @@ function init(){
  injectStyle();
  const user=getLocalUser();
  if(user&&!preferRemoteInPilot()){showAuthenticated(user);return}
- htmlLogin();
- void restoreFirebase();
+ if(localStorage.getItem(REMOTE_PAUSED)==='1'){htmlLogin();return}
+ showLoadingScreen();
+ void restoreFirebase().finally(()=>{
+  if(activeUser)return;
+  const splash=document.getElementById('gestark-login');
+  if(splash?.classList.contains('ga-loading')){splash.remove();htmlLogin()}
+ });
 }
 window.GestarkAuth={users,getUser,getById,logout:loggedOut,derive,makeVerifier,localSave,overrides,baseUsers,saveSession,
  firebaseStatus:()=>activeUser?.provider||'not-ready'};
