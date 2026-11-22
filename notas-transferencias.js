@@ -1,189 +1,89 @@
-/* Gestark · Transferencias v2026.11.21.40. Lista lineal y vaciado bancario con confirmación. */
+/* Gestark · Transferencias principal + Firestore · v2026.11.22.5
+ * Fuente principal: gestark_transfers_v1 (Firebase Auth).
+ * Cola local contingente: sólo se elimina una transferencia después de que Firestore
+ * la confirma; los cobros en efectivo permanecen en el dispositivo.
+ * No se importan manuales antiguos ni se borran registros de entregas.
+ */
 (()=>{
 'use strict';
-const ALLOWED_USER='CIBC', PERSONAL_KEY='gestark:notas-transferencias:v1:CIBC',QUEUE_KEY='gestark:contingency:payments:v1',TRANSFER_STATUS_KEY='gestark:notas-transferencias:confirmacion:v1';
-const $=id=>document.getElementById(id),fmt=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0});
-let active=false,currentUser='',manual=[],queue=[],transferStatus={},toastTimeout=null;
-function cash(n){return fmt.format(n).replace(/\s/g,' ')}
-function nameKey(s){return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLocaleLowerCase('es-CL')}
-function parseAmount(v){const raw=String(v||'').trim(),digits=raw.replace(/[^0-9]/g,'');const amount=Number(digits);return /^[\d\s.$]+$/.test(raw)&&digits&&Number.isSafeInteger(amount)&&amount>0&&amount<=999999999?amount:null}
-function dateISO(){const v=new Intl.DateTimeFormat('en-US',{timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const g=k=>v.find(x=>x.type===k)?.value||'';return g('year')+'-'+g('month')+'-'+g('day')}
-function toast(msg,error=false){const e=$('feedback');e.textContent=msg;e.classList.toggle('error',error);clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>{e.textContent='';e.classList.remove('error')},3800)}
-function loadTransferStatus(){
- try{const a=JSON.parse(localStorage.getItem(TRANSFER_STATUS_KEY)||'{}');return a&&typeof a==='object'&&!Array.isArray(a)?a:{}}
- catch{return {}}
+const SDK='https://www.gstatic.com/firebasejs/12.11.0/';
+const COLLECTION='gestark_transfers_v1';
+const QUEUE_KEY='gestark:contingency:payments:v1';
+const $=id=>document.getElementById(id);
+const fmt=new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0});
+const state={identity:null,profile:null,user:null,db:null,fs:null,unsubscribe:null,items:[],queue:[],busy:false,online:false,syncingQueue:false,connected:false,initialized:false,toastTimer:null,modal:null};
+const currency=n=>fmt.format(n).replace(/\s/g,' ');
+const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e};
+const clean=s=>String(s??'').replace(/\s+/g,' ').trim();
+const nameKey=s=>clean(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es-CL');
+function amountParse(value){const raw=String(value??'').trim(),digits=raw.replace(/[^0-9]/g,'');const n=Number(digits);return /^[\d\s.$]+$/.test(raw)&&digits&&Number.isSafeInteger(n)&&n>0&&n<=999999999?n:null}
+function today(){const p=new Intl.DateTimeFormat('en-US',{timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const g=k=>p.find(x=>x.type===k)?.value||'';return `${g('year')}-${g('month')}-${g('day')}`}
+function dateStr(iso){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||'');return m?`${m[3]}/${m[2]}/${m[1]}`:iso||''}
+function toast(msg,error=false){const e=$('feedback');if(!e)return;e.textContent=msg;e.classList.toggle('error',error);clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>{e.textContent='';e.classList.remove('error')},5500)}
+function errorText(e){return ({'permission-denied':'Firebase rechazó el permiso. Comprueba que ingresaste con una cuenta autorizada.','unavailable':'No se pudo comunicar con Firebase. Comprueba la conexión e inténtalo nuevamente.','failed-precondition':'No se puede completar la operación. Revisa la conexión y vuelve a intentarlo.','resource-exhausted':'Se alcanzó un límite de Firebase. Inténtalo más tarde.'})[e?.code]||e?.message||'No se pudo completar la operación.'}
+function notice(text,kind=''){let e=$('gestark-cloud-status');if(!e){e=el('span','gestark-cloud-status');e.id='gestark-cloud-status';const hdr=document.querySelector('header.hero')||document.querySelector('.hero');(hdr||document.body).append(e);const css=el('style');css.textContent='.gestark-cloud-status{display:inline-flex;align-items:center;margin-top:9px;padding:6px 10px;border-radius:99px;background:#e9f7ef;color:#126143;font:700 11px system-ui,sans-serif}.gestark-cloud-status.warn{background:#fff1d8;color:#764a14}.gestark-cloud-status.err{background:#fee5e4;color:#972b30}.entry-actions .edit-transfer{background:#eaf5ef;color:#1b6c4e}.data-note{font-weight:600}.gestark-cloud-modal{border:1px solid #d6e6db;border-radius:17px;max-width:420px;width:min(420px,calc(100vw - 30px));padding:20px;background:white;color:#203c31;box-shadow:0 22px 65px #0005}.gestark-cloud-modal::backdrop{background:#0a251baf}.gestark-cloud-modal h2{margin:0 0 12px}.gestark-cloud-modal label{display:block;font-size:12px;font-weight:750;margin:10px 0 5px}.gestark-cloud-modal input,.gestark-cloud-modal select{width:100%;min-height:42px;padding:8px 11px;background:#fff;color:#1b4132;border:1px solid #c7dcd0;border-radius:9px;font-size:16px}.gestark-cloud-modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}.gestark-cloud-modal button{min-height:42px;border-radius:9px;padding:9px 13px;font-weight:750;background:#eaf4ed;border:1px solid #bdd7c6;color:#1b6748}.gestark-cloud-modal button[type=submit]{background:#15704e;color:white}.gestark-cloud-modal button:disabled{opacity:.5}';document.head.append(css)}e.className='gestark-cloud-status'+(kind?' '+kind:'');e.textContent=text}
+function loadQueue(){try{const q=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');return Array.isArray(q)?q.filter(x=>x&&typeof x.id==='string'&&['cash','transfer'].includes(x.method)&&typeof x.of==='string'&&/^\d{9}$/.test(x.of)&&Number.isSafeInteger(x.amount)&&x.amount>0):[]}catch{return []}}
+function currentCash(){return state.queue.filter(x=>x.method==='cash')}
+function bankGroups(){const group=new Map();for(const x of state.items){const key=nameKey(x.client);if(!key)continue;const g=group.get(key);if(g){g.amount+=Number(x.amount)||0;g.items.push(x)}else group.set(key,{name:x.client,amount:Number(x.amount)||0,items:[x]})}return [...group.values()]}
+function groupStatus(g){return g.items.length>0&&g.items.every(x=>x.status==='si')?'si':'no'}
+function requireOnline(){if(!state.connected||!state.db||!state.user||!state.profile)throw Error('La sesión Firebase no está conectada.');if(!state.online)throw Error('Esperando conexión con Firebase. No se hicieron cambios.')}
+function makeDocData(info){return {client:info.client,amount:info.amount,status:'no',source:info.source||'manual',sourceKey:info.sourceKey||'',of:info.of||'',date:info.date||today(),createdBy:state.user.uid,createdByUsername:state.profile.username,createdAt:state.fs.serverTimestamp(),updatedBy:state.user.uid,updatedAt:state.fs.serverTimestamp(),schemaVersion:1}}
+async function manualDocId(client){const raw=new TextEncoder().encode(nameKey(client));const hash=await crypto.subtle.digest('SHA-256',raw);return 'manual_'+Array.from(new Uint8Array(hash),x=>x.toString(16).padStart(2,'0')).join('').slice(0,40)}
+async function addManual(client,amount){requireOnline();const fs=state.fs,match=state.items.find(x=>x.source==='manual'&&nameKey(x.client)===nameKey(client)),ref=fs.doc(state.db,COLLECTION,match?.id||await manualDocId(client));await fs.runTransaction(state.db,async tx=>{const snap=await tx.get(ref);if(!snap.exists()){tx.set(ref,makeDocData({client,amount}));return}const prev=snap.data();if(prev.source!=='manual')throw Error('El registro ya existe con otro origen.');if(prev.amount+amount>999999999)throw Error('La suma supera el máximo permitido.');tx.update(ref,{amount:prev.amount+amount,updatedBy:state.user.uid,updatedAt:fs.serverTimestamp()})})}
+async function updateRecord(id,fields){requireOnline();await state.fs.updateDoc(state.fs.doc(state.db,COLLECTION,id),{...fields,updatedBy:state.user.uid,updatedAt:state.fs.serverTimestamp()})}
+async function deleteRecord(id){requireOnline();await state.fs.deleteDoc(state.fs.doc(state.db,COLLECTION,id))}
+function copyExcelText(){return bankGroups().map(g=>g.name.replace(/[\t\r\n]+/g,' ').replace(/^([=+\-@])/,'\'$1')+'\t'+String(g.amount)+'\t'+groupStatus(g)).join('\n')}
+function whatsappText(){const a=['*Transferencias pendientes*',''];for(const g of bankGroups())a.push('• '+g.name+' — '+currency(g.amount));a.push('','Registros: '+bankGroups().length);return a.join('\n')}
+async function copy(text){if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(text);return true}catch{}}const a=el('textarea');a.value=text;a.style.cssText='position:fixed;left:-9999px';document.body.append(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch{}a.remove();return ok}
+function appendRow(root,name,amount,meta,actions=[],bank=false,record=null){const li=el('li','entry');const row=el('div','entry-row'),info=el('div','entry-info');info.append(el('div','entry-name',name),el('div','entry-meta',meta));row.append(info,el('span','entry-amount',currency(amount)));
+ if(bank&&record){const label=el('label','bank-confirm-label');label.append(el('span','bank-confirm-text','¿Transfirió?'));const sel=el('select','bank-confirm-select');sel.setAttribute('aria-label','¿Transfirió? '+record.client);for(const [val,name] of [['no','No'],['si','Sí']]){const o=el('option','',name);o.value=val;sel.append(o)}sel.value=record.status==='si'?'si':'no';sel.disabled=!state.online||state.busy;sel.addEventListener('change',async()=>{const next=sel.value;sel.disabled=true;try{await updateRecord(record.id,{status:next});toast('Estado sincronizado ✓')}catch(e){sel.value=record.status;toast(errorText(e),true)}finally{sel.disabled=!state.online||state.busy}});label.append(sel);row.append(label)}
+ li.append(row);if(actions.length){const b=el('div','entry-actions');for(const x of actions)b.append(x);li.append(b)}root.append(li);return li}
+function recordActions(record){const edit=el('button','micro edit-transfer','Editar');edit.type='button';edit.disabled=!state.online;edit.addEventListener('click',()=>openEditor(record));const plus=el('button','micro','+ Sumar monto');plus.type='button';plus.disabled=!state.online;const remove=el('button','micro danger','Eliminar');remove.type='button';remove.disabled=!state.online;
+ const form=el('form','add-form');form.hidden=true;const inp=el('input');inp.inputMode='numeric';inp.maxLength=12;inp.required=true;inp.placeholder='Monto adicional';const ok=el('button','micro','Sumar');ok.type='submit';const cancel=el('button','micro','Cancelar');cancel.type='button';form.append(inp,ok,cancel);plus.addEventListener('click',()=>{form.hidden=!form.hidden;if(!form.hidden)inp.focus()});cancel.addEventListener('click',()=>{form.hidden=true;inp.value='' });form.addEventListener('submit',async e=>{e.preventDefault();const n=amountParse(inp.value);if(!n){toast('Ingresa un monto válido.',true);return}if(record.amount+n>999999999){toast('La suma supera el máximo permitido.',true);return}ok.disabled=true;try{requireOnline();const ref=state.fs.doc(state.db,COLLECTION,record.id);await state.fs.runTransaction(state.db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error('La transferencia ya no existe.');const amount=snap.data().amount+n;if(amount>999999999)throw Error('La suma supera el máximo permitido.');tx.update(ref,{amount,updatedBy:state.user.uid,updatedAt:state.fs.serverTimestamp()})});toast('Monto sumado y sincronizado ✓')}catch(e){toast(errorText(e),true)}finally{ok.disabled=false}});
+ remove.addEventListener('click',async()=>{if(!confirm(`¿Eliminar definitivamente la transferencia de ${record.client} por ${currency(record.amount)}? Se borrará en todos los dispositivos.`))return;remove.disabled=true;try{await deleteRecord(record.id);toast('Transferencia eliminada en Firebase ✓')}catch(e){toast(errorText(e),true)}finally{remove.disabled=false}});
+ return {actions:[edit,plus,remove],form}
 }
-function bankStatus(name){return transferStatus[nameKey(name)]==='si'?'si':'no'}
-function saveBankStatus(name,value){
- const key=nameKey(name),next={...transferStatus};
- if(value==='si')next[key]='si';else delete next[key];
- try{localStorage.setItem(TRANSFER_STATUS_KEY,JSON.stringify(next));transferStatus=next;render();toast('¿Transfirió? '+(value==='si'?'Sí':'No')+' · '+name);return true}
- catch{toast('No se pudo guardar el estado.',true);return false}
+function editor(){if(state.modal)return state.modal;const dlg=el('dialog','gestark-cloud-modal');dlg.id='gestark-cloud-edit';dlg.innerHTML='<h2>Editar transferencia</h2><form id="gestark-cloud-edit-form"><label for="gestark-edit-name">Nombre del cliente</label><input id="gestark-edit-name" required maxlength="80"><label for="gestark-edit-amount">Monto ($)</label><input id="gestark-edit-amount" inputmode="numeric" required maxlength="12"><label for="gestark-edit-date">Fecha</label><input id="gestark-edit-date" type="date" required><label for="gestark-edit-status">¿Transfirió?</label><select id="gestark-edit-status"><option value="no">No</option><option value="si">Sí</option></select><p id="gestark-edit-error" style="color:#a42e36;font-size:12px" role="alert"></p><div class="actions"><button type="button" id="gestark-edit-cancel">Cancelar</button><button type="submit" id="gestark-edit-submit">Guardar cambios</button></div></form>';document.body.append(dlg);dlg.querySelector('#gestark-edit-cancel').onclick=()=>dlg.close();state.modal=dlg;return dlg}
+function openEditor(record){if(state.busy||!state.online)return;const dlg=editor();dlg.querySelector('#gestark-edit-name').value=record.client;dlg.querySelector('#gestark-edit-amount').value=String(record.amount);dlg.querySelector('#gestark-edit-date').value=record.date||today();dlg.querySelector('#gestark-edit-status').value=record.status==='si'?'si':'no';dlg.querySelector('#gestark-edit-error').textContent='';const form=dlg.querySelector('form');form.onsubmit=async e=>{e.preventDefault();const name=clean(dlg.querySelector('#gestark-edit-name').value),amount=amountParse(dlg.querySelector('#gestark-edit-amount').value),date=dlg.querySelector('#gestark-edit-date').value,status=dlg.querySelector('#gestark-edit-status').value;if(!name||name.length>80||amount===null||!/^(\d{4})-(\d{2})-(\d{2})$/.test(date)){dlg.querySelector('#gestark-edit-error').textContent='Revisa el cliente, monto y fecha.';return}const btn=dlg.querySelector('#gestark-edit-submit');btn.disabled=true;try{await updateRecord(record.id,{client:name,amount,date,status});dlg.close();toast('Cambios guardados y sincronizados ✓')}catch(err){dlg.querySelector('#gestark-edit-error').textContent=errorText(err)}finally{btn.disabled=false}};dlg.showModal()}
+function render(){const entries=$('entries'),bank=state.items;entries.replaceChildren();$('record-count').textContent=bankGroups().length+' '+(bankGroups().length===1?'cliente':'clientes');$('empty').hidden=bank.length>0;
+ for(const r of bank){const info=r.source==='import_contingency'?'Contingente · O.F. '+r.of:r.source==='import_manual'?'Anterior · '+dateStr(r.date):'Firebase · '+dateStr(r.date);const {actions,form}=recordActions(r);const li=appendRow(entries,r.client,r.amount,info,actions,true,r);li.append(form)}
+ for(const id of ['copy-excel','send-wa','copy-open-excel-online'])$(id).disabled=bank.length===0||!state.online;
+ $('bank-clear-zone').hidden=bank.length===0;const cash=currentCash();$('cash-count').textContent=cash.length+' '+(cash.length===1?'cobro':'cobros');$('cash-entries').replaceChildren();$('cash-empty').hidden=cash.length>0;$('clear-auto-cash').hidden=!cash.length;for(const x of [...cash].reverse())appendRow($('cash-entries'),x.payer,x.amount,'O.F. '+x.of+' · '+(x.user||'Gestark')+' · efectivo recibido');
+ const note=document.querySelector('.data-note');if(note)note.textContent='Transferencias sincronizadas con Firebase. El efectivo permanece en este dispositivo. Verifica los comprobantes de pago.';
 }
-function pruneTransferStatus(){
- const live=new Set(bankRows().map(x=>nameKey(x.name))),next={...transferStatus};
- for(const key of Object.keys(next))if(!live.has(key))delete next[key];
- if(Object.keys(next).length===Object.keys(transferStatus).length)return;
- try{localStorage.setItem(TRANSFER_STATUS_KEY,JSON.stringify(next));transferStatus=next}
- catch{toast('No se pudo actualizar el estado de transferencias.',true)}
+function updateQueueView(){state.queue=loadQueue();render()}
+// Al registrar una entrega contingente con pago por transferencia, sincronizarla una sola vez.
+// La cola local se retira SÓLO después del commit confirmado por Firestore.
+async function syncContingencyQueue(){if(state.syncingQueue||!state.connected||!state.online)return;const pending=loadQueue().filter(x=>x.method==='transfer');if(!pending.length)return;state.syncingQueue=true;let done=0;
+ try{for(const item of pending){if(!state.online)break;const client=clean(item.payer),amount=item.amount;if(!client||client.length>80||!Number.isSafeInteger(amount)||amount<=0||amount>999999999)continue;const id='cont_'+item.of,ref=state.fs.doc(state.db,COLLECTION,id);try{await state.fs.runTransaction(state.db,async tx=>{const old=await tx.get(ref);if(!old.exists())tx.set(ref,makeDocData({client,amount,source:'import_contingency',sourceKey:item.of,of:item.of,date:today()}))});
+ // Eliminar exclusivamente esta entrada de transferencia; no tocar el efectivo.
+ const current=loadQueue();const next=current.filter(q=>!(q.method==='transfer'&&q.of===item.of&&q.id===item.id));localStorage.setItem(QUEUE_KEY,JSON.stringify(next));state.queue=next;done++;
+ }catch(e){toast('Cobro O.F. '+item.of+' pendiente de sincronización. '+errorText(e),true);break}}
+ if(done)toast(done+' cobro(s) contingente(s) sincronizado(s) con Firebase ✓');
+ }finally{state.syncingQueue=false;updateQueueView()}}
+async function clearBankData(){requireOnline();const fs=state.fs;const rows=await fs.getDocs(fs.collection(state.db,COLLECTION));let done=0;const docs=rows.docs;for(let i=0;i<docs.length;i+=400){const batch=fs.writeBatch(state.db);for(const d of docs.slice(i,i+400))batch.delete(d.ref);await batch.commit();done+=Math.min(400,docs.length-i)}return done}
+async function loadConfig(){if(window.GestarkFirebaseConfig)return window.GestarkFirebaseConfig;return new Promise((resolve,reject)=>{const script=el('script');script.src='./gestark-firebase-config.js?v=2026.11.21.43';script.onload=()=>window.GestarkFirebaseConfig?resolve(window.GestarkFirebaseConfig):reject(Error('Falta la configuración Firebase.'));script.onerror=()=>reject(Error('No se pudo cargar gestark-firebase-config.js.'));document.head.append(script)})}
+async function initFirebase(identity){if(state.initialized)return;state.initialized=true;notice('Conectando con Firebase…','warn');
+ try{const cfg=await loadConfig();if(!cfg.enabled)throw Error('Firebase no está activado.');const [appLib,authLib,fs]=await Promise.all([import(SDK+'firebase-app.js'),import(SDK+'firebase-auth.js'),import(SDK+'firebase-firestore.js')]);const app=appLib.getApps().find(x=>x.name==='[DEFAULT]')||appLib.initializeApp(cfg);const auth=authLib.getAuth(app);state.fs=fs;state.db=fs.getFirestore(app);const u=await new Promise(resolve=>{let stop=()=>{};stop=authLib.onAuthStateChanged(auth,x=>{stop();resolve(x)},()=>resolve(null))});if(!u||u.uid!==identity.uid)throw Error('La cuenta Firebase y la sesión de Gestark no coinciden. Cierra la sesión y vuelve a entrar con Firebase.');state.user=u;const membership=await fs.getDocFromServer(fs.doc(state.db,'authorized_users',u.uid));const p=membership.exists()?membership.data():null;if(!p||p.active!==true||p.username!==identity.username||!['admin','user'].includes(p.role))throw Error('Esta cuenta no está autorizada para usar Transferencias en Firebase.');state.profile=p;state.connected=true;
+ $('workspace').hidden=false;$('manual-panel').hidden=false;state.queue=loadQueue();render();notice('Conectando los registros…','warn');
+ state.unsubscribe=fs.onSnapshot(fs.query(fs.collection(state.db,COLLECTION),fs.orderBy('createdAt','desc')),{includeMetadataChanges:true},snap=>{state.items=snap.docs.map(d=>({id:d.id,...d.data()}));state.online=!snap.metadata.fromCache&&!snap.metadata.hasPendingWrites;render();notice(snap.metadata.hasPendingWrites?'Confirmando cambios…':snap.metadata.fromCache?'Datos en caché · sin confirmar':'Firebase sincronizado',state.online?'':'warn');if(state.online)void syncContingencyQueue()},e=>{state.online=false;notice('Error de Firebase','err');toast(errorText(e),true);render()});
+ }catch(e){state.initialized=false;notice('No conectado a Firebase','err');$('workspace').hidden=true;toast(errorText(e),true);showAccessMessage(errorText(e))}
 }
-function loadManual(){if(currentUser!==ALLOWED_USER)return [];try{const data=JSON.parse(localStorage.getItem(PERSONAL_KEY)||'[]');return Array.isArray(data)?data.filter(x=>x&&typeof x.name==='string'&&Number.isSafeInteger(x.amount)&&x.amount>0&&typeof x.id==='string').slice(-1500):[]}catch{return []}}
-function loadQueue(){try{const data=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');return Array.isArray(data)?data.filter(x=>x&&typeof x.of==='string'&&/^\d{9}$/.test(x.of)&&Number.isSafeInteger(x.amount)&&x.amount>0&&['transfer','cash'].includes(x.method)&&typeof x.id==='string').slice(-3000):[]}catch{return []}}
-function persistManual(arr){try{localStorage.setItem(PERSONAL_KEY,JSON.stringify(arr));manual=arr;pruneTransferStatus();render();return true}catch{toast('No se pudo guardar la lista manual.',true);return false}}
-function persistQueue(arr){try{localStorage.setItem(QUEUE_KEY,JSON.stringify(arr));queue=arr;pruneTransferStatus();render();return true}catch{toast('No se pudo actualizar el registro de cobros.',true);return false}}
-function bankQueue(){
- // No incluir órdenes ya existentes en notas personales antiguas (las de v22).
- const legacyOF=new Set(manual.flatMap(x=>[x.sourceOF,...(Array.isArray(x.sources)?x.sources.map(s=>s.of):[])]).filter(Boolean));
- return queue.filter(x=>x.method==='transfer'&&!legacyOF.has(x.of));
+function showAccessMessage(msg){let box=$('gestark-cloud-access-message');if(!box){box=el('div');box.id='gestark-cloud-access-message';box.style.cssText='max-width:750px;margin:15px auto;padding:15px;border:1px solid #dfc9a8;border-radius:12px;background:#fff7e8;color:#694c26;font:600 13px/1.6 system-ui,sans-serif';document.querySelector('header.hero')?.insertAdjacentElement('afterend',box)}box.textContent=msg}
+function initEvents(){
+ $('note-form').addEventListener('submit',async e=>{e.preventDefault();const name=clean($('client').value),amount=amountParse($('amount').value);if(!name||name.length>80||amount===null){toast('Ingresa un cliente y monto válidos.',true);return}if(state.busy)return;state.busy=true;try{await addManual(name,amount);$('client').value='';$('amount').value='';$('client').focus();toast('Transferencia guardada y sincronizada ✓')}catch(e){toast(errorText(e),true)}finally{state.busy=false}});
+ $('copy-excel').addEventListener('click',async()=>{const groups=bankGroups();if(!groups.length)return;const ok=await copy(copyExcelText());toast(ok?'Copiados '+groups.length+' cliente(s): Nombre · Monto · Sí/No':'No se pudo copiar para Excel.',!ok)});
+ $('send-wa').addEventListener('click',()=>{if(!state.items.length)return;const msg=whatsappText(),url='https://wa.me/?text='+encodeURIComponent(msg);if(url.length>6000){copy(msg).then(ok=>toast(ok?'Lista copiada para WhatsApp.':'No se pudo copiar.',!ok))}else window.location.href=url});
+ $('copy-open-excel-online').addEventListener('click',async()=>{if(!state.items.length)return;const button=$('copy-open-excel-online');const url=new URL($('open-excel-online').href);url.searchParams.set('web','1');const task=copy(copyExcelText());const tab=window.open('about:blank','_blank');if(tab){try{tab.document.title='Gestark · Excel Online';tab.document.body.textContent='Preparando Excel Online…';tab.opener=null}catch{}}button.disabled=true;try{if(!await task){try{tab?.close()}catch{}toast('No se pudo copiar la lista.',true);return}if(tab&&!tab.closed){tab.location.replace(url.href);toast('Copiado. Abriendo Excel Online…')}else toast('Datos copiados. Usa «Solo abrir Excel Online».')}finally{button.disabled=!state.items.length||!state.online}});
+ const dlg=$('clear-bank-dialog'),ack=$('clear-bank-ack'),btn=$('clear-bank-confirm');function close(){if(dlg.open)dlg.close();ack.checked=false;btn.disabled=true}
+ $('clear-bank').addEventListener('click',()=>{if(!state.items.length)return;$('clear-bank-description').textContent='Se eliminarán '+state.items.length+' transferencia(s) de Firebase para TODOS los dispositivos autorizados. El efectivo y el historial de entregas permanecen intactos. Esta acción no se puede deshacer.';ack.checked=false;btn.disabled=true;if(dlg.showModal)dlg.showModal();else if(confirm('¿Eliminar definitivamente todas las transferencias de Firebase?'))void clearBankData().catch(e=>toast(errorText(e),true))});
+ ack.addEventListener('change',()=>btn.disabled=!ack.checked);$('clear-bank-cancel').addEventListener('click',close);dlg.addEventListener('close',()=>{ack.checked=false;btn.disabled=true});btn.addEventListener('click',async()=>{if(!ack.checked)return;btn.disabled=true;try{const n=await clearBankData();close();toast(n+' transferencia(s) vaciada(s) de Firebase. Efectivo intacto ✓')}catch(e){toast('Se eliminó una parte de los registros, pero hubo un error: '+errorText(e),true)}});
+ $('clear-auto-cash').addEventListener('click',()=>{const count=currentCash().length;if(!count)return;if(!confirm(`¿Ya registraste estos ${count} cobros en efectivo? Se borrarán únicamente de este dispositivo.`))return;try{const next=loadQueue().filter(x=>x.method!=='cash');localStorage.setItem(QUEUE_KEY,JSON.stringify(next));updateQueueView();toast('Efectivo vaciado en este dispositivo ✓')}catch{toast('No se pudo vaciar el efectivo.',true)}});
+ document.addEventListener('gestark:ready',e=>{state.identity=e.detail;if(e.detail?.provider!=='firebase'){notice('Se requiere sesión Firebase','warn');showAccessMessage('Para sincronizar Transferencias, utiliza «Usar Firebase» en tu sesión Gestark. Los accesos locales todavía no tienen permiso en Firestore.');return}void initFirebase(e.detail)});
+ if(window.GestarkAuth?.getUser?.()){const identity=window.GestarkAuth.getUser();if(identity?.provider==='firebase')void initFirebase(identity)};
+ window.addEventListener('storage',e=>{if(e.key===QUEUE_KEY&&state.connected){updateQueueView();void syncContingencyQueue()}});
+ window.addEventListener('focus',()=>{if(state.connected){updateQueueView();void syncContingencyQueue()}});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state.connected){updateQueueView();void syncContingencyQueue()}});
 }
-function bankRows(){
- const grouped=new Map();
- function add(name,amount,source){const key=nameKey(name);if(!key||!Number.isSafeInteger(amount)||amount<=0)return;
-  const old=grouped.get(key);if(old){old.amount+=amount;old.sources.push(source)}else grouped.set(key,{name,amount,sources:[source]})}
- for(const x of manual)add(x.name,x.amount,'manual');
- for(const x of bankQueue())add(x.payer,x.amount,x.of);
- return [...grouped.values()];
-}
-function dateStr(iso){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||'');return m?m[3]+'/'+m[2]+'/'+m[1]:iso||''}
-function cashEntries(){return queue.filter(x=>x.method==='cash')}
-function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e}
-function appendRow(root,name,amount,meta,actions=[],isBank=false){const li=el('li','entry');const row=el('div','entry-row'),info=el('div','entry-info');
- info.append(el('div','entry-name',name),el('div','entry-meta',meta));row.append(info,el('span','entry-amount',cash(amount)));
- if(isBank)row.append(transferSelector(name));
- li.append(row);if(actions.length){const d=el('div','entry-actions');for(const a of actions)d.append(a);li.append(d)}root.append(li);return li}
-function transferSelector(name){
- const label=el('label','bank-confirm-label');
- const caption=el('span','bank-confirm-text','¿Transfirió?');
- const select=el('select','bank-confirm-select');
- select.setAttribute('aria-label','¿Transfirió? '+name);
- for(const [value,text] of [['no','No'],['si','Sí']]){const option=el('option','',text);option.value=value;select.append(option)}
- select.value=bankStatus(name);
- select.addEventListener('change',()=>{if(!saveBankStatus(name,select.value))select.value=bankStatus(name)});
- label.append(caption,select);
- return label;
-}
-function manualActions(item){
- const add=el('button','micro','+ Sumar monto');add.type='button';const remove=el('button','micro danger','Eliminar');remove.type='button';
- const form=el('form','add-form');form.hidden=true;const inp=el('input');inp.inputMode='numeric';inp.required=true;inp.placeholder='Monto adicional';inp.maxLength=12;
- const btn=el('button','micro','Sumar');btn.type='submit';const cancel=el('button','micro','Cancelar');cancel.type='button';form.append(inp,btn,cancel);
- add.addEventListener('click',()=>{form.hidden=!form.hidden;if(!form.hidden)inp.focus()});cancel.addEventListener('click',()=>{form.hidden=true;inp.value='' });
- form.addEventListener('submit',e=>{e.preventDefault();const n=parseAmount(inp.value);if(!n){toast('Monto adicional inválido.',true);return}const i=manual.findIndex(x=>x.id===item.id);if(i<0)return;
- const old=manual[i];if(old.amount+n>999999999){toast('El total excede $999.999.999.',true);return}const parts=Array.isArray(old.parts)&&old.parts.length?old.parts:[old.amount];
- if(persistManual(manual.map((x,j)=>j===i?{...old,amount:old.amount+n,parts:[...parts,n]}:x)))toast('Monto sumado ✓')});
- remove.addEventListener('click',()=>{if(confirm('¿Eliminar la transferencia manual de '+item.name+'?'))persistManual(manual.filter(x=>x.id!==item.id))});
- return {actions:[add,remove],form}
-}
-function render(){if(!active)return;
- const bank=bankRows();$('record-count').textContent=bank.length+' '+(bank.length===1?'cliente':'clientes');
- for(const b of ['copy-excel','send-wa','copy-open-excel-online'])$(b).disabled=bank.length===0;
- $('empty').hidden=bank.length>0;$('entries').replaceChildren();
- for(const x of [...manual].reverse()){
-   const {actions,form}=manualActions(x);const li=appendRow($('entries'),x.name,x.amount,'Manual · '+dateStr(x.date)+(Array.isArray(x.sources)&&x.sources.length?' · Vinculadas':''),actions,true);li.append(form);
- }
- const auto=bankQueue();for(const x of [...auto].reverse())appendRow($('entries'),x.payer,x.amount,'Contingente · O.F. '+x.of+' · '+(x.user||'Gestark'),[],true)
- $('bank-clear-zone').hidden=bank.length===0;
- const cashList=cashEntries();$('cash-count').textContent=cashList.length+' '+(cashList.length===1?'cobro':'cobros');
- $('cash-entries').replaceChildren();$('cash-empty').hidden=cashList.length>0;$('clear-auto-cash').hidden=!cashList.length;
- for(const x of [...cashList].reverse())appendRow($('cash-entries'),x.payer,x.amount,'O.F. '+x.of+' · '+(x.user||'Gestark')+' · efectivo recibido');
-}
-function excel(){return bankRows().map(x=>x.name.replace(/[\t\r\n]+/g,' ').replace(/^([=+\-@])/,'\'$1')+'\t'+String(x.amount)+'\t'+bankStatus(x.name)).join('\n')}
-function message(){const bank=bankRows();const lines=['*Transferencias pendientes*',''];for(const x of bank)lines.push('• '+x.name+' — '+cash(x.amount));lines.push('','Registros: '+bank.length);return lines.join('\n')}
-async function copy(text){if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(text);return true}catch{}}const area=el('textarea');area.value=text;area.style.cssText='position:fixed;left:-9999px';document.body.append(area);area.select();let ok=false;try{ok=document.execCommand('copy')}catch{}area.remove();return ok}
-$('note-form').addEventListener('submit',e=>{e.preventDefault();if(currentUser!==ALLOWED_USER||!active)return;
- const name=$('client').value.replace(/\s+/g,' ').trim(),amount=parseAmount($('amount').value);
- if(!name||name.length>80){toast('Escribe el nombre del cliente.',true);return}if(amount===null){toast('Ingresa un monto válido.',true);return}
- const prev=manual.find(x=>nameKey(x.name)===nameKey(name));let ok=false;
- if(prev){if(prev.amount+amount>999999999){toast('Total excede el máximo permitido.',true);return}
-  const parts=Array.isArray(prev.parts)&&prev.parts.length?prev.parts:[prev.amount];ok=persistManual(manual.map(x=>x.id===prev.id?{...x,amount:x.amount+amount,parts:[...parts,amount]}:x));
- }else{if(manual.length>=1500){toast('Lista manual llena; exporta y limpia primero.',true);return}
-   const id=crypto.randomUUID?.()||String(Date.now())+Math.random();ok=persistManual([...manual,{id,name,amount,date:dateISO()}]);}
- if(ok){$('client').value='';$('amount').value='';$('client').focus();toast('Transferencia anotada ✓')}
-});
-$('copy-excel').addEventListener('click',async()=>{const rows=bankRows();if(!rows.length)return;toast(await copy(excel())?'Copiados '+rows.length+' cliente(s): Nombre · Monto · Sí/No':'No se pudo copiar para Excel.',false)});
-$('copy-open-excel-online').addEventListener('click',async()=>{
- const rows=bankRows();if(!rows.length){toast('No hay transferencias bancarias para copiar.',true);return}
- const button=$('copy-open-excel-online');if(button.disabled)return;
- const data=excel();
- // El vínculo web es HTTPS, nunca ms-excel:. Se añade la preferencia de presentación web.
- // iOS puede redirigir enlaces universales a apps instaladas: no es posible prohibirlo desde una PWA.
- const url=new URL($('open-excel-online').href);
- url.searchParams.set('web','1');
- // IMPORTANTE: iniciar la copia y crear una ventana externa DENTRO del gesto del usuario.
- // Abrirla después del await puede ser bloqueado por Safari/iOS.
- const copyTask=copy(data);
- const browserTab=window.open('about:blank','_blank');
- if(browserTab){
-  try{
-   browserTab.document.title='Gestark · Excel Online';
-   browserTab.document.body.style.cssText='margin:0;min-height:100vh;display:grid;place-items:center;background:#f3f7f5;color:#135740;font:600 16px system-ui,sans-serif;text-align:center;padding:25px';
-   browserTab.document.body.textContent='Gestark · Preparando Excel Online…';
-   browserTab.opener=null;
-  }catch{}
- }
- button.disabled=true;
- try{
-  const ok=await copyTask;
-  if(!ok){
-   try{browserTab?.close()}catch{}
-   toast('No se pudo copiar. Usa «Copiar para Excel» y «Solo abrir Excel Online».',true);
-   return;
-  }
-  if(browserTab && !browserTab.closed){
-   browserTab.location.replace(url.href);
-   toast('Copiados '+rows.length+' cliente(s). Abriendo la planilla en navegador…');
-  }else{
-   // No enviar la PWA a Excel: así evitamos el salto automático a la app.
-   toast('Datos copiados. Toca «Solo abrir Excel Online» para abrir el navegador.',false);
-  }
- }catch{
-  try{browserTab?.close()}catch{}
-  toast('No se pudo completar la copia. Usa los botones separados.',true);
- }finally{button.disabled=bankRows().length===0}
-});
-$('send-wa').addEventListener('click',()=>{if(!bankRows().length)return;const msg=message(),url='https://wa.me/?text='+encodeURIComponent(msg);if(url.length>6000){copy(msg).then(ok=>toast(ok?'Lista extensa copiada para WhatsApp.':'No se pudo copiar.',!ok))}else window.location.href=url});
-// Vaciar solo la lista de transferencias bancarias; efectivo e historial de entregas quedan intactos.
-const clearDialog=$('clear-bank-dialog'),clearAck=$('clear-bank-ack'),clearConfirm=$('clear-bank-confirm');
-function clearBankData(){
- if(!active || !bankRows().length)return false;
- const beforeManual=manual,beforeQueue=queue;
- const nextManual=currentUser===ALLOWED_USER?[]:beforeManual;
- const nextQueue=beforeQueue.filter(x=>x.method!=='transfer');
- let manualWritten=false;
- try{
-  if(currentUser===ALLOWED_USER){localStorage.setItem(PERSONAL_KEY,JSON.stringify(nextManual));manualWritten=true}
-  localStorage.setItem(QUEUE_KEY,JSON.stringify(nextQueue));
-  manual=nextManual;queue=nextQueue;
-  pruneTransferStatus();render();toast('Transferencias vaciadas. Efectivo conservado ✓');
-  return true;
- }catch{
-  // Si falla la segunda escritura, intentar restaurar la lista manual anterior.
-  if(manualWritten){try{localStorage.setItem(PERSONAL_KEY,JSON.stringify(beforeManual))}catch{}}
-  manual=loadManual();queue=loadQueue();render();
-  toast('No se pudo vaciar completamente. Revisa la lista antes de continuar.',true);
-  return false;
- }
-}
-function closeClearDialog(){if(clearDialog.open)clearDialog.close();clearAck.checked=false;clearConfirm.disabled=true}
-$('clear-bank').addEventListener('click',()=>{
- if(!bankRows().length)return;
- const n=bankRows().length;
- $('clear-bank-description').textContent='Se eliminarán las transferencias de '+n+' '+(n===1?'cliente':'clientes')+' en este dispositivo. No se borrarán el efectivo ni el historial de entregas. Esta acción no se puede deshacer.';
- clearAck.checked=false;clearConfirm.disabled=true;
- if(typeof clearDialog.showModal==='function'){clearDialog.showModal();$('clear-bank-cancel').focus()}
- else if(confirm('¿Ya traspasaste las transferencias a la planilla Excel? Esta acción no se puede deshacer.'))clearBankData();
-});
-clearAck.addEventListener('change',()=>{clearConfirm.disabled=!clearAck.checked});
-$('clear-bank-cancel').addEventListener('click',closeClearDialog);
-clearConfirm.addEventListener('click',()=>{
- if(!clearAck.checked || !bankRows().length)return;
- clearBankData();closeClearDialog();
-});
-clearDialog.addEventListener('close',()=>{clearAck.checked=false;clearConfirm.disabled=true});
-$('clear-auto-cash').addEventListener('click',()=>{const len=cashEntries().length;if(!len)return;
- if(confirm('¿Ya registraste estos '+len+' cobros en efectivo? Solo se limpia esta lista; las entregas permanecen en su historial.')){if(persistQueue(queue.filter(x=>x.method!=='cash')))toast('Cobros en efectivo limpiados ✓')}
-});
-document.addEventListener('gestark:ready',e=>{if(active)return;const username=e.detail?.username;if(!username)return;currentUser=String(username);active=true;
- manual=loadManual();queue=loadQueue();transferStatus=loadTransferStatus();pruneTransferStatus();$('manual-panel').hidden=currentUser!==ALLOWED_USER;$('workspace').hidden=false;render();
-});
-window.addEventListener('storage',e=>{if(!active||![PERSONAL_KEY,QUEUE_KEY,TRANSFER_STATUS_KEY].includes(e.key))return;manual=loadManual();queue=loadQueue();transferStatus=loadTransferStatus();render()});
+initEvents();
 })();
