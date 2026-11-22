@@ -1,11 +1,11 @@
 {
-  "version": "2026.11.22.21",
+  "version": "2026.11.22.22",
   "name": "Gestark",
-  "changes": "Directorio: advertencia ámbar «⚠ Requiere factura» junto a los clientes con datos de facturación, destaque discreto de la fila y recordatorio al editar. Sin cambios en Firebase, exportación, O.F. ni notificaciones.",
+  "changes": "Directorio: nombre alternativo opcional (persona/empresa) al agregar o editar, visible en lista, búsqueda instantánea y Excel; teléfono adaptable al pegar desde WhatsApp o escribir manualmente. Conserva Firebase, O.F. y notificaciones.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
   "clientsVersion": "2026.11.22.16",
-  "directoryVersion": "2026.11.22.21"
+  "directoryVersion": "2026.11.22.22"
 }

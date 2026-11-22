@@ -1,29 +1,40 @@
-GESTARK · DIRECTORIO DE CLIENTES CON LECTURA MEJORADA · v2026.11.22.20
-=========================================================================
+GESTARK · DIRECTORIO - NOMBRE ALTERNATIVO + TELÉFONO ADAPTABLE · v2026.11.22.22
+============================================================================
 
-SUBIR AL REPOSITORIO GitHub nachorpn/checklist-chicureo (rama main).
-Reemplazar SOLO los siguientes 5 archivos de la raíz del repositorio:
+PASO 1 (Firebase - solo una vez):
+Publica las reglas actualizadas en Firebase > Firestore > Reglas.
+Se incluye el archivo completo REGLAS_FIRESTORE_COMPLETAS_v22.txt y la alternativa
+CAMBIO_MINIMO_REGLAS.txt. El cambio SOLO habilita el nombre alternativo opcional.
+
+PASO 2 (GitHub):
+Sube/reemplaza SOLO estos cinco archivos en la raíz de 'checklist-chicureo' (main):
 - gestark-app.html
 - directorio-clientes.html
 - directorio-clientes.js
 - gestark-sw.js
 - gestark-version.json
+NO subas los archivos .txt al repositorio; solo úsalos como referencia.
 
-CAMBIO VISUAL:
-- Nombre de clientes: 15 px (antes 12,5 px en celular; 13 px en escritorio).
-- RUT y teléfono: 13,5 px (antes 11-12 px en celular; 12 px en escritorio).
-- Etiqueta de facturación y botones: ampliados ligeramente.
-- Se mantiene la lista compacta, con una separación mínima adicional entre filas.
-- El botón flotante sobre «Más» queda exactamente como en la versión 19.
+CAMBIOS:
+- Nuevo campo opcional "Nombre alternativo" para registrar el nombre de la empresa,
+  una denominación habitual o el nombre de la persona. Visible bajo el nombre,
+  sin agregar tarjetas grandes.
+- Se puede buscar por ambos nombres y exportar ambos al Excel. Por defecto
+  Nombre alternativo también queda marcado para exportación.
+- Teléfono adaptable: escribir, pegar desde WhatsApp, +56, 56, con o sin separadores,
+  números de 9 dígitos y números locales de 8 dígitos. Al validar se guarda siempre
+  como +56 9 91919191.
+- Nunca recorta silenciosamente dígitos sobrantes; indica errores para corregir.
+- Los contactos ya guardados no se pierden; la edición permite agregar alias después.
 
-CONSERVADO:
-- Datos en Firebase Firestore, inicio de sesión, validación de RUT y teléfono.
-- Mini formulario, facturación opcional, búsqueda en tiempo real y exportación .xlsx.
-- Nómina operativa, órdenes O.F., transferencias y notificaciones Web Push.
-- Las reglas de Firebase NO necesitan modificación.
+NO CAMBIA:
+- RUT módulo 11 y rechazo de RUT duplicado.
+- Facturación y su advertencia visible.
+- Firebase y sincronización, exportación, botón flotante, O.F. y notificaciones.
 
-PRUEBA:
-1. Reemplaza los cinco archivos en GitHub.
-2. Abre Gestark y pulsa Actualizar aplicación. Cierra y vuelve a abrir si ves caché.
-3. Toca el botón flotante de directorio sobre Más y revisa nombres, RUT y teléfonos.
-4. Comprueba que puedas seguir buscando y editando; no es necesario recrear los contactos.
+PRUEBAS:
+1. Publica las reglas de Firestore actualizadas.
+2. Sube los cinco archivos a GitHub, abre Gestark y pulsa Actualizar aplicación.
+3. Edita un cliente: añade "Nombre alternativo" y guárdalo. Búscalo por alias.
+4. Copia +56 (9) 9191-9191 desde WhatsApp y pégalo. Debe verse +56 9 91919191.
+5. Exporta Excel y comprueba columna "Nombre alternativo".

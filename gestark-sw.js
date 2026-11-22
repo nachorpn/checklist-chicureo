@@ -1,7 +1,7 @@
-/* Gestark PWA v2026.11.22.21: shell nativo, carga local de archivos estáticos.
+/* Gestark PWA v2026.11.22.22: shell nativo, carga local de archivos estáticos.
  * Las consultas de autenticación y Firestore no pasan por este trabajador.
  */
-const VERSION='2026.11.22.21';
+const VERSION='2026.11.22.22';
 const CACHE='gestark-pwa-'+VERSION;
 const CORE=[
  './','./index.html','./gestark-app.html','./gestark-rapido.html','./checklist.html','./notas-transferencias.html',

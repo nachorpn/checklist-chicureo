@@ -1,4 +1,4 @@
-/* Gestark · Directorio de clientes · v2026.11.22.21
+/* Gestark · Directorio de clientes · v2026.11.22.22
  * Fuente única: Firestore. No guarda los datos del directorio en GitHub ni localStorage.
  * RUT módulo 11; móvil Chile +56 9 XXXXXXXX; XLSX auténtico autocontenido.
  */
@@ -7,7 +7,7 @@
 const SDK='https://www.gstatic.com/firebasejs/12.11.0/';
 const COLLECTION='gestark_directorio_clientes_v1';
 const FIELDS=[
-  ['nombre','Nombre'],['rut','RUT'],['telefono','Teléfono'],['factura','Factura'],
+  ['nombre','Nombre'],['nombreAlternativo','Nombre alternativo'],['rut','RUT'],['telefono','Teléfono'],['factura','Factura'],
   ['razonSocial','Razón social'],['rutFactura','RUT facturación'],['giro','Giro'],
   ['direccion','Dirección tributaria'],['comuna','Comuna'],['correoFactura','Correo facturación']
 ];
@@ -41,23 +41,55 @@ function rutFeedback(id,hint){const part=rutParts($(id).value);const isValid=par
  $(hint).style.color=isValid?'#15805b':'#b03439';
  return isValid?part:null;
 }
+// Admite formato chileno completo, +569..., 569..., 9XXXXXXXX y
+// XXXXXXXX (ocho dígitos locales, se antepone 9 automáticamente).
+// Ignora separadores de WhatsApp, pero jamás trunca dígitos sobrantes.
 function mobile(value){
  let d=String(value||'').replace(/\D/g,'');
- if(d.startsWith('56'))d=d.slice(2);
- if(!d.startsWith('9')||d.length!==9)return null;
- return '+56 9 '+d.slice(1,9);
+ if(d.startsWith('0056'))d=d.slice(4);
+ else if(d.startsWith('56'))d=d.slice(2);
+ if(d.startsWith('09')&&d.length===10)d=d.slice(1);
+ if(d.length===8)d='9'+d;
+ if(!/^9[0-9]{8}$/.test(d))return null;
+ return '+56 9 '+d.slice(1);
 }
-function formatMobileInput(input){
- let digits=String(input.value||'').replace(/\D/g,'');
- if(!digits){input.value='';return}
- if(digits.startsWith('56'))digits=digits.slice(2);
- if(digits.startsWith('9'))digits=digits.slice(1);
- digits=digits.slice(0,8);
- input.value='+56 9'+(digits?' '+digits:'');
+function phoneHint(message,valid=false){
+ const field=$('phone'),hint=$('phone-hint');
+ hint.textContent=message;
+ hint.dataset.invalid=String(!valid&&!!field.value.trim());
+ hint.style.color=valid?'#147c56':'#b03439';
+ field.setAttribute('aria-invalid',String(!valid&&!!field.value.trim()));
+}
+function phoneChanged(fromPaste=false,final=false){
+ const input=$('phone'),value=input.value.trim();
+ if(!value){phoneHint('Escribe o pega desde WhatsApp; se adaptará automáticamente.');return}
+ // No anteponer el 9 a los ocho primeros dígitos mientras el usuario escribe:
+ // puede estar ingresando un móvil de nueve dígitos, aún incompleto.
+ if(!fromPaste&&!final&&/^\d{8}$/.test(value)){
+  phoneHint('Completa los 9 dígitos o sal del campo para adaptar 8 dígitos.',true);
+  return;
+ }
+ const formatted=mobile(value);
+ if(formatted){
+  input.value=formatted;
+  phoneHint(fromPaste?'✓ Número de WhatsApp adaptado al formato Gestark.':'✓ Teléfono válido',true);
+ }else{
+  phoneHint('Revisa el número: se requiere un móvil chileno de 9 dígitos (9 + 8 dígitos).');
+ }
+}
+function phonePasted(event){
+ const incoming=event.clipboardData?.getData('text/plain');
+ if(!incoming)return;
+ event.preventDefault();
+ // En un campo de teléfono el pegado sustituye el contenido anterior.
+ // Si llega más de un número o uno mal formado, se deja visible para corregir.
+ const text=incoming.trim();
+ $('phone').value=mobile(text)||text.slice(0,90);
+ phoneChanged(true);
 }
 function normalizeContact(x,id){
  const invoice=x?.facturacion&&typeof x.facturacion==='object'?x.facturacion:null;
- return {id,nombre:clean(x?.nombre),rut:clean(x?.rut),telefono:clean(x?.telefono),
+ return {id,nombre:clean(x?.nombre),nombreAlternativo:clean(x?.nombreAlternativo),rut:clean(x?.rut),telefono:clean(x?.telefono),
    factura:!!invoice,razonSocial:clean(invoice?.razonSocial),rutFactura:clean(invoice?.rut),
    giro:clean(invoice?.giro),direccion:clean(invoice?.direccion),comuna:clean(invoice?.comuna),
    correoFactura:clean(invoice?.correo)};
@@ -79,7 +111,10 @@ function render(){
  const frag=document.createDocumentFragment();
  for(const c of matches){
   const row=el('div',c.factura?'entry needs-invoice':'entry');
-  row.append(el('div','person cell',c.nombre),el('div','rut cell',c.rut));
+  const nameStack=el('div','name-stack cell');
+  nameStack.append(el('div','person',c.nombre));
+  if(c.nombreAlternativo)nameStack.append(el('div','alternate-name','También: '+c.nombreAlternativo));
+  row.append(nameStack,el('div','rut cell',c.rut));
   const link=el('a','phone cell',c.telefono);link.href='tel:'+c.telefono.replace(/\s+/g,'');link.title='Llamar';row.append(link);
   const badge=el('div',c.factura?'tag is-invoice':'tag',c.factura?'⚠ Requiere factura':'—');
   if(c.factura)badge.title='Este cliente requiere factura. Comprueba sus datos tributarios antes de emitir.';
@@ -99,22 +134,23 @@ function invoiceVisibility(){$('invoice-fields').hidden=!$('invoice-enabled').ch
 function editContact(id){
  const c=contacts.find(x=>x.id===id);if(!c)return;
  editingId=id;$('contact-form').reset();t('contact-heading','Editar contacto');t('contact-error','');
- $('name').value=c.nombre;$('rut').value=c.rut;$('phone').value=c.telefono;
+ $('name').value=c.nombre;$('alternate-name').value=c.nombreAlternativo;$('rut').value=c.rut;$('phone').value=c.telefono;
  $('invoice-enabled').checked=c.factura;invoiceVisibility();
  $('invoice-name').value=c.razonSocial;$('invoice-rut').value=c.rutFactura;
  $('invoice-business').value=c.giro;$('invoice-address').value=c.direccion;
  $('invoice-city').value=c.comuna;$('invoice-email').value=c.correoFactura;
  rutFeedback('rut','rut-hint');rutFeedback('invoice-rut','invoice-rut-hint');
- t('phone-hint','');openDialog('contact-dialog');
+ phoneChanged();openDialog('contact-dialog');
 }
 function addContact(){
  editingId=null;$('contact-form').reset();t('contact-heading','Agregar contacto');t('contact-error','');
- t('rut-hint','');t('invoice-rut-hint','');t('phone-hint','');invoiceVisibility();
+ t('rut-hint','');t('invoice-rut-hint','');phoneHint('Escribe o pega desde WhatsApp; se adaptará automáticamente.');invoiceVisibility();
  openDialog('contact-dialog');$('name').focus();
 }
 function getFormData(){
- const nombre=clean($('name').value);
+ const nombre=clean($('name').value),nombreAlternativo=clean($('alternate-name').value);
  if(!nombre)throw Error('Ingresa el nombre del cliente.');
+ if(nombreAlternativo.length>100)throw Error('El nombre alternativo admite hasta 100 caracteres.');
  const rut=rutFeedback('rut','rut-hint');if(!rut)throw Error('El RUT del cliente es inválido (módulo 11).');
  const telefono=mobile($('phone').value);if(!telefono)throw Error('El teléfono debe ser un móvil chileno: +56 9 91919191.');
  let facturacion=null;
@@ -127,7 +163,7 @@ function getFormData(){
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo))throw Error('El correo de facturación no es válido.');
   facturacion={razonSocial,rut:invoiceRut.formatted,giro,direccion,comuna,correo};
  }
- return {id:rut.id,nombre,rut:rut.formatted,telefono,facturacion};
+ return {id:rut.id,nombre,nombreAlternativo,rut:rut.formatted,telefono,facturacion};
 }
 async function saveContact(event){
  event.preventDefault();t('contact-error','');
@@ -145,7 +181,7 @@ async function saveContact(event){
    if(existing.exists()&&oldId!==data.id)throw Error('Este RUT ya está registrado en el directorio.');
    if(oldId&&!existing.exists()&&oldId===data.id)throw Error('Este contacto fue eliminado por otro usuario.');
    const createdAt=(old||existing).exists()?(old||existing).data().createdAt:fs.serverTimestamp();
-   tx.set(newRef,{nombre:data.nombre,rut:data.rut,telefono:data.telefono,facturacion:data.facturacion,
+   tx.set(newRef,{nombre:data.nombre,nombreAlternativo:data.nombreAlternativo,rut:data.rut,telefono:data.telefono,facturacion:data.facturacion,
      createdAt,updatedAt:fs.serverTimestamp(),updatedBy:user.uid});
    if(oldRef)tx.delete(oldRef);
   });
@@ -264,8 +300,10 @@ function setup(){
   $(input).addEventListener('input',()=>{formatRutInput($(input));rutFeedback(input,hint)});
   $(input).addEventListener('blur',()=>{formatRutInput($(input));rutFeedback(input,hint)});
  }
- $('phone').addEventListener('input',()=>{formatMobileInput($('phone'));t('phone-hint',mobile($('phone').value)?'✓ Teléfono válido':'');});
- $('phone').addEventListener('blur',()=>{const p=mobile($('phone').value);if(p)$('phone').value=p});
+ $('phone').addEventListener('paste',phonePasted);
+ $('phone').addEventListener('input',()=>phoneChanged(false));
+ $('phone').addEventListener('change',()=>phoneChanged(false,true));
+ $('phone').addEventListener('blur',()=>phoneChanged(false,true));
  $('list').addEventListener('click',ev=>{const edit=ev.target.closest('[data-edit]'),del=ev.target.closest('[data-delete]');if(edit)editContact(edit.dataset.edit);else if(del)void deleteContact(del.dataset.delete)});
  document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>closeDialog(b.dataset.close)));
  $('select-all-fields').addEventListener('change',e=>{for(const c of $('export-fields').querySelectorAll('input'))c.checked=e.target.checked;syncSelectAll()});
