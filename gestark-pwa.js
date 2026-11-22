@@ -1,11 +1,33 @@
-/* Gestark · instalador PWA 2026.11.22.13.
+/* Gestark · instalador PWA 2026.11.22.14.
  * El contenedor nativo registra el Service Worker una sola vez.
  * Los módulos abiertos dentro de iframes NO lo registran nuevamente.
  */
 (() => {
  'use strict';
- const VERSION='2026.11.22.13';
+ const VERSION='2026.11.22.14';
  const appBase=new URL('./',document.currentScript?.src||location.href);
+ // Activar la sincronización de Entregas clientes después de validar Firebase.
+ // Compatible con la pestaña nativa (iframe) y el acceso clásico directo.
+ if(location.pathname.endsWith('/entregas-clientes.html')){
+   const loadClientsCloud=()=>{
+     if(window.__gestarkClientsCloudRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
+     window.__gestarkClientsCloudRequested=true;
+     const script=document.createElement('script');
+     script.src='./gestark-clientes-cloud.js?v=2026.11.22.14';
+     script.async=true;
+     script.onerror=()=>{
+       window.__gestarkClientsCloudRequested=false;
+       const notice=document.createElement('p');
+       notice.setAttribute('role','alert');
+       notice.style.cssText='margin:12px;padding:12px;border-radius:10px;background:#fff2e3;color:#80501b;font:700 12px system-ui';
+       notice.textContent='No se pudo cargar la sincronización de Entregas clientes. Los registros se guardan únicamente en este dispositivo. Actualiza e inténtalo otra vez.';
+       (document.getElementById('workspace')||document.body).prepend(notice);
+     };
+     document.head.append(script);
+   };
+   document.addEventListener('gestark:ready',loadClientsCloud);
+   if(window.GestarkAuth?.getUser?.()?.uid)loadClientsCloud();
+ }
  const embedded=(()=>{try{return window.parent!==window && window.parent.location.origin===location.origin && window.parent.location.pathname.endsWith('/gestark-app.html')}catch(_){return false}})();
  if(embedded)return;
  const isStandalone=()=>window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;

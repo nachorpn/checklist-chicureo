@@ -1,10 +1,10 @@
 {
-  "version": "2026.11.22.13",
+  "version": "2026.11.22.14",
   "name": "Gestark",
-  "changes": "Auditoría: navegación sin recargas forzadas, una sola instancia de registro PWA, cierre de sesión verificado y consistencia de versiones. Los datos en Firebase y las credenciales no cambian.",
+  "changes": "Entregas clientes: sincronización de nóminas y estados de cierre entre dispositivos, importación idempotente con respaldo local y prevención de restaurar órdenes borradas.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
-  "clientsVersion": "2026.11.21.36"
+  "clientsVersion": "2026.11.22.14"
 }

@@ -1,32 +1,70 @@
-GESTARK — PARCHE DE AUDITORÍA 2026.11.22.13
-===========================================
-El ZIP no modifica tu GitHub ni Firebase automáticamente.
+GESTARK · ENTREGAS CLIENTES EN FIREBASE · 2026.11.22.14
+===================================================
 
-ANTES DE PUBLICAR
-- Guarda una copia del repositorio o identifica el commit actual para poder revertir.
-- Lee AUDITORIA_GESTARK.md, en particular riesgos no resueltos.
+IMPORTANTE
+- Este paquete NO modifica el código del escáner ni los datos de Transferencias.
+- La aplicación debe tener Firebase Auth y perfiles authorized_users/{uid} activos.
+- El nuevo registro se almacena en Firestore: gestark_client_deliveries_v1.
+- SIN publicar primero las reglas del archivo adjunto, la nube NO funcionará.
+- Crea antes un respaldo de la nómina local desde la opción «Respaldo» (al abrir la nueva versión) si tiene datos importantes.
+- NO elimines la aplicación instalada ni borres datos de Safari antes de comprobar la importación.
 
-ARCHIVOS A SUSTITUIR EN LA RAÍZ DE GITHUB
-  gestark-app.html
-  gestark-auth.js
-  gestark-updates.js
-  gestark-pwa.js
-  gestark-sw.js
-  gestark-version.json
+PASO 1 · REGLAS FIRESTORE
+1. Abre https://console.firebase.google.com/project/gestark-213f7/firestore/rules
+2. Guarda una copia de las reglas que ya están publicadas.
+3. Abre REGLAS_FIRESTORE_ENTREGAS_CLIENTES.rules del ZIP.
+4. Copia la función y el bloque match dentro de:
+   service cloud.firestore { match /databases/{database}/documents { ... } }
+   NO pegues un bloque service completo ni sustituyas tus reglas actuales.
+   No elimines las reglas de authorized_users, gestark_transfers_v1 o pilotos.
+5. Publica. Si hay un error de sintaxis, NO reemplaces todas las reglas.
 
-No subas las carpetas de pruebas, ZIP anteriores ni claves privadas.
-No borres la PWA instalada ni localStorage.
-No hay cambios a los datos o reglas Firestore.
+PASO 2 · GITHUB
+En https://github.com/nachorpn/checklist-chicureo:
+Sube estos CINCO archivos a la raíz (reemplaza los existentes cuando corresponda):
+  - gestark-clientes-cloud.js [nuevo]
+  - gestark-pwa.js         [actualizado]
+  - gestark-sw.js          [actualizado]
+  - gestark-app.html       [actualizado]
+  - gestark-version.json   [actualizado]
+NO subas el archivo .rules ni los archivos de prueba a GitHub Pages.
 
-ABRIR VERSIÓN NUEVA
-https://nachorpn.github.io/checklist-chicureo/gestark-app.html?actualizar=2026112213
+PASO 3 · PRUEBA EN MAC E IPHONE
+1. Abre https://nachorpn.github.io/checklist-chicureo/gestark-app.html?actualizar=2026112214
+2. Inicia sesión si es necesario y entra a Clientes > Nómina general.
+3. Espera a ver «Firebase sincronizado · Nómina compartida en tiempo real».
+4. Si aparece un aviso naranja o «Sin permiso», revisa las reglas y refresca la aplicación.
+5. En el Mac crea un retiro de prueba: cliente «PRUEBA SINCRONIZACIÓN», O.F. ficticia de 9 dígitos
+   que no corresponda a una orden real; si aparece la ventana de compartir, puedes cancelarla.
+6. En el iPhone, entra a Clientes > Nómina general y comprueba si aparece sola.
+7. Marca «Cerrada» desde el iPhone y comprueba el cambio en el Mac.
+8. Elimina SOLO la O.F. de prueba desde el Mac y comprueba que desaparece en el iPhone.
 
-VERIFICACIÓN MANUAL
-1) Inicio → Transferencias → Checklist → Inicio sin una segunda pantalla login.
-2) Una sola barra inferior.
-3) Transferencia ficticia Mac/iPhone: crear, editar y eliminar en vivo.
-4) Cerrar sesión: confirmar que aparezca pantalla de acceso y no continúe una sección abierta.
-5) Si aparece un error: volver al commit anterior; no borrar información local.
+QUÉ SE SINCRONIZA
+- Retiros finalizados, nombres de cliente, O.F., fecha y operador de cada retiro.
+- Estados Pendiente/Cerrada de cada O.F.
+- Eliminaciones de O.F. con lápidas lógicas (no se borran físicamente de Firestore).
+- Registros previos presentes en el almacenamiento local del dispositivo, mediante
+  importación idempotente: no reemplaza un registro con el mismo ID que ya existe en Firebase.
 
-AUDITORIA_GESTARK.md describe límites y tareas pendientes.
-SHA256_ARCHIVOS.txt permite verificar la integridad del ZIP.
+QUÉ SIGUE LOCAL
+- El borrador de un retiro todavía NO finalizado.
+- Configuración y estado de la cámara.
+- Copia local de respaldo y cola de cambios pendientes.
+
+SIN INTERNET / FALLO FIREBASE
+- Se mantiene el guardado local y una cola durable de cambios pendientes.
+- El estado será naranja, no «sincronizado».
+- Cuando haya internet, Gestark intentará enviar los cambios.
+- Si la suscripción se interrumpe por permisos u otro error, usa «Reintentar» para recargar.
+- Antes de borrar datos de Safari o cambiar de dispositivo, descarga un respaldo.
+
+PRECAUCIONES
+- El primer dispositivo puede subir nóminas antiguas. Revisa la nómina completa después
+  de la migración, porque las eliminaciones anteriores a Firebase de otro dispositivo
+  no se pueden inferir de su histórico local.
+- Las O.F. retiradas se conservan como documentos marcados deleted=true para evitar
+  resucitarlas al importar otra copia antigua; NO equivale a borrado legal definitivo.
+- Las reglas de Firestore determinan los permisos reales. Los controles visuales no bastan.
+- Esta versión se comprobó con pruebas simuladas y análisis sintáctico, pero requiere
+  las pruebas reales Mac/iPhone y reglas publicadas para considerar completada la migración.
