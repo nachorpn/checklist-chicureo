@@ -1,39 +1,27 @@
-GESTARK · ACCESO POR USUARIO CON FIREBASE · v2026.11.22.6
+GESTARK · NAVEGACIÓN SIN PANTALLA DE VERIFICACIÓN · 2026.11.22.7
 
-CAMBIO: login con usuario o correo Firebase y contraseña, sin autenticar localmente.
+OBJETIVO
+- Evitar que aparezca la pantalla verde «Verificando sesión segura…» en
+  cada navegación entre módulos cuando el usuario ya está conectado.
+- Mantener Firebase Authentication y una validación fresca de authorized_users/{uid}.
+- No revelar el contenido de los módulos mientras la autorización está pendiente.
+- Mostrar el formulario de inicio de sesión únicamente cuando se necesita.
 
-INSTALACION EN GITHUB
-Subir SOLO estos dos archivos a la raiz del repositorio checklist-chicureo,
-reemplazando sus versiones anteriores:
-- gestark-auth.js
-- gestark-sw.js
-NO modificar usuarios.js, Firestore ni Authentication. No subir INSTRUCCIONES.txt.
+INSTALACIÓN
+1. Antes de subir, conserva los archivos anteriores como copia de respaldo.
+2. En GitHub, repositorio nachorpn/checklist-chicureo (raíz), sustituye:
+   - gestark-auth.js
+   - gestark-sw.js
+3. Publica ambos archivos mediante Commit changes.
+4. Abre https://nachorpn.github.io/checklist-chicureo/
+5. Navega entre Inicio, Checklist, Transferencias y demás secciones.
 
-COMO FUNCIONA
-- Se mantiene Firebase Authentication y autorizacion authorized_users/{uid}.
-- En el navegador donde ya existe una sesion Firebase valida, Gestark recuerda
-  localmente la relacion entre identificador (ej. MJXM) y el correo Firebase real.
-- Despues de cerrar sesion, permite ingresar MJXM + contraseña habitual.
-- En un navegador, perfil o PWA nuevos, todavia hay que iniciar con el CORREO
-  una sola vez para vincular el nombre de usuario en ESE navegador.
-- No existe una lista publica de correos; nada se publica en GitHub.
-- El alias de usuario NO autentica: Firebase verifica siempre la contraseña
-  y Firestore verifica siempre que el perfil exista y este activo.
-
-PRUEBA RECOMENDADA
-1. Mantener tu sesion Firebase actual, instalar los 2 archivos en GitHub.
-2. Abrir Gestark con sesion valida y pulsar Salir.
-3. Iniciar sesion con CIBC + contraseña de Firebase.
-4. Confirmar que aparece 'Firebase' en el encabezado y se conserva el acceso.
-5. En ventana privada NUEVA, probar con correo + contraseña (primera vez).
-6. Salir y entrar con las siglas en esa misma ventana (si almacenamiento habilitado).
-
-PRECAUCIONES
-- El correo se guarda localmente, asociado al identificador, SOLO en ese navegador.
-  En dispositivos compartidos puede persistir localmente hasta borrar datos del sitio.
-- Un usuario que conozca las credenciales Firebase sigue siendo necesario.
-- Esto NO resuelve el inicio por siglas en un equipo que NUNCA inicio con correo.
-  Para eso hara falta una solucion de resolucion de identidad segura del lado servidor.
-- No elimina hashes historicos de los commits viejos de GitHub.
-- No cambia las reglas, permisos ni las colecciones operativas.
-- Si la carga falla, restaurar gestark-auth.js y gestark-sw.js de la version anterior.
+IMPORTANTE
+- El paso de un documento HTML a otro sigue recargando la página. Durante la
+  verificación Firebase verás brevemente un fondo neutro, no el modal verde.
+  La velocidad depende de la red; no es una SPA ni evita la validación de sesión.
+- Si no hay sesión activa o Firebase rechaza el acceso, aparece el inicio de sesión.
+- No cambia usuarios, contraseñas, reglas Firestore, ni datos de Transferencias.
+- Para revertir, utiliza las versiones anteriores guardadas de ambos archivos.
+- En iPhone instalado, usa el botón Actualizar de Gestark o cierra y reabre
+  la aplicación si la caché tarda en renovar los archivos.

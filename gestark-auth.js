@@ -1,4 +1,4 @@
-/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.6)
+/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.7 — navegación silenciosa)
  * Sin autenticar contra usuarios.js ni contraseñas locales.
  * El usuario/alias se vincula solamente DESPUES de autenticar y autorizar Firebase.
  * Las asociaciones usuario->correo se guardan SOLO en el navegador actual.
@@ -128,6 +128,11 @@ function css() {
   const style = document.createElement('style');
   style.textContent = `
 html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}
+/* No se muestra el modal de verificación al entrar a cada sección. */
+html.gestark-checking,html.gestark-checking body{background:#f3f7f5!important}
+html.gestark-checking body::before{content:'';position:fixed;top:0;left:0;height:2px;width:32%;background:#19805d;z-index:99998;opacity:0;pointer-events:none;animation:gestark-quiet-progress 1.3s ease-in-out .45s infinite}
+@keyframes gestark-quiet-progress{0%{opacity:0;transform:translateX(-110%)}20%{opacity:.7}80%{opacity:.7}100%{opacity:0;transform:translateX(340%)}}
+@media(prefers-reduced-motion:reduce){html.gestark-checking body::before{animation:none}}
 #gestark-login{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:linear-gradient(155deg,#0d3d37,#106b59);padding:24px 18px;font-family:system-ui,-apple-system,sans-serif;color:#203d38;position:relative;z-index:99999}
 .ga-card{width:100%;max-width:390px;text-align:center;background:#fff;border-radius:25px;padding:30px 24px 27px;box-shadow:0 18px 45px #001f1a35}
 .ga-logo{width:73px;height:73px;object-fit:cover;border-radius:18px}.ga-title{font-size:28px;font-weight:800;letter-spacing:-.8px;margin-top:10px}.ga-sub{font-size:13px;color:#6a7f78;margin-top:2px}
@@ -166,7 +171,9 @@ function mountShell() {
   $('#ga-reset').addEventListener('click',resetPassword);
 }
 function showLogin(message='') {
-  if (!screen) return;
+  // Construir el login solo cuando Firebase confirma que no hay sesión
+  // o cuando la verificación del servidor falla.
+  if (!screen) mountShell();
   $('.ga-spinner').hidden = true;
   $('#ga-loading').hidden = true;
   $('#ga-form').hidden = false;
@@ -259,7 +266,10 @@ function showAuthenticated(user) {
   document.dispatchEvent(new CustomEvent('gestark:ready',{detail:user}));
 }
 async function start() {
-  css();mountShell();
+  css();
+  // Cada documento HTML restaura Firebase por separado. Mantener la vista
+  // cerrada hasta validar el perfil; no abrir una pantalla de login transitoria.
+  document.documentElement.classList.add('gestark-checking');
   try {
     const client=await firebaseClient();
     const firebaseUser=await new Promise((resolve,reject)=>{
@@ -274,6 +284,8 @@ async function start() {
     showAuthenticated(profile);
   } catch(error) {
     showLogin(errorMessage(error));
+  } finally {
+    document.documentElement.classList.remove('gestark-checking');
   }
 }
 // API mínima para compatibilidad con módulos que consultan la sesión.

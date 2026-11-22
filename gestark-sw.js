@@ -1,5 +1,5 @@
 /* Gestark · caché actualizada tras eliminar las credenciales locales. */
-const VERSION='2026.11.22.6';
+const VERSION='2026.11.22.7';
 const CACHE='gestark-pwa-'+VERSION;
 const CORE=['./','./index.html','./checklist.html','./repositorio.html','./admin.html',
   './gestark-auth.js','./usuarios.js','./gestark-updates.js','./gestark-pwa.js',
