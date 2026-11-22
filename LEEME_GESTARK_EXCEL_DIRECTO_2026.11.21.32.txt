@@ -1,0 +1,19 @@
+GESTARK · Versión 2026.11.21.32
+
+CAMBIO: Repositorio de Links → Transferencias
+- Botón prioritario «Abrir en la app Excel» (protocolo ms-excel:).
+- Botón alternativo «Abrir web» para Excel Online.
+- Si el iPhone sigue en Gestark después de tocar el botón principal, aparece una ayuda para acceder por la web y luego entrar a la app.
+- Se conserva el enlace compartido, el botón de copiar y todos los demás accesos.
+
+IMPORTANTE:
+Microsoft indica que la apertura mediante ms-excel requiere una URL directa del archivo. El enlace de OneDrive utilizado actualmente es un vínculo de uso compartido, por lo que no es posible garantizar que Excel lo abra directamente en todos los iPhone. Si falla, abre por la web y selecciona «Abrir en la aplicación».
+
+INSTALACIÓN:
+Subir estos 3 archivos a la raíz del repositorio (reemplazando los actuales):
+1) repositorio.html
+2) gestark-updates.js
+3) gestark-version.json
+Actualizar Gestark; no es necesario reemplazar ningún módulo adicional.
+
+Esta entrega no cambia el repositorio remoto automáticamente.

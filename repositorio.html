@@ -1,7 +1,15 @@
 <!doctype html>
 <html lang="es-CL">
 <head>
-<style>html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}</style>
+<style>html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}
+/* Acceso directo a Excel con respaldo seguro para iPhone. */
+.excel-actions .excel-main{background:#116b4d;color:#fff;min-width:180px}
+.excel-actions .excel-main:focus-visible{outline:3px solid #5fc295;outline-offset:2px}
+.excel-help,.excel-fallback{font-size:11.5px;line-height:1.5;color:#587566;margin:-3px 15px 14px}
+.excel-fallback{background:#eef8f2;border:1px solid #cde5d7;color:#285a41;border-radius:10px;padding:10px 12px;margin-top:0}
+.excel-fallback strong{color:#155739}
+@media(max-width:380px){.excel-actions .excel-main{flex-basis:100%}.excel-actions .secondary{flex:1}}
+</style>
 
 <meta name="robots" content="noindex, nofollow">
 <meta charset="utf-8">
@@ -76,14 +84,17 @@ input,textarea,select{touch-action:manipulation}
  <div class="card-top"><div class="num">02</div><div><h2 class="name">Inventario de Carga</h2><p class="sub">Microsoft Forms · Registro de inventario</p></div></div>
  <div class="actions"><a class="btn primary" href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=DAI2QNqiNEC3i6Vfmuf_VzPIa_44xWtJhU-AhUjFHENUMUg0TDY3VjFTUUg5NlFTTEQzRjROTENOMC4u&amp;origin=QRCode" target="_blank" rel="noopener noreferrer">↗ Abrir enlace</a><button class="btn secondary" data-link="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=DAI2QNqiNEC3i6Vfmuf_VzPIa_44xWtJhU-AhUjFHENUMUg0TDY3VjFTUUg5NlFTTEQzRjROTENOMC4u&amp;origin=QRCode">Copiar link</button></div>
 </article>
-<article class="card" data-keywords="transferencias onedrive excel">
- <div class="card-top"><div class="num">03</div><div><h2 class="name">Transferencias</h2><p class="sub">OneDrive · Archivo Excel</p></div></div>
- <div class="actions">
-  <a class="btn primary" href="ms-excel:ofe|u|https://onedrive.live.com/:x:/g/personal/2f0a067c00dc3979/IQBid1ETFEFhTJ8SI8W8owsHAeWMP2zBdIHQ5UZzPOeXjuc?rtime=zNXCPHRG30g&amp;redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy8yZjBhMDY3YzAwZGMzOTc5L0lRQmlkMUVURkVGaFRKOFNJOFc4b3dzSEFlV01QMnpCZElIUTVVWnpQT2VYanVjP2U9NDo3NlRJTlcmYXQ9OQ" aria-label="Intentar abrir planilla Transferencias en la aplicación Microsoft Excel">Abrir en Excel</a>
-  <a class="btn secondary" href="https://onedrive.live.com/:x:/g/personal/2f0a067c00dc3979/IQBid1ETFEFhTJ8SI8W8owsHAeWMP2zBdIHQ5UZzPOeXjuc?rtime=zNXCPHRG30g&amp;redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy8yZjBhMDY3YzAwZGMzOTc5L0lRQmlkMUVURkVGaFRKOFNJOFc4b3dzSEFlV01QMnpCZElIUTVVWnpQT2VYanVjP2U9NDo3NlRJTlcmYXQ9OQ" target="_blank" rel="noopener noreferrer">↗ Abrir web</a>
-  <button class="btn secondary" type="button" data-link="https://onedrive.live.com/:x:/g/personal/2f0a067c00dc3979/IQBid1ETFEFhTJ8SI8W8owsHAeWMP2zBdIHQ5UZzPOeXjuc?rtime=zNXCPHRG30g&amp;redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy8yZjBhMDY3YzAwZGMzOTc5L0lRQmlkMUVURkVGaFRKOFNJOFc4b3dzSEFlV01QMnpCZElIUTVVWnpQT2VYanVjP2U9NDo3NlRJTlcmYXQ9OQ">Copiar link</button>
+<article class="card" data-keywords="transferencias onedrive excel aplicación app">
+ <div class="card-top"><div class="num">03</div><div><h2 class="name">Transferencias</h2><p class="sub">Planilla compartida · Microsoft Excel</p></div></div>
+ <div class="actions excel-actions">
+  <a class="btn primary excel-main" id="excel-transfer-app" href="ms-excel:ofe|u|https://onedrive.live.com/:x:/g/personal/2f0a067c00dc3979/IQBid1ETFEFhTJ8SI8W8owsHAeWMP2zBdIHQ5UZzPOeXjuc?rtime=zNXCPHRG30g&amp;redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy8yZjBhMDY3YzAwZGMzOTc5L0lRQmlkMUVURkVGaFRKOFNJOFc4b3dzSEFlV01QMnpCZElIUTVVWnpQT2VYanVjP2U9NDo3NlRJTlcmYXQ9OQ" aria-label="Abrir directamente la planilla de Transferencias en la aplicación Excel instalada">Abrir en la app Excel</a>
+  <a class="btn secondary" id="excel-transfer-web" href="https://onedrive.live.com/:x:/g/personal/2f0a067c00dc3979/IQBid1ETFEFhTJ8SI8W8owsHAeWMP2zBdIHQ5UZzPOeXjuc?rtime=zNXCPHRG30g&amp;redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy8yZjBhMDY3YzAwZGMzOTc5L0lRQmlkMUVURkVGaFRKOFNJOFc4b3dzSEFlV01QMnpCZElIUTVVWnpQT2VYanVjP2U9NDo3NlRJTlcmYXQ9OQ" target="_blank" rel="noopener noreferrer" aria-label="Abrir planilla de Transferencias en Excel Online">Abrir web</a>
+  <button class="btn secondary" type="button" data-link="https://onedrive.live.com/:x:/g/personal/2f0a067c00dc3979/IQBid1ETFEFhTJ8SI8W8owsHAeWMP2zBdIHQ5UZzPOeXjuc?rtime=zNXCPHRG30g&amp;redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy8yZjBhMDY3YzAwZGMzOTc5L0lRQmlkMUVURkVGaFRKOFNJOFc4b3dzSEFlV01QMnpCZElIUTVVWnpQT2VYanVjP2U9NDo3NlRJTlcmYXQ9OQ">Copiar enlace</button>
  </div>
- <p style="font-size:11px;color:#627469;line-height:1.45;margin:-4px 15px 14px">Requiere Excel instalado. Si el enlace compartido no permite abrir la planilla directamente, utiliza «Abrir web» y elige «Abrir en la aplicación» desde Microsoft.</p>
+ <div class="excel-fallback" id="excel-transfer-help" hidden role="status" aria-live="polite">
+  <strong>¿No se abrió Excel?</strong> Abre la planilla con «Abrir web» y, en Microsoft, selecciona «Abrir en la aplicación». Verifica que Excel esté instalado y con tu cuenta iniciada.
+ </div>
+ <p class="excel-help">El botón principal intenta abrir Excel directamente. Si tu iPhone no acepta el vínculo compartido de OneDrive, puedes usar la versión web.</p>
 </article>
 <article class="card" data-keywords="gestiones sharepoint excel gestión">
  <div class="card-top"><div class="num">04</div><div><h2 class="name">Gestiones</h2><p class="sub">SharePoint · Archivo Excel</p></div></div>
@@ -111,6 +122,28 @@ async function copyText(value){try{if(navigator.clipboard?.writeText){await navi
 $('toggleWater').addEventListener('click',()=>{const d=$('waterDetails');d.hidden=!d.hidden;$('toggleWater').setAttribute('aria-expanded',String(!d.hidden));$('toggleWater').textContent=d.hidden?'Ver instrucciones':'Ocultar instrucciones'});
 document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>{const value=b.dataset.copy==='quantity'?$('quantity').value:b.dataset.copy;if(!value){toast('Primero indica la cantidad de bidones');return}copyText(value)}));
 document.querySelectorAll('[data-link]').forEach(b=>b.addEventListener('click',()=>copyText(b.dataset.link)));
+
+// La navegación ms-excel: se produce por el toque directo en el enlace.
+// iOS puede bloquear el protocolo o Excel puede rechazar vínculos compartidos.
+// No abrimos la web automáticamente para evitar ventanas duplicadas.
+(() => {
+  const launcher=document.getElementById('excel-transfer-app');
+  const help=document.getElementById('excel-transfer-help');
+  if(!launcher || !help)return;
+  let timer=null;
+  const stop=()=>{if(timer!==null){clearTimeout(timer);timer=null}};
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')stop()});
+  window.addEventListener('pagehide',stop);
+  launcher.addEventListener('click',()=>{
+    help.hidden=true;
+    stop();
+    timer=setTimeout(()=>{
+      timer=null;
+      if(document.visibilityState==='visible')help.hidden=false;
+    },1400);
+  });
+})();
+
 // Código que se ejecuta manualmente como favorito DENTRO de culligan.cl.
 // No accede a otros sitios, no marca consentimientos ni envía formularios.
 function fillCulligan(data){
@@ -179,7 +212,7 @@ $('filter').addEventListener('input',e=>{let visible=0;const q=e.target.value.tr
 })();
 </script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.21.28"></script>
+<script src="./gestark-updates.js?v=2026.11.21.32"></script>
 <script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body>
 </html>

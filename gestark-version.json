@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.31",
+  "version": "2026.11.21.32",
   "name": "Gestark",
-  "changes": "Menú fijo inferior: Enlaces se sustituye por Gestiones, acceso directo al Microsoft Forms de Gestiones Chicureo. Repositorio permanece en Inicio; demás funciones sin cambios.",
+  "changes": "Repositorio de Links: Transferencias intenta abrir la planilla en la aplicación Excel mediante enlace de Office; alternativa visible a Excel Online y ayuda si la app no se abre. Sin cambios en los demás módulos.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
