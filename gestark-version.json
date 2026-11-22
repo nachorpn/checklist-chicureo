@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.36",
+  "version": "2026.11.21.37",
   "name": "Gestark",
-  "changes": "Transferencias: selector visible ¿Transfirió? Sí/No por cliente, No predeterminado y tercera columna dinámica en Excel. Entregas clientes: eliminar una O.F. individual de Nómina general mediante diálogo de confirmación, limpiando su estado de cierre. Firebase sigue en pausa.",
+  "changes": "Transferencias: el botón combinado copia Nombre, Monto y Sí/No y solicita abrir Excel Online en una nueva ventana del navegador, sin invocar ms-excel ni salir de Gestark. Se conserva selector y eliminación de O.F. de la versión anterior. El sistema iOS puede redirigir enlaces universales a la app.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",

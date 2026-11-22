@@ -1,0 +1,20 @@
+GESTARK · 2026.11.21.37
+
+CAMBIO
+- Transferencias > Copiar y abrir en navegador: primero copia los registros en tres columnas (Nombre, Monto, Sí/No), y solicita una nueva ventana/pestaña web para la planilla en OneDrive.
+- Evita el anterior location.assign(), que reemplazaba la ventana de Gestark y podía enviar a la app Excel.
+- El enlace HTTPS agrega la preferencia web=1 para solicitar interfaz web.
+- Conserva selector Sí/No, el botón Solo abrir Excel Online, las funciones de Entregas clientes y todos los datos.
+
+LIMITACIÓN DE iOS
+El sistema puede interceptar enlaces universales de Microsoft y abrir Excel aun cuando se use HTTPS y una nueva pestaña. Una PWA no puede impedirlo completamente.
+Si ocurre, abre Safari y pega el vínculo de OneDrive en su barra; los datos ya copiados siguen en el portapapeles.
+
+INSTALACIÓN
+Reemplazar SOLO:
+1. notas-transferencias.html
+2. notas-transferencias.js
+3. gestark-updates.js
+4. gestark-version.json
+
+No se publica automáticamente en GitHub.

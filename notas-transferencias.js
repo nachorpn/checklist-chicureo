@@ -103,17 +103,41 @@ $('copy-excel').addEventListener('click',async()=>{const rows=bankRows();if(!row
 $('copy-open-excel-online').addEventListener('click',async()=>{
  const rows=bankRows();if(!rows.length){toast('No hay transferencias bancarias para copiar.',true);return}
  const button=$('copy-open-excel-online');if(button.disabled)return;
- // Es necesario iniciar la copia directamente desde el toque del usuario en iPhone.
- // Tras completar la copia, navegar EN LA MISMA PESTAÑA evita bloqueadores de popups de iOS.
- const data=excel(),url=$('open-excel-online').href;
+ const data=excel();
+ // El vínculo web es HTTPS, nunca ms-excel:. Se añade la preferencia de presentación web.
+ // iOS puede redirigir enlaces universales a apps instaladas: no es posible prohibirlo desde una PWA.
+ const url=new URL($('open-excel-online').href);
+ url.searchParams.set('web','1');
+ // IMPORTANTE: iniciar la copia y crear una ventana externa DENTRO del gesto del usuario.
+ // Abrirla después del await puede ser bloqueado por Safari/iOS.
+ const copyTask=copy(data);
+ const browserTab=window.open('about:blank','_blank');
+ if(browserTab){
+  try{
+   browserTab.document.title='Gestark · Excel Online';
+   browserTab.document.body.style.cssText='margin:0;min-height:100vh;display:grid;place-items:center;background:#f3f7f5;color:#135740;font:600 16px system-ui,sans-serif;text-align:center;padding:25px';
+   browserTab.document.body.textContent='Gestark · Preparando Excel Online…';
+   browserTab.opener=null;
+  }catch{}
+ }
  button.disabled=true;
  try{
-  const ok=await copy(data);
-  if(!ok){toast('No se pudo copiar. Usa «Copiar para Excel» y «Solo abrir Excel Online».',true);return}
-  toast('Copiados '+rows.length+' cliente(s). Abriendo Excel Online…');
-  window.location.assign(url);
+  const ok=await copyTask;
+  if(!ok){
+   try{browserTab?.close()}catch{}
+   toast('No se pudo copiar. Usa «Copiar para Excel» y «Solo abrir Excel Online».',true);
+   return;
+  }
+  if(browserTab && !browserTab.closed){
+   browserTab.location.replace(url.href);
+   toast('Copiados '+rows.length+' cliente(s). Abriendo la planilla en navegador…');
+  }else{
+   // No enviar la PWA a Excel: así evitamos el salto automático a la app.
+   toast('Datos copiados. Toca «Solo abrir Excel Online» para abrir el navegador.',false);
+  }
  }catch{
-  toast('No se pudo copiar. Usa los botones separados.',true);
+  try{browserTab?.close()}catch{}
+  toast('No se pudo completar la copia. Usa los botones separados.',true);
  }finally{button.disabled=bankRows().length===0}
 });
 $('send-wa').addEventListener('click',()=>{if(!bankRows().length)return;const msg=message(),url='https://wa.me/?text='+encodeURIComponent(msg);if(url.length>6000){copy(msg).then(ok=>toast(ok?'Lista extensa copiada para WhatsApp.':'No se pudo copiar.',!ok))}else window.location.href=url});

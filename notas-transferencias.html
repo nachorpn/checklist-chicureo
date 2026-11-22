@@ -53,9 +53,9 @@ h1{font-size:26px;letter-spacing:-.6px;margin:0 0 5px}.hero p{font-size:12px;lin
  <h2 class="title" id="pending-title">Transferencias pendientes de traspasar</h2>
  <div class="stat"><span id="record-count">0 clientes</span><strong id="record-total">$0</strong></div>
  <div class="actions"><button id="send-wa" type="button" class="primary">Enviar por WhatsApp</button><button id="copy-excel" type="button" class="secondary">Copiar para Excel</button></div>
- <button id="copy-open-excel-online" class="excel-online-link" type="button" aria-describedby="excel-online-help"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="15" height="16" rx="2"/><path d="M7 9h7M7 13h7M7 17h4"/><path d="m15 3 5 0v5M20 3l-6 6"/></svg>Copiar y abrir Excel Online</button>
- <a id="open-excel-online" class="excel-online-secondary" href="https://onedrive.live.com/:x:/g/personal/2f0a067c00dc3979/IQBid1ETFEFhTJ8SI8W8owsHAeWMP2zBdIHQ5UZzPOeXjuc?rtime=zNXCPHRG30g&amp;redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy8yZjBhMDY3YzAwZGMzOTc5L0lRQmlkMUVURkVGaFRKOFNJOFc4b3dzSEFlV01QMnpCZElIUTVVWnpQT2VYanVjP2U9NDo3NlRJTlcmYXQ9OQ" target="_blank" rel="external noopener noreferrer">Solo abrir Excel Online</a>
- <p id="excel-online-help" class="notice">Un toque copia <strong>Nombre, Monto y Sí/No</strong> y luego abre la planilla en Excel Online. En la primera celda vacía, mantén presionado y elige <strong>Pegar</strong>. Si la copia está bloqueada, puedes usar «Copiar para Excel» y «Solo abrir Excel Online» por separado.</p>
+ <button id="copy-open-excel-online" class="excel-online-link" type="button" aria-describedby="excel-online-help"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="15" height="16" rx="2"/><path d="M7 9h7M7 13h7M7 17h4"/><path d="m15 3 5 0v5M20 3l-6 6"/></svg>Copiar y abrir en navegador</button>
+ <a id="open-excel-online" class="excel-online-secondary" href="https://onedrive.live.com/:x:/g/personal/2f0a067c00dc3979/IQBid1ETFEFhTJ8SI8W8owsHAeWMP2zBdIHQ5UZzPOeXjuc?rtime=zNXCPHRG30g&amp;redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy8yZjBhMDY3YzAwZGMzOTc5L0lRQmlkMUVURkVGaFRKOFNJOFc4b3dzSEFlV01QMnpCZElIUTVVWnpQT2VYanVjP2U9NDo3NlRJTlcmYXQ9OQ&amp;web=1" target="_blank" rel="external noopener noreferrer">Solo abrir Excel Online</a>
+ <p id="excel-online-help" class="notice">Un toque copia <strong>Nombre, Monto y Sí/No</strong> e intenta abrir la planilla en una <strong>ventana del navegador</strong>, no mediante el protocolo de la app Excel. Después, mantén presionada una celda vacía y elige <strong>Pegar</strong>. Si iOS deriva el enlace a Excel, vuelve a Safari y abre la planilla desde OneDrive; el portapapeles permanece copiado.</p>
  <p class="notice">Cada transferencia muestra «¿Transfirió?», con <strong>No por defecto</strong>. El valor seleccionado (Sí/No) se incluirá al copiar a Excel como tercera columna, junto a Nombre y Monto. Si un cliente tiene varias transferencias, el mismo selector se aplica a todos sus montos agrupados.</p>
  <ul id="entries" class="list" aria-label="Transferencias pendientes"></ul>
  <p id="empty" class="empty">No hay transferencias pendientes.</p>
@@ -73,8 +73,8 @@ h1{font-size:26px;letter-spacing:-.6px;margin:0 0 5px}.hero p{font-size:12px;lin
 <p id="feedback" aria-live="polite" role="status"></p>
 </main></div>
 <nav class="bottom-nav" aria-label="Navegación principal"><a href="./">Inicio</a><a href="./checklist.html">Checklist</a><a href="./entregas-contingentes.html">Entregas</a><a href="./notas-transferencias.html" class="active" aria-current="page">Transferencias</a></nav>
-<script src="./notas-transferencias.js?v=2026.11.21.36"></script>
+<script src="./notas-transferencias.js?v=2026.11.21.37"></script>
 <script>(()=>{const u=document.createElement('script');u.src='./usuarios.js?actualizacion='+Date.now();u.onload=()=>{const a=document.createElement('script');a.src='./gestark-auth.js?v=2';document.body.appendChild(a)};u.onerror=()=>{document.body.insertAdjacentHTML('beforeend','<p style="padding:20px;background:white">No se pudo cargar la lista de usuarios de Gestark.</p>')};document.body.appendChild(u)})();</script>
 <noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
-<script src="./gestark-updates.js?v=2026.11.21.36"></script><script src="./gestark-pwa.js?v=2026.11.17.3"></script>
+<script src="./gestark-updates.js?v=2026.11.21.37"></script><script src="./gestark-pwa.js?v=2026.11.17.3"></script>
 </body></html>
