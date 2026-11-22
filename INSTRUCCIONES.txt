@@ -1,21 +1,48 @@
-GESTARK - ACTUALIZACIÓN REPOSITORIO / ABRIR EXCEL
+GESTARK — INTEGRACIÓN PROGRESIVA FIREBASE AUTH
+Fecha: 22-11-2026 | Prueba: 2026.11.22.1
 
-CAMBIO
-En Repositorio de Links > Transferencias ahora hay:
-- Abrir en Excel: intenta abrir la planilla en la aplicación de Microsoft Excel usando el protocolo oficial ms-excel:ofe|u|.
-- Abrir web: conserva el acceso convencional al archivo de OneDrive.
-- Copiar link: copia la dirección de la planilla.
+ESTADO
+- El acceso actual en producción sigue siendo local.
+- La prueba anterior ya confirmó que el laboratorio Firebase sincroniza datos ficticios.
+- Esta entrega permite probar un inicio de sesión Firebase en Gestark sin migrar datos ni sustituir el acceso anterior. La página piloto utiliza sessionStorage para preferir Firebase solo en esa pestaña.
+- No cambies reglas de Firestore para que la prueba funcione. Si aparece «Permiso denegado», revisa reglas seguras y authorized_users/{UID}.
 
-LIMITACIÓN IMPORTANTE
-El vínculo que se proporcionó es un enlace compartido de OneDrive, no una dirección directa al archivo. Microsoft indica que algunos enlaces compartidos o con redirecciones pueden no funcionar con el protocolo ms-excel. La apertura directa depende de la versión instalada de Excel, del navegador/sistema operativo y de los permisos de OneDrive. Si «Abrir en Excel» no funciona en el teléfono, usa «Abrir web» y desde Microsoft busca «Abrir en aplicación»; también puedes buscar la planilla desde Excel > Recientes / Compartido.
+ETAPA A — PUBLICAR SOLO EL PILOTO (RECOMENDADA)
+1. En GitHub, abre nachorpn/checklist-chicureo, rama main.
+2. Usa Add file > Upload files y sube ÚNICAMENTE:
+   - acceso-firebase-piloto.html
+   - gestark-auth-firebase-piloto.js
+3. Publica el commit. Deja intacto el gestark-auth.js existente.
+4. Desde Safari/iPhone o un computador abre:
+   https://nachorpn.github.io/checklist-chicureo/acceso-firebase-piloto.html
+5. Si la página te muestra un usuario local, pulsa «Usar Firebase».
+   Inicia sesión con tu cuenta Firebase administradora ya autorizada.
+6. Comprueba que aparece «Sesión: ... · Firebase», actualiza el sitio y comprueba que continúa autenticado.
+7. Prueba después en el iPhone; no uses información real en los laboratorios.
+   El piloto conserva el acceso local de producción cuando cambias a Firebase; no cierra la sesión antigua.
 
-El enlace OneDrive fue actualizado según la URL enviada (rtime=zNXCPHRG30g). No se modificaron los otros accesos del repositorio ni las funciones anteriores.
+ETAPA B — ACTIVAR EN EL ACCESO PRINCIPAL (SOLO CUANDO EL PILOTO ESTÉ APROBADO)
+1. Antes del cambio, descarga una copia del gestark-auth.js original desde GitHub (o conserva el commit anterior para revertir).
+2. Reemplaza gestark-auth.js en la raíz con el archivo de igual nombre incluido en este paquete.
+3. Si el navegador sigue mostrando la pantalla anterior, utiliza el botón Actualizar de Gestark, que funciona con prioridad de red.
+4. La app conservará inicio de sesión local para los colaboradores mientras se registran sus cuentas en Firebase.
+5. El acceso Firebase a módulos reales aún NO implica datos centralizados. Se hará en una etapa posterior.
+6. Para retroceder, restaura el gestark-auth.js original desde el historial de GitHub.
 
-INSTALACIÓN
-1. Descomprime el ZIP.
-2. En GitHub, abre nachorpn/checklist-chicureo.
-3. Usa Add file > Upload files y sube TODOS los archivos y carpetas del ZIP (en la raíz del repositorio).
-4. Presiona Commit changes.
-5. En Gestark usa Actualizar, si fuera necesario.
+CÓMO SE AUTORIZA LA CUENTA FIREBASE
+- Authentication: usuario creado mediante correo y contraseña.
+- Firestore: documento authorized_users/{UID}.
+- Datos esperados: username="CIBC", role="admin", active=true; name opcional.
+- La lectura del documento debe permitir al usuario autenticado consultar su propio UID.
+- La escritura de authorized_users debe estar restringida por las reglas a un administrador de confianza, no a cualquier usuario.
 
-No modifica archivos de Excel ni sus datos.
+CUIDADOS
+- Nunca publiques contraseñas ni llaves privadas de Firebase Admin SDK.
+- Firebase API key web es pública por diseño; las reglas de Firestore deben ser la protección real.
+- No copies ni borres los registros locales durante esta prueba.
+- El archivo de administración admin.html sigue administrando las cuentas LOCALES, no crea cuentas Firebase todavía.
+- La página original firebase-laboratorio.html mantiene su proceso independiente de doble acceso.
+- Si la conexión falla, el formulario local sigue disponible como mecanismo temporal. Eso NO convierte al acceso local en un sistema seguro de autorización para datos centrales.
+
+PERMISOS DEL REPOSITORIO
+Durante esta entrega, el conector GitHub permitió leer el repositorio pero rechazó la creación de ramas con error 403. Por eso estos archivos no quedaron publicados de forma automática; debes subirlos desde tu cuenta de GitHub.

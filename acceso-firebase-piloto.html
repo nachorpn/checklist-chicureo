@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#103e38">
+<meta name="robots" content="noindex,nofollow">
+<title>Gestark · Acceso Firebase · Prueba</title>
+<style>
+ html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}
+ *{box-sizing:border-box}body{margin:0;background:#f6f8f7;color:#143f34;font:15px/1.5 system-ui,-apple-system,sans-serif}
+ header{background:#103e38;color:#fff;padding:26px 20px;border-radius:0 0 20px 20px}
+ header strong{font-size:12px;letter-spacing:1px;color:#bcf4de}h1{margin:5px 0;font-size:25px}header p{margin:0;color:#d5ede5;font-size:13px}
+ main{max-width:720px;margin:20px auto;padding:0 18px 35px}.panel{background:#fff;border:1px solid #dceae2;padding:20px;border-radius:18px;box-shadow:0 4px 18px #113c2510}
+ h2{font-size:18px;margin:0 0 10px}.notice{background:#edf5f0;border:1px solid #cee5d5;padding:12px 14px;border-radius:12px;font-size:13px}
+ .controls{display:grid;gap:10px;margin-top:20px}a{color:#157253;font-weight:750}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:15px}.actions a{display:inline-block;padding:12px;border-radius:10px;background:#116e4f;color:white;text-decoration:none}
+ small{color:#527568}
+</style>
+</head>
+<body>
+<header><strong>GESTARK · LABORATORIO DE ACCESO</strong><h1>Inicio de sesión con Firebase</h1><p>Prueba aislada del acceso principal · No modifica los datos reales</p></header>
+<main>
+<section class="panel">
+ <h2>Comprobación de acceso</h2>
+ <p class="notice"><strong>Prueba segura.</strong> Esta pantalla no modifica Transferencias ni Entregas. Usa tu cuenta Firebase ya autorizada y comprueba que el estado de sesión se conserva al actualizar.</p>
+ <div class="controls">
+  <p><strong>1.</strong> Si aparece «Sesión: Local (temporal)», pulsa <strong>Usar Firebase</strong> arriba.</p>
+  <p><strong>2.</strong> Introduce el correo y la contraseña que utilizaste en el laboratorio Firebase.</p>
+  <p><strong>3.</strong> Cuando veas «Sesión: Firebase», actualiza esta página para confirmar la persistencia.</p>
+ </div>
+ <div class="actions"><a href="./">Volver a Gestark</a><a href="./firebase-laboratorio.html">Laboratorio de datos</a></div>
+ <p><small>La administración Firebase y la sincronización de módulos operativos se implementarán por separado.</small></p>
+</section>
+</main>
+<script src="./usuarios.js"></script>
+<script src="./gestark-auth-firebase-piloto.js?v=2026.11.22.1"></script>
+<noscript>Gestark necesita JavaScript para iniciar sesión.</noscript>
+</body>
+</html>
