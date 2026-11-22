@@ -1,0 +1,18 @@
+GESTARK 2026.11.21.34 - Acceso rápido a Excel Online
+
+CAMBIOS
+- Registro de transferencias: botón «Abrir Excel Online» debajo de «Enviar por WhatsApp» y «Copiar para Excel».
+- Repositorio de Links > Transferencias: botón principal renombrado «Abrir Excel Online».
+- Enlace original HTTPS compartido en OneDrive, sin forzar la app de Excel.
+- Los registros y funciones existentes se conservan.
+
+INSTALACIÓN
+Reemplazar estos cuatro archivos en la raíz de GitHub:
+- notas-transferencias.html
+- repositorio.html
+- gestark-updates.js
+- gestark-version.json
+Después pulsar «Actualizar» en Gestark.
+
+NOTA
+El enlace puede solicitar inicio de sesión o abrir una página de OneDrive antes de Excel Online según la configuración de Microsoft/iOS.

@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.21.33",
+  "version": "2026.11.21.34",
   "name": "Gestark",
-  "changes": "Transferencias: OneDrive pasa a ser la apertura recomendada en iPhone para evitar el bloqueo al iniciar Excel desde un enlace compartido. Se conserva una opción manual para probar Excel directo y copiar el enlace. Sin cambios en otros módulos.",
+  "changes": "Transferencias: nuevo botón Abrir Excel Online desde Registro de transferencias y acceso web explícito en Repositorio de Links. Se conserva la planilla compartida y las funciones locales.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
