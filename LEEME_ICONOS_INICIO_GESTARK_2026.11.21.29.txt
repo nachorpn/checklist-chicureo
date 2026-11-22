@@ -1,0 +1,3 @@
+Gestark 2026.11.21.29
+
+Actualización visual del Inicio: iconos rediseñados con estilo más limpio y sofisticado, manteniendo los colores y la marca Gestark. No cambia la lógica de los módulos.

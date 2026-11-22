@@ -3,11 +3,11 @@
 <head>
 <style>html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}.tool.scanner{background:#eff6ff;border-color:#bed6ed}
 .tool.scanner .graphic{background:#dceeff;color:#225e93}
-.tool.scanner .graphic svg{width:37px;height:37px}
+.tool.scanner .graphic svg{color:currentColor}
 @media(max-width:649px){.tool.scanner .graphic svg{width:30px;height:30px}}
 .tool.contingency{background:#eef8f3;border-color:#c6e2d1}
 .tool.contingency .graphic{background:#d8f2e4;color:#15714d}
-.tool.contingency .graphic svg{width:37px;height:37px}
+.tool.contingency .graphic svg{color:currentColor}
 @media(max-width:649px){.tool.contingency .graphic svg{width:30px;height:30px}}
 </style>
 
@@ -53,8 +53,11 @@ main{padding-top:26px}
 .tool{display:flex;gap:15px;align-items:center;min-height:129px;padding:18px;border-radius:23px;background:#fff;border:1px solid #e0e9e6;box-shadow:0 8px 28px #183e3710;transition:transform .16s ease,box-shadow .16s ease}
 .tool:active{transform:scale(.985)}
 .tool:hover{box-shadow:0 12px 26px #183e371b}
-.tool .graphic{flex:0 0 78px;width:78px;height:78px;display:grid;place-items:center;border-radius:20px;overflow:hidden}
+.tool .graphic{position:relative;flex:0 0 78px;width:78px;height:78px;display:grid;place-items:center;border-radius:20px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 10px 22px rgba(16,62,56,.09)}
+.tool .graphic::after{content:"";position:absolute;inset:7px;border-radius:14px;border:1px solid rgba(255,255,255,.4);pointer-events:none}
+.tool .graphic svg,.tool .graphic img{position:relative;z-index:1}
 .graphic img{width:100%;height:100%;object-fit:cover;display:block}
+.tool .graphic svg{width:42px;height:42px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .green .graphic{background:#d8f5e6}
 .blue .graphic{background:#e4eaff}
 .gold .graphic{background:linear-gradient(135deg,#fff0cf,#ffe3a2)}
@@ -102,13 +105,13 @@ footer{font-size:11px;color:#82948f;text-align:center;margin:27px 0 0}
 
 .tool.clients{background:#edf8f1;border-color:#c6e3d3}
 .tool.clients .graphic{background:#d6f0e0;color:#15714d}
-.tool.clients .graphic svg{width:42px;height:42px}
+.tool.clients .graphic svg{color:currentColor}
 /* Registro de transferencias: acceso en Inicio exclusivo de CIBC. */
 .tool.notes .graphic{background:#e6f6eb;color:#17794f}
-.tool.notes .graphic svg{width:42px;height:42px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.tool.notes .graphic svg{color:currentColor}
 /* Acceso a traslados disponible únicamente para la cuenta SCMN. */
 .tool.transport .graphic{background:#e9f5f0;color:#176e58}
-.tool.transport .graphic svg{width:43px;height:43px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.tool.transport .graphic svg{color:currentColor}
 </style>
 <style>
 /* Acceso compacto al calendario, sin ocupar espacio en las herramientas principales. */
@@ -140,7 +143,7 @@ main{padding-top:13px}
 .tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .tool{min-width:0;min-height:108px;padding:12px 8px;flex-direction:column;justify-content:center;align-items:center;gap:8px;text-align:center;border-radius:18px;box-shadow:0 3px 11px #183e370b}
 .tool .graphic{flex:0 0 43px;width:43px;height:43px;border-radius:12px}
-.tool .graphic svg,.tool.notes .graphic svg,.tool.transport .graphic svg{width:31px;height:31px}
+.tool .graphic svg,.tool.notes .graphic svg,.tool.transport .graphic svg{width:29px;height:29px}
 .tool .form-symbol{width:39px;height:39px}
 .tool .tool-copy{flex:0 1 auto;width:100%;min-width:0}
 .tool h3{font-size:13px;line-height:1.24;letter-spacing:-.15px;margin:0;overflow-wrap:break-word}
@@ -162,7 +165,7 @@ main{padding-top:13px}
  .tools{gap:8px}
  .tool{min-height:92px;padding:8px 7px;gap:5px;border-radius:16px}
  .tool .graphic{width:39px;height:39px;flex-basis:39px;border-radius:11px}
- .tool .graphic svg,.tool.notes .graphic svg,.tool.transport .graphic svg{width:28px;height:28px}
+ .tool .graphic svg,.tool.notes .graphic svg,.tool.transport .graphic svg{width:26px;height:26px}
  .tool h3{font-size:12.5px}
  header{padding-top:calc(9px + env(safe-area-inset-top));padding-bottom:10px}
  main{padding-top:9px}
@@ -180,7 +183,7 @@ main{padding-top:13px}
       <img class="brand-logo" src="./icon-192.png?v=gs2" alt="">
       <div>
         <div class="brand-name">Gestark</div>
-        <div class="brand-sub">Sucursal Chicureo</div>
+        <div class="brand-sub">Greenbox</div>
       </div>
     </div>
     <div class="eyebrow">Tu espacio de trabajo</div>
@@ -200,23 +203,23 @@ main{padding-top:13px}
  <div class="tools">
 
    <a class="tool notes" id="notes-shortcut" href="./notas-transferencias.html" aria-label="Abrir libreta de transferencias" style="display:none">
-      <div class="graphic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8m-8 4h5m-5 4h3M15 15l2 2 3-4"/></svg></div>
+      <div class="graphic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8m-8 4h8m-8 4h4"/><path d="m14 15 2 2 4-5"/></svg></div>
       <div class="tool-copy"><div class="tool-tag">Registro personal</div><h3>Mis transferencias</h3><p>Anota nombre y monto, copia a Excel o envía la lista por WhatsApp.</p></div>
       <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
    </a>
 
    <a class="tool scanner" href="./escaner.html" aria-label="Abrir escáner y lista de códigos">
-     <div class="graphic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3m8 0h3a1 1 0 0 1 1 1v3M4 16v3a1 1 0 0 0 1 1h3m8 0h3a1 1 0 0 0 1-1v-3"/><path d="M3 12h18M7 9v6m3-6v6m4-6v6m3-6v6"/></svg></div>
+     <div class="graphic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3m8 0h3a1 1 0 0 1 1 1v3M4 16v3a1 1 0 0 0 1 1h3m8 0h3a1 1 0 0 0 1-1v-3"/><path d="M3 12h18"/><path d="M7 9v6M10 9v6M14 9v6M17 9v6"/><path d="M8 4h8"/></svg></div>
      <div class="tool-copy"><div class="tool-tag">Cámara · códigos</div><h3>Escáner</h3><p>Lee códigos de barras y conserva una lista.</p></div>
      <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
    </a>
    <a class="tool clients" id="clients-shortcut" href="./entregas-clientes.html" aria-label="Abrir Entregas clientes">
-     <div class="graphic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3m8 0h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3"/><path d="M5 12h14M8 9v6m3-6v6m3-6v6m3-6v6"/></svg></div>
+     <div class="graphic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="6" width="14" height="12" rx="2.5"/><path d="M8 10h8M8 13h5"/><path d="m8 18-2 3m10-3 2 3"/></svg></div>
      <div class="tool-copy"><div class="tool-tag">Clientes frecuentes · Retiros rápidos</div><h3>Entregas clientes</h3><p>Escaneo continuo, nómina general y compartir imagen.</p></div>
      <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
    </a>
    <a class="tool contingency" id="contingency-shortcut" href="./entregas-contingentes.html" aria-label="Abrir Entregas contingentes">
-     <div class="graphic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v13H4zM8 7V4h8v3M8 13l2.5 2.5L16 10"/></svg></div>
+     <div class="graphic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10l2 2v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6l2-2Z"/><path d="M9 12l2 2 4-5"/><path d="M8 8h8"/></svg></div>
      <div class="tool-copy"><div class="tool-tag">Contingencia · Registro interno</div><h3>Entregas contingentes</h3><p>Escanea la O.F., valida la recepción y registra una entrega pendiente de regularizar.</p></div>
      <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
    </a>
@@ -226,32 +229,24 @@ main{padding-top:13px}
       <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
     </a>
    <a class="tool green" href="./checklist.html" aria-label="Abrir Checklist Chicureo">
-      <div class="graphic"><img src="./icono-checklist.png" alt=""></div>
+      <div class="graphic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3.5" width="12" height="17" rx="2.5"/><path d="M9 3.5h6v2H9z"/><path d="m9 10 1.5 1.5L13 9"/><path d="m9 14 1.5 1.5L13 13"/><path d="M14.5 10H16M14.5 14H16"/></svg></div>
       <div class="tool-copy"><div class="tool-tag">Control diario</div><h3>Checklist Chicureo</h3><p>Actividades, OF, ventas y reporte por WhatsApp.</p></div>
       <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
    </a>
    <a class="tool blue" href="./repositorio.html" aria-label="Abrir Repositorio de Links">
-      <div class="graphic"><img src="./icono-repositorio.png" alt=""></div>
+      <div class="graphic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h5l1.8-2h9.2v9.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="m9 13 2-2m2 2 2-2"/><path d="m9 11 2 2m2-2 2 2"/></svg></div>
       <div class="tool-copy"><div class="tool-tag">Accesos rápidos</div><h3>Repositorio de Links</h3><p>Agua, inventario, transferencias y enlaces útiles.</p></div>
       <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
    </a>
    <a class="tool gold" href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiUD06FKRYXJZIncdeqhvYNd9URTFXTFpDNVZROE80UkZCMk5ZV1dEWkMzNS4u" target="_blank" rel="noopener noreferrer" aria-label="Abrir formulario Gestiones Chicureo de Microsoft Forms">
       <div class="graphic">
-        <svg class="form-symbol" viewBox="0 0 60 60" fill="none" aria-hidden="true">
-          <rect x="11" y="5" width="39" height="50" rx="9" fill="#FFE8B9" stroke="#CF8A2B" stroke-width="2"/>
-          <rect x="18" y="17" width="8" height="8" rx="2.2" fill="#E5A147"/>
-          <path d="m20 21 2 2 4-5" stroke="#704710" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="30" y="19" width="13" height="4" rx="2" fill="#BF873B"/>
-          <rect x="18" y="31" width="8" height="8" rx="2.2" fill="#E5A147"/>
-          <path d="m20 35 2 2 4-5" stroke="#704710" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="30" y="33" width="13" height="4" rx="2" fill="#BF873B"/>
-        </svg>
+        <svg class="form-symbol" viewBox="0 0 60 60" fill="none" aria-hidden="true"><rect x="12" y="6" width="36" height="48" rx="10" fill="#FFE8B9" stroke="#C98322" stroke-width="2"/><path d="M19 18h8M33 18h8M19 29h8M33 29h8M19 40h8M33 40h8" stroke="#8B5C15" stroke-width="3" stroke-linecap="round"/><circle cx="19" cy="18" r="2.5" fill="#E39C38"/><circle cx="19" cy="29" r="2.5" fill="#E39C38"/><circle cx="19" cy="40" r="2.5" fill="#E39C38"/></svg>
       </div>
       <div class="tool-copy"><div class="tool-tag">Formulario</div><h3>Gestiones Chicureo</h3><p>Ingresa al formulario de Microsoft Forms para registrar gestiones.</p></div>
       <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
    </a>
    <button type="button" class="tool whatsapp tool-as-button" id="cobrar-whatsapp" aria-label="Cobrar transferencias: compartir aviso por WhatsApp">
-      <div class="graphic"><img src="./aviso-transferencia-chicureo.jpg?v=20261117-sobrio2" alt="Aviso de transferencia pendiente" loading="eager"></div>
+      <div class="graphic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5h14a2 2 0 0 1 2 2V15a2 2 0 0 1-2 2H11l-4.5 3V17H5a2 2 0 0 1-2-2V8.5a2 2 0 0 1 2-2Z"/><path d="M8 11h8"/><path d="M12 8v6"/></svg></div>
       <div class="tool-copy"><div class="tool-tag">Cobranza rápida</div><h3>Cobrar transferencias</h3><p>Prepara la imagen de recordatorio para compartir por WhatsApp.</p><span class="cobro-note">Compartir aviso en un toque</span></div>
       <div class="out-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></div>
    </button>
