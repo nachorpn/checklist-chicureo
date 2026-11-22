@@ -11,7 +11,7 @@
 <meta name="application-name" content="Gestark">
 <meta name="description" content="Gestark · Operaciones Sucursal Chicureo">
 <title>Gestark · App</title>
-<link rel="manifest" href="./manifest.webmanifest?v=2026.11.22.10">
+<link rel="manifest" href="./manifest.webmanifest?v=2026.11.22.12">
 <link rel="icon" type="image/png" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <style>
@@ -28,8 +28,10 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 .header-actions{display:flex;gap:7px;align-items:center}.icon-button{display:grid;place-items:center;width:37px;height:37px;flex:none;border:1px solid #ffffff55;border-radius:11px;background:#ffffff1c;color:white}.icon-button svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 #online-pill{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:#f7fff9}.status-dot{width:6px;height:6px;border-radius:50%;background:#66e4aa}#online-pill.offline .status-dot{background:#ffc36a}
 #app-body{position:relative;flex:1;min-height:0;background:#f3f7f5}
-.pane{position:absolute;inset:0;display:none;overflow:hidden;background:#f3f7f5}.pane.active{display:block}.pane iframe{display:block;width:100%;height:100%;border:0;background:#f3f7f5}
-#pane-home{display:block}#pane-home:not(.active){display:none}
+/* Mantener los iframe montados: display:none puede provocar suspensión/reconstrucción en WebKit iOS. */
+.pane{position:absolute;inset:0;display:block;overflow:hidden;background:#f3f7f5;opacity:0;pointer-events:none;z-index:0}
+.pane.active{opacity:1;pointer-events:auto;z-index:1}
+.pane iframe{display:block;width:100%;height:100%;border:0;background:#f3f7f5}
 #native-tabs{z-index:6;display:none;flex-shrink:0;gap:2px;justify-content:center;align-items:stretch;border-top:1px solid #dbe9e2;background:#fffffff2;-webkit-backdrop-filter:blur(17px);backdrop-filter:blur(17px);box-shadow:0 -4px 17px #163a2d10;padding:6px max(6px,env(safe-area-inset-right)) calc(5px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
 #native-tabs.visible{display:flex}#native-tabs button{min-width:0;max-width:160px;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;min-height:51px;padding:5px 2px;border:0;background:transparent;border-radius:12px;font-size:10px;font-weight:700;white-space:nowrap;color:#74877c}#native-tabs button[aria-selected="true"]{background:#e8f5ee;color:#08754e;font-weight:850}#native-tabs svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 #more-view{height:100%;overflow:auto;overscroll-behavior:contain;padding:16px 16px 30px;background:#f3f7f5}#more-view>.more-inner{max-width:740px;margin:auto}#more-view h1{font-size:24px;letter-spacing:-.65px;margin:6px 0 4px}#more-view .subtitle{color:#688276;font-size:13px;margin:0 0 17px}.section-label{font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:1px;color:#658074;margin:22px 3px 9px}.menu-group{background:white;border:1px solid #e1ede6;border-radius:17px;overflow:hidden;box-shadow:0 4px 18px #153b2920}.menu-row{width:100%;min-height:57px;padding:11px 13px;display:flex;align-items:center;gap:11px;text-decoration:none;text-align:left;border:0;border-bottom:1px solid #eef2ef;background:white;color:#224f3c;font-weight:760;font-size:13px}.menu-row:last-child{border-bottom:0}.menu-row:active{background:#eff8f2}.menu-glyph{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:#e8f6ef;font-size:17px;flex:none}.menu-copy{flex:1;min-width:0}.menu-copy small{display:block;color:#6c8277;font-size:11px;font-weight:500;margin-top:2px}.menu-chevron{color:#94a69a;font-size:20px;font-weight:400}.app-footnote{color:#87978d;font-size:11px;text-align:center;margin:23px 0}
@@ -72,7 +74,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 <script>
 (() => {
 'use strict';
-const BUILD='2026.11.22.10';
+const BUILD='2026.11.22.12';
 const base=new URL('./',location.href);
 const available={
  home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
@@ -87,7 +89,7 @@ const available={
 const core=new Set(['home','checklist','clients','transfers']);
 const routes=new Map([[base.pathname,'home'],[base.pathname+'index.html','home']]);
 for(const [key,val] of Object.entries(available)) routes.set(new URL(val.path,base).pathname,key);
-const panes={};for(const key of ['home','checklist','clients','transfers','more','extra']) panes[key]=document.getElementById('pane-'+key);
+const panes={};for(const key of ['home','checklist','clients','transfers','more','extra']) { panes[key]=document.getElementById('pane-'+key);panes[key].inert=(key!=='home');panes[key].setAttribute('aria-hidden',String(key!=='home'));}
 const frames={home:document.getElementById('frame-home')};
 const $=id=>document.getElementById(id);
 let profile=null;let active='home';let signingOut=false;let warmStarted=false;
@@ -108,7 +110,7 @@ function select(key,push=true){
  const paneName=core.has(key)?key:key==='more'?'more':'extra';
  if(core.has(key)) frameFor(key);
  else if(key!=='more')showExtra(key);
- for(const [k,p] of Object.entries(panes)){const on=k===paneName;p.classList.toggle('active',on);p.setAttribute('aria-hidden',String(!on));}
+ for(const [k,p] of Object.entries(panes)){const on=k===paneName;p.classList.toggle('active',on);p.setAttribute('aria-hidden',String(!on));p.inert=!on;}
  active=key;markTab(key);
  if(push)history.pushState({tab:key},'', '#'+key);
  if(available[key]&&frames[key]&&!frames[key].dataset.ready)showToast('Abriendo '+available[key].title+'…',1500);
@@ -153,6 +155,7 @@ function hideEmbeddedChrome(d){
 }
 function attach(key,frame){
  let d;try{d=frame.contentDocument}catch(_){return};if(!d)return;
+ console.info('[Gestark] Sección cargada:',key,'versión',BUILD);
  hideEmbeddedChrome(d);
  d.addEventListener('click',e=>handleLink(key,frame,e),true);
  const detect=()=>{let user;try{user=frame.contentWindow?.GestarkAuth?.getUser?.()}catch(_){return};if(!user||user.provider!=='firebase')return;
@@ -171,7 +174,7 @@ function authorized(user){if(signingOut)return;
  if(requested!=='home')select(requested,false);
  }
  if(!warmStarted){warmStarted=true;const idle=window.requestIdleCallback?cb=>requestIdleCallback(cb,{timeout:1800}):cb=>setTimeout(cb,240);
-   idle(()=>{if(!profile)return;frameFor('checklist');setTimeout(()=>{if(profile)frameFor('transfers');},350)});
+   idle(()=>{if(!profile)return;frameFor('transfers');setTimeout(()=>{if(profile)frameFor('checklist');},900)});
  }
 }
 function refreshCurrent(){if(!profile)return;const key=active;if(key==='more'){location.reload();return}const f=frames[key];if(!f)return;const u=new URL(available[key].path,base);u.searchParams.set('actualizar',String(Date.now()));f.dataset.ready='';f.src=u.href;showToast('Actualizando '+available[key].title+'…',1500)}

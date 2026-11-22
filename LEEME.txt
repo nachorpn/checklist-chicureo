@@ -1,29 +1,27 @@
-GESTARK · Corrección barra inferior duplicada · 2026.11.22.10
+GESTARK — SINCRONIZACIÓN DE SESIÓN ENTRE SECCIONES · 2026.11.22.12
 
-PROBLEMA
-En iPhone se mostraban simultáneamente la navegación original de Transferencias (dentro del iframe) y la navegación fija nueva de Gestark.
+CAUSA IDENTIFICADA
+El módulo Transferencias podía recibir una lectura inicial de Firebase Auth sin usuario
+justo después de abrir Gestark. Antes se desuscribía enseguida y mostraba otro login.
+También, cada iframe reconfiguraba la persistencia de Firebase al cargarse.
 
-ARCHIVOS PARA REEMPLAZAR EN LA RAÍZ DE GITHUB
-1. gestark-app.html
-2. gestark-auth.js
-3. gestark-sw.js
+ESTA CORRECCIÓN
+- Un módulo dentro de gestark-app.html nunca solicita un segundo login.
+- Mantiene activa la observación de Firebase para recibir una sesión restaurada.
+- Solo configura browserLocalPersistence cuando alguien inicia sesión de verdad.
+- Sigue comprobando autorizado/activo/rol desde Firestore antes de mostrar el módulo.
+- Muestra «Reintentar conexión» si la sesión no se propaga; no abre datos sin permiso.
+- Conserva navegación rápida de v11, registros, Escáner y listeners de Firestore.
 
-INSTALACIÓN
-- GitHub → repositorio nachorpn/checklist-chicureo → Add file → Upload files.
-- Reemplaza exactamente estos tres archivos y confirma el commit.
-- Abre https://nachorpn.github.io/checklist-chicureo/gestark-app.html
-- Si persiste el estilo anterior en Safari, pulsa actualizar dos veces o cierra y vuelve a abrir la pestaña tras unos segundos. El nuevo service worker invalida la caché vieja.
+INSTALAR
+1. En GitHub, subir SOLO: gestark-auth.js, gestark-app.html, gestark-sw.js.
+2. Confirmar cambios (Commit changes).
+3. Abrir en Safari: https://nachorpn.github.io/checklist-chicureo/gestark-app.html?actualizar=2026112212
+4. Desde iPhone instalado, cerrar Gestark por completo y volver a abrir.
+5. Probar Inicio → Transferencias: no debe aparecer un segundo login.
 
-QUÉ CAMBIA
-- Oculta la barra y la banda de cuenta propias de los módulos cuando se abren dentro del contenedor nativo.
-- El contenedor vuelve a ocultarlas si un módulo las crea dinámicamente.
-- Conserva la navegación única de 5 pestañas, la sesión Firebase y la lógica de Transferencias.
-
-QUÉ NO CAMBIA
-- No se modifican colecciones Firestore, reglas, registros, credenciales ni el funcionamiento interno de Transferencias.
-- Los módulos abiertos directamente fuera de la app siguen mostrando su navegación original.
-- La app clásica permanece accesible en el enlace principal /.
-
-VERIFICACIÓN
-- Abrir Transferencias y Checklist en iPhone: debe quedar una sola barra inferior (Inicio, Checklist, Clientes, Transferencias, Más).
-- Confirmar que un registro de prueba se actualice entre Mac y iPhone.
+IMPORTANTE
+No se modifican reglas de Firebase, credenciales, ni datos de Transferencias.
+La verificación inicial requiere conectividad; puede demorarse si Firebase responde lento.
+Si una sección indica «Reintentar conexión», utilizar ese botón y reportar el mensaje.
+No borrar la PWA antigua hasta comprobar que checklist y registros se conservan.

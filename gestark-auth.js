@@ -1,4 +1,4 @@
-/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.10 — barra única nativa)
+/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.12 — sesión persistente entre secciones)
  * Sin autenticar contra usuarios.js ni contraseñas locales.
  * El usuario/alias se vincula solamente DESPUES de autenticar y autorizar Firebase.
  * Las asociaciones usuario->correo se guardan SOLO en el navegador actual.
@@ -12,6 +12,14 @@ const OLD_OVERRIDES = 'gestark:users:overrides:v1';
 const OLD_PAUSE = 'gestark:firebase:automatic-login-paused:v1';
 const LOGIN_ALIAS_KEY = 'gestark:firebase:login-alias:v1';
 const usernameRE = /^[A-Z0-9_-]{2,30}$/;
+// Solo el documento principal muestra formularios de inicio de sesión.
+// Los módulos embebidos esperan que Firebase restaure la sesión existente.
+function embeddedInNative() {
+  try { return window.parent!==window && window.parent.location.origin===location.origin &&
+    window.parent.location.pathname.endsWith('/gestark-app.html'); }
+  catch (_) { return false; }
+}
+const EMBEDDED = embeddedInNative();
 let activeUser = null;
 let clientPromise = null;
 let screen = null;
@@ -88,7 +96,8 @@ async function firebaseClient() {
     });
     const auth = authSDK.getAuth(app);
     const db = dbSDK.getFirestore(app);
-    await authSDK.setPersistence(auth,authSDK.browserLocalPersistence);
+    // No reescribir IndexedDB en cada iframe. La persistencia local se configura
+    // exclusivamente cuando se envía el formulario de inicio de sesión.
     return {auth,db,authSDK,dbSDK};
   })();
   try { return await clientPromise; }
@@ -127,17 +136,11 @@ async function authorizedIdentity(client, firebaseUser) {
 function css() {
   // Un módulo dentro de gestark-app.html nunca muestra su barra inferior;
   // la barra única pertenece al contenedor, no al iframe.
-  let embedded=false;
-  try {
-    embedded=window.parent!==window &&
-      window.parent.location.origin===location.origin &&
-      window.parent.location.pathname.endsWith('/gestark-app.html');
-  } catch(_) { embedded=false; }
-  if(embedded) document.documentElement.classList.add('gestark-native-embedded');
+  if(EMBEDDED) document.documentElement.classList.add('gestark-native-embedded');
   const style = document.createElement('style');
   style.textContent = `
 html.gestark-native-embedded .bottom-nav,html.gestark-native-embedded .gestark-account-bar{display:none!important;visibility:hidden!important}
-html:not(.gestark-unlocked) body>*:not(#gestark-login):not(noscript){display:none!important}
+html:not(.gestark-unlocked) body>*:not(#gestark-login):not(#gestark-native-retry):not(#gestark-native-error):not(noscript){display:none!important}
 /* No se muestra el modal de verificación al entrar a cada sección. */
 html.gestark-checking,html.gestark-checking body{background:#f3f7f5!important}
 html.gestark-checking body::before{content:'';position:fixed;top:0;left:0;height:2px;width:32%;background:#19805d;z-index:99998;opacity:0;pointer-events:none;animation:gestark-quiet-progress 1.3s ease-in-out .45s infinite}
@@ -202,6 +205,7 @@ async function handleSubmit(event) {
   try {
     const email=resolveEmail(login);
     const client=await firebaseClient();
+    await client.authSDK.setPersistence(client.auth,client.authSDK.browserLocalPersistence);
     const credentials=await client.authSDK.signInWithEmailAndPassword(client.auth,email,password);
     const profile=await authorizedIdentity(client,credentials.user);
     if (!login.includes('@') && profile.username !== login.toUpperCase())
@@ -275,6 +279,60 @@ function showAuthenticated(user) {
   }
   document.dispatchEvent(new CustomEvent('gestark:ready',{detail:user}));
 }
+// En Safari instalado los iframes pueden restaurar Firebase en distintos momentos.
+// Una respuesta inicial «sin usuario» NO es una razón para pedir otra contraseña:
+// se mantiene activo el observador para aceptar la sesión cuando se sincronice.
+async function waitForNativeSession(client) {
+  let change=0;
+  let retryTimer=null;
+  const retryId='gestark-native-retry';
+  function clearWarning(){
+    const box=document.getElementById(retryId);
+    if(box)box.remove();
+  }
+  function warning(message){
+    if(activeUser)return;
+    let box=document.getElementById(retryId);
+    if(!box){
+      box=document.createElement('main');
+      box.id=retryId;
+      box.setAttribute('role','status');
+      box.style.cssText='min-height:65dvh;display:flex;flex-direction:column;gap:15px;align-items:center;justify-content:center;padding:22px;text-align:center;color:#285847;background:#f3f7f5;font:600 13px/1.5 system-ui';
+      const label=document.createElement('p');label.id='gestark-native-retry-message';
+      const button=document.createElement('button');button.type='button';button.textContent='Reintentar conexión';
+      button.style.cssText='border:0;background:#167453;color:white;border-radius:11px;padding:12px 17px;font:700 13px system-ui';
+      button.addEventListener('click',()=>location.reload());
+      box.append(label,button);
+      document.body.append(box);
+    }
+    box.querySelector('#gestark-native-retry-message').textContent=message;
+  }
+  const unsub=client.authSDK.onAuthStateChanged(client.auth,async firebaseUser=>{
+    const current=++change;
+    if(retryTimer){clearTimeout(retryTimer);retryTimer=null;}
+    if(!firebaseUser){
+      // Esperar la sincronización entre ventanas; jamás mostrar login en un módulo.
+      if(activeUser){
+        activeUser=null;
+        document.documentElement.classList.remove('gestark-unlocked');
+      }
+      retryTimer=setTimeout(()=>warning('No se ha podido recuperar la sesión de esta sección. Puedes reintentar sin volver a escribir tu contraseña.'),6500);
+      return;
+    }
+    clearWarning();
+    try {
+      const profile=await authorizedIdentity(client,firebaseUser);
+      if(current!==change)return;
+      rememberAlias(profile,firebaseUser);
+      showAuthenticated(profile);
+      document.documentElement.classList.remove('gestark-checking');
+    } catch(error) {
+      if(current!==change)return;
+      warning(errorMessage(error));
+    }
+  },error=>warning(errorMessage(error)));
+  window.addEventListener('pagehide',()=>{unsub();if(retryTimer)clearTimeout(retryTimer);},{once:true});
+}
 async function start() {
   css();
   // Cada documento HTML restaura Firebase por separado. Mantener la vista
@@ -282,6 +340,10 @@ async function start() {
   document.documentElement.classList.add('gestark-checking');
   try {
     const client=await firebaseClient();
+    if(EMBEDDED){
+      await waitForNativeSession(client);
+      return;
+    }
     const firebaseUser=await new Promise((resolve,reject)=>{
       let finished=false;let unsubscribe=()=>{};
       unsubscribe=client.authSDK.onAuthStateChanged(client.auth,user=>{
@@ -293,7 +355,14 @@ async function start() {
     rememberAlias(profile,firebaseUser);
     showAuthenticated(profile);
   } catch(error) {
-    showLogin(errorMessage(error));
+    if(EMBEDDED) {
+      // Si falla Firebase aquí, la pantalla permanece cerrada y el módulo
+      // no permite operaciones. La app sigue disponible en las otras pestañas.
+      const box=document.createElement('div');box.id='gestark-native-error';
+      box.style.cssText='padding:25px;font:600 13px system-ui;color:#8b3333';
+      box.textContent='No se pudo conectar esta sección con Firebase: '+errorMessage(error);
+      document.body.append(box);
+    } else showLogin(errorMessage(error));
   } finally {
     document.documentElement.classList.remove('gestark-checking');
   }
