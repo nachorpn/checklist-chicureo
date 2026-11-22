@@ -40,6 +40,15 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 #app-menu{position:fixed;inset:0;z-index:20;display:none;align-items:flex-end;justify-content:center;background:#0b231b85;padding:15px 12px calc(16px + env(safe-area-inset-bottom))}#app-menu.open{display:flex}.sheet{width:min(100%,420px);padding:17px;border-radius:22px;background:white;box-shadow:0 20px 54px #001b1244}.sheet h2{margin:0 0 4px;font-size:18px}.sheet p{margin:0 0 14px;font-size:12px;color:#75877d}.sheet button,.sheet a{display:block;width:100%;padding:12px;border:0;border-radius:11px;text-decoration:none;text-align:left;background:#eef6f0;color:#1a6246;font-size:13px;font-weight:760;margin:6px 0;cursor:pointer}.sheet .danger{color:#a72a3c;background:#fff0f0}.sheet .neutral{color:#65766e;background:#f3f5f3}
 @media(min-width:850px){#native-header{padding-left:max(calc((100% - 850px)/2),20px);padding-right:max(calc((100% - 850px)/2),20px)}#more-view>.more-inner{max-width:720px}#native-tabs button{min-height:53px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Directorio: acceso rápido flotante alineado con el botón Más. */
+#gestark-directory-fab{position:fixed;left:auto;right:12px;bottom:84px;width:44px;height:44px;display:grid;place-items:center;z-index:8;border:1px solid #d5e9da;border-radius:14px;background:linear-gradient(145deg,#146d52,#0b5846);color:#fff;box-shadow:0 5px 17px #0f49342c,0 1px 3px #0b49331a;opacity:.97;transition:transform .16s ease,box-shadow .16s ease;cursor:pointer}
+#gestark-directory-fab[hidden]{display:none!important}
+#gestark-directory-fab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#gestark-directory-fab:active{transform:scale(.93)}
+#gestark-directory-fab:focus-visible{outline:3px solid #58c7a3;outline-offset:3px}
+@media (hover:hover){#gestark-directory-fab:hover{transform:translateY(-2px);box-shadow:0 8px 20px #0f49343d}}
+@media (prefers-reduced-motion:reduce){#gestark-directory-fab{transition:none}}
 </style>
 </head>
 <body>
@@ -63,6 +72,9 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
  <section class="pane" id="pane-extra" aria-label="Herramienta"><div id="extra-banner"><button id="back-more" type="button">‹ Volver</button><span id="extra-title">Herramienta</span></div><div id="extra-slot" style="height:100%"></div></section>
  <div id="native-toast" role="status" aria-live="polite" hidden></div>
 </main>
+<button type="button" id="gestark-directory-fab" hidden aria-label="Abrir Directorio de clientes" title="Directorio de clientes">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 3v18M12 9a2 2 0 1 1 4 0a2 2 0 0 1-4 0M11 16c.5-2 4.5-2 5 0"/></svg>
+</button>
 <nav id="native-tabs" aria-label="Navegación principal de Gestark">
  <button type="button" data-tab="home" aria-label="Inicio" aria-selected="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3zM9 21v-8h6v8"/></svg><span>Inicio</span></button>
  <button type="button" data-tab="checklist" aria-label="Checklist" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 11l2 2 4-4M8 17h8"/></svg><span>Checklist</span></button>
@@ -74,7 +86,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 <script>
 (() => {
 'use strict';
-const BUILD='2026.11.22.17';
+ const BUILD='2026.11.22.19';
 const base=new URL('./',location.href);
 const available={
  home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
@@ -84,7 +96,8 @@ const available={
  calendario:{path:'./calendario.html',title:'Calendario'},
  traslados:{path:'./traslados.html',title:'Registro de traslados'},
  admin:{path:'./admin.html',title:'Administración Firebase',admin:true},
- laboratorio:{path:'./laboratorio.html',title:'Laboratorio',admin:true}
+ laboratorio:{path:'./laboratorio.html',title:'Laboratorio',admin:true},
+  directorio:{path:'./directorio-clientes.html',title:'Directorio de clientes'}
 };
 const core=new Set(['home','checklist','clients','transfers']);
 const routes=new Map([[base.pathname,'home'],[base.pathname+'index.html','home']]);
@@ -94,6 +107,20 @@ const frames={home:document.getElementById('frame-home')};
 const $=id=>document.getElementById(id);
 let profile=null;let active='home';let signingOut=false;let warmStarted=false;
 let toastTimeout=null;
+ const directoryFab=document.getElementById('gestark-directory-fab');
+ function updateDirectoryFab(){
+   if(!directoryFab)return;
+   directoryFab.hidden=!profile||signingOut||active==='directorio';
+   if(directoryFab.hidden)return;
+   const more=document.querySelector('#native-tabs button[data-tab="more"]');
+   if(!more)return;
+   const r=more.getBoundingClientRect(),size=44;
+   const x=Math.max(8,Math.min(innerWidth-size-8,r.left+r.width/2-size/2));
+   directoryFab.style.left=Math.round(x)+'px';
+   directoryFab.style.right='auto';
+   directoryFab.style.bottom=Math.max(8,Math.round(innerHeight-r.top+9))+'px';
+ }
+
 function showToast(message,duration=1800){const el=$('native-toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.hidden=true,duration)}
 function setOnline(){const ok=navigator.onLine;$('online-pill').classList.toggle('offline',!ok);$('online-label').textContent=ok?'En línea':'Sin red';$('online-pill').title=ok?'Conectividad del dispositivo; el módulo confirma la sincronización Firebase.':'Sin conexión de red'}
 function parseHash(){const key=decodeURIComponent(location.hash.slice(1));return Object.hasOwn(available,key)||key==='more'?key:'home'}
@@ -111,11 +138,11 @@ function select(key,push=true){
  if(core.has(key)) frameFor(key);
  else if(key!=='more')showExtra(key);
  for(const [k,p] of Object.entries(panes)){const on=k===paneName;p.classList.toggle('active',on);p.setAttribute('aria-hidden',String(!on));p.inert=!on;}
- active=key;markTab(key);
+  active=key;markTab(key);updateDirectoryFab();
  if(push)history.pushState({tab:key},'', '#'+key);
  if(available[key]&&frames[key]&&!frames[key].dataset.ready)showToast('Abriendo '+available[key].title+'…',1500);
 }
-function freeze(){signingOut=true;profile=null;$('native-header').classList.remove('visible');$('native-tabs').classList.remove('visible');$('app-menu').classList.remove('open');for(const p of Object.values(panes))p.style.visibility='hidden';}
+ function freeze(){signingOut=true;profile=null;directoryFab.hidden=true;$('native-header').classList.remove('visible');$('native-tabs').classList.remove('visible');$('app-menu').classList.remove('open');for(const p of Object.values(panes))p.style.visibility='hidden';}
 async function signOut(){
  if(signingOut)return;
  // No aparentar una salida exitosa cuando el iframe de Inicio se descargó de memoria.
@@ -193,6 +220,7 @@ function attach(key,frame){
 function authorized(user){if(signingOut)return;
  if(!profile){profile=user;
  $('native-header').classList.add('visible');$('native-tabs').classList.add('visible');$('person-label').textContent=user.name||user.username;
+  updateDirectoryFab();
  $('menu-user').textContent=(user.name||user.username)+' · '+user.username+' · Firebase';
  $('admin-action').hidden=user.role!=='admin';$('lab-action').hidden=user.role!=='admin';$('traslados-action').hidden=user.username!=='SCMN';
  window.__gestarkPendingPushUser=user;
@@ -211,6 +239,9 @@ const home=frames.home;home.addEventListener('load',()=>attach('home',home));
 for(const b of document.querySelectorAll('#native-tabs button'))b.addEventListener('click',()=>select(b.dataset.tab));
 for(const b of document.querySelectorAll('[data-open]'))b.addEventListener('click',()=>select(b.dataset.open));
 $('back-more').addEventListener('click',()=>select('more'));
+ directoryFab.addEventListener('click',()=>select('directorio'));
+ window.addEventListener('resize',updateDirectoryFab);
+ window.addEventListener('orientationchange',updateDirectoryFab);
 $('refresh-section').addEventListener('click',refreshCurrent);
 $('open-app-menu').addEventListener('click',()=>menu(true));$('close-app-menu').addEventListener('click',()=>menu(false));
 $('app-menu').addEventListener('click',e=>{if(e.target===$('app-menu'))menu(false)});

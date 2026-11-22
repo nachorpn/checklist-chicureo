@@ -1,10 +1,11 @@
 {
-  "version": "2026.11.22.17",
+  "version": "2026.11.22.19",
   "name": "Gestark",
-  "changes": "Notificaciones push: Checklist 12:30, O.F. pendientes 10:00/13:30/17:00 de lunes a viernes, horarios de Santiago; suscripción por dispositivo con Firestore y GitHub Actions.",
+  "changes": "Directorio de clientes: acceso flotante discreto sobre Más, navegación interna y diseño compacto renovado. Sin cambios en notificaciones, O.F., Firebase ni exportación Excel.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
-  "clientsVersion": "2026.11.22.16"
+  "clientsVersion": "2026.11.22.16",
+  "directoryVersion": "2026.11.22.19"
 }
