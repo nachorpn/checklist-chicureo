@@ -1,4 +1,4 @@
-/* Gestark · Directorio de clientes · v2026.11.22.23
+/* Gestark · Directorio de clientes · v2026.11.22.26
  * Fuente única: Firestore. No guarda los datos del directorio en GitHub ni localStorage.
  * RUT módulo 11; móvil Chile +56 9 XXXXXXXX; XLSX auténtico autocontenido.
  */
@@ -130,7 +130,13 @@ function queueRender(){if(renderQueued)return;renderQueued=true;requestAnimation
 function setStatus(msg,bad){t('status',msg);$('status').style.color=bad?'#ad4439':'#71887a'}
 function openDialog(id){$(id).showModal()}
 function closeDialog(id){$(id).close()}
-function invoiceVisibility(){$('invoice-fields').hidden=!$('invoice-enabled').checked}
+function invoiceVisibility(){
+ const enabled=$('invoice-enabled').checked;
+ $('invoice-fields').hidden=!enabled;
+ // Solo razón social y giro son obligatorios si se habilita facturación.
+ $('invoice-name').required=enabled;
+ $('invoice-business').required=enabled;
+}
 function editContact(id){
  const c=contacts.find(x=>x.id===id);if(!c)return;
  editingId=id;$('contact-form').reset();t('contact-heading','Editar contacto');t('contact-error','');
@@ -155,13 +161,23 @@ function getFormData(){
  const telefono=mobile($('phone').value);if(!telefono)throw Error('El teléfono debe ser un móvil chileno: +56 9 91919191.');
  let facturacion=null;
  if($('invoice-enabled').checked){
-  const razonSocial=clean($('invoice-name').value),invoiceRut=rutFeedback('invoice-rut','invoice-rut-hint');
-  const giro=clean($('invoice-business').value),direccion=clean($('invoice-address').value),comuna=clean($('invoice-city').value);
-  const correo=clean($('invoice-email').value).toLowerCase();
-  if(!razonSocial||!giro||!direccion||!comuna||!correo)throw Error('Completa todos los datos de facturación.');
-  if(!invoiceRut)throw Error('El RUT de facturación es inválido.');
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo))throw Error('El correo de facturación no es válido.');
-  facturacion={razonSocial,rut:invoiceRut.formatted,giro,direccion,comuna,correo};
+   const razonSocial=clean($('invoice-name').value);
+   const giro=clean($('invoice-business').value);
+   const rutEscrito=clean($('invoice-rut').value);
+   const direccion=clean($('invoice-address').value),comuna=clean($('invoice-city').value);
+   const correo=clean($('invoice-email').value).toLowerCase();
+   if(!razonSocial||!giro)throw Error('Para facturar, completa Razón social y Giro.');
+   // RUT y correo son opcionales, pero se validan si el usuario los completa.
+   let invoiceRut=null;
+   if(rutEscrito){
+    invoiceRut=rutFeedback('invoice-rut','invoice-rut-hint');
+    if(!invoiceRut)throw Error('El RUT de facturación es inválido. Déjalo vacío o ingresa uno válido.');
+   }else{
+    t('invoice-rut-hint','');
+   }
+   if(correo&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo))throw Error('El correo de facturación no es válido. Déjalo vacío o ingresa uno válido.');
+   // Firestore conserva los seis campos; los opcionales vacíos se guardan como ''.
+   facturacion={razonSocial,rut:invoiceRut?invoiceRut.formatted:'',giro,direccion,comuna,correo};
  }
  return {id:rut.id,nombre,nombreAlternativo,rut:rut.formatted,telefono,facturacion};
 }

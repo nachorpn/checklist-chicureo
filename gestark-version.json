@@ -1,13 +1,13 @@
 {
-  "version": "2026.11.22.25",
+  "version": "2026.11.22.26",
   "name": "Gestark",
-  "changes": "Predictor opcional de clientes desde Directorio por nombre principal o alternativo en Entregas y Transferencias; conserva escritura manual, alertas y respaldo v24.",
+  "changes": "Directorio: en facturación solo Razón social y Giro obligatorios; RUT tributario, dirección, comuna y correo opcionales y validados si se ingresan. Mantiene predictor v25 y protección v24.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
   "clientsVersion": "2026.11.22.16",
-  "directoryVersion": "2026.11.22.23",
+  "directoryVersion": "2026.11.22.26",
   "safetyVersion": "2026.11.22.24",
   "predictorVersion": "2026.11.22.25"
 }
