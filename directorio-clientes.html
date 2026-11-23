@@ -148,7 +148,7 @@ main#directory{max-width:1080px;padding:19px 15px 42px}
   min-height:44px;padding:8px 10px;border-radius:8px;
   font-size:16px;line-height:1.3;
 }
-#contact-dialog .fields input::placeholder{color:#8a9c90;opacity:1}
+#contact-dialog .fields input::placeholder{color:#8a9c90;opacity:1;font-size:12px;line-height:1.3}
 #contact-dialog .help{font-size:9.5px;line-height:1.3;min-height:12px}
 #contact-dialog .check{gap:8px;min-height:30px;margin-top:6px;font-size:11.5px}
 #contact-dialog .check input{width:16px;height:16px}
@@ -170,6 +170,23 @@ main#directory{max-width:1080px;padding:19px 15px 42px}
   #contact-dialog .modal-body{padding:11px 12px 13px}
   #contact-dialog .modal-head{padding:10px 12px 8px}
 }
+
+/* v28: teclado numérico para RUT sin impedir dígitos verificadores K. */
+#contact-dialog .fields .rut-field{
+  display:grid;gap:4px;min-width:0;color:#496956;
+  font-size:10.5px;font-weight:750;line-height:1.25;
+}
+#contact-dialog .rut-entry{display:flex;align-items:stretch;gap:5px;min-width:0}
+#contact-dialog .rut-entry input{flex:1 1 auto;min-width:0;width:100%}
+#contact-dialog .rut-k{
+  flex:0 0 34px;min-width:34px;min-height:44px;
+  border:1px solid #c6dfd1;border-radius:8px;
+  background:#ecf7f0;color:#196146;
+  padding:0;font-size:16px;font-weight:850;
+  touch-action:manipulation;
+}
+#contact-dialog .rut-k:active{background:#dceee2}
+#contact-dialog .rut-k:focus-visible{outline:3px solid #32a679;outline-offset:1px}
 </style>
 </head>
 <body>
@@ -185,7 +202,7 @@ main#directory{max-width:1080px;padding:19px 15px 42px}
     <div class="fields">
       <label class="full">Nombre o razón social<input id="name" autocomplete="name" required maxlength="100" placeholder="Nombre del cliente"></label>
       <label class="full">Nombre alternativo (opcional)<input id="alternate-name" maxlength="100" autocomplete="off" placeholder="Empresa, apodo o nombre por el que lo conocen"></label>
-      <label>RUT<input id="rut" inputmode="text" autocomplete="off" autocapitalize="characters" maxlength="14" placeholder="12.345.678-5" required><span class="help" id="rut-hint"></span></label>
+      <div class="rut-field"><label for="rut">RUT</label><div class="rut-entry"><input id="rut" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" maxlength="14" placeholder="12.345.678-5" aria-describedby="rut-hint" required><button type="button" class="rut-k" data-rut-k="rut" aria-label="Insertar K como dígito verificador del RUT" title="Dígito verificador K">K</button></div><span class="help" id="rut-hint"></span></div>
       <label>Teléfono<input id="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="90" placeholder="+56 9 91919191" required aria-describedby="phone-hint"><span class="help" id="phone-hint">Escribe o pega desde WhatsApp; el formato se adapta solo.</span></label>
     </div>
     <label class="check"><input id="invoice-enabled" type="checkbox"> Agregar datos de facturación</label>
@@ -193,7 +210,7 @@ main#directory{max-width:1080px;padding:19px 15px 42px}
       <p class="invoice-warning" role="note">⚠ Razón social y Giro son obligatorios. Los demás datos son opcionales; verifica la información antes de emitir una factura.</p>
       <div class="fields">
         <label class="full">Razón social *<input id="invoice-name" maxlength="120" autocomplete="organization" aria-required="true"></label>
-        <label>RUT de facturación (opcional)<input id="invoice-rut" maxlength="14" placeholder="12.345.678-5"><span class="help" id="invoice-rut-hint"></span></label>
+        <div class="rut-field"><label for="invoice-rut">RUT de facturación (opcional)</label><div class="rut-entry"><input id="invoice-rut" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" maxlength="14" placeholder="12.345.678-5" aria-describedby="invoice-rut-hint"><button type="button" class="rut-k" data-rut-k="invoice-rut" aria-label="Insertar K como dígito verificador del RUT de facturación" title="Dígito verificador K">K</button></div><span class="help" id="invoice-rut-hint"></span></div>
         <label>Giro *<input id="invoice-business" maxlength="120" aria-required="true"></label>
         <label class="full">Dirección tributaria (opcional)<input id="invoice-address" maxlength="180"></label>
         <label>Comuna (opcional)<input id="invoice-city" maxlength="100"></label>
@@ -218,7 +235,7 @@ main#directory{max-width:1080px;padding:19px 15px 42px}
   </div>
 </dialog>
 <script src="./gestark-auth.js?v=2" defer></script>
-<script src="./directorio-clientes.js?v=2026.11.22.27" defer></script>
+<script src="./directorio-clientes.js?v=2026.11.22.28" defer></script>
 <noscript>Gestark requiere JavaScript.</noscript>
 </body>
 </html>

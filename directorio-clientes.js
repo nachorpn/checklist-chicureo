@@ -1,4 +1,4 @@
-/* Gestark · Directorio de clientes · v2026.11.22.27
+/* Gestark · Directorio de clientes · v2026.11.22.28
  * Fuente única: Firestore. No guarda los datos del directorio en GitHub ni localStorage.
  * RUT módulo 11; móvil Chile +56 9 XXXXXXXX; XLSX auténtico autocontenido.
  */
@@ -307,6 +307,18 @@ async function init(profile){
   });
  }catch(e){setStatus('No se pudo abrir el directorio: '+(e.message||'error'),true)}
 }
+// La tecla numérica de iPhone no muestra la letra K: botón accesible en cada RUT.
+function putRutK(id){
+ const input=$(id);
+ if(!input)return;
+ const compact=String(input.value||'').toUpperCase().replace(/[^0-9K]/g,'');
+ const numbers=compact.replace(/K/g,'');
+ if(!numbers.length){input.focus();return}
+ // Máximo ocho dígitos de cuerpo. Si ya había DV numérico, reemplazarlo.
+ input.value=numbers.slice(0,8)+'K';
+ input.dispatchEvent(new Event('input',{bubbles:true}));
+ try{input.focus({preventScroll:true})}catch(_){input.focus()}
+}
 function setup(){
  $('open-add').addEventListener('click',addContact);
  $('open-export').addEventListener('click',openExport);
@@ -317,6 +329,7 @@ function setup(){
   $(input).addEventListener('input',()=>{formatRutInput($(input));rutFeedback(input,hint)});
   $(input).addEventListener('blur',()=>{formatRutInput($(input));rutFeedback(input,hint)});
  }
+ document.querySelectorAll('[data-rut-k]').forEach(b=>b.addEventListener('click',()=>putRutK(b.dataset.rutK)));
  $('phone').addEventListener('paste',phonePasted);
  $('phone').addEventListener('input',()=>phoneChanged(false));
  $('phone').addEventListener('change',()=>phoneChanged(false,true));
