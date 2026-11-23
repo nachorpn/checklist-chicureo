@@ -4,8 +4,23 @@
  */
 (() => {
  'use strict';
- const VERSION='2026.11.22.17';
+ const VERSION='2026.11.22.25';
  const appBase=new URL('./',document.currentScript?.src||location.href);
+ // v25: predictor opcional. No altera los formularios ni exige un cliente del Directorio.
+ // Cargar solamente en Entregas y Transferencias tras la autorizacion Firebase.
+ if(/(?:\/entregas-clientes|\/notas-transferencias)\.html$/.test(location.pathname)){
+   const loadAutocomplete=()=>{
+     if(window.__gestarkAutocompleteRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
+     window.__gestarkAutocompleteRequested=true;
+     const script=document.createElement('script');
+     script.src='./gestark-client-autocomplete.js?v=2026.11.22.25';
+     script.async=true;
+     script.onerror=()=>{window.__gestarkAutocompleteRequested=false;console.warn('Gestark: sugerencias no disponibles. El campo manual sigue funcionando.')};
+     document.head.append(script);
+   };
+   document.addEventListener('gestark:ready',loadAutocomplete);
+   if(window.GestarkAuth?.getUser?.()?.uid)loadAutocomplete();
+ }
  // Activar la sincronización de Entregas clientes después de validar Firebase.
  // Compatible con la pestaña nativa (iframe) y el acceso clásico directo.
  if(location.pathname.endsWith('/entregas-clientes.html')){

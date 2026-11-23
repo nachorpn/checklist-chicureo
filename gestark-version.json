@@ -1,12 +1,13 @@
 {
-  "version": "2026.11.22.24",
+  "version": "2026.11.22.25",
   "name": "Gestark",
-  "changes": "Alertas en Inicio: retiros escaneados sin finalizar y O.F. pendientes; burbuja 3 segundos al abrir, respaldo Firebase de borradores, recuperación; nombre visible Ignacio Burgos (usuario administrador CIBC).",
+  "changes": "Predictor opcional de clientes desde Directorio por nombre principal o alternativo en Entregas y Transferencias; conserva escritura manual, alertas y respaldo v24.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
   "clientsVersion": "2026.11.22.16",
   "directoryVersion": "2026.11.22.23",
-  "safetyVersion": "2026.11.22.24"
+  "safetyVersion": "2026.11.22.24",
+  "predictorVersion": "2026.11.22.25"
 }
