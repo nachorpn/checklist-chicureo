@@ -1,13 +1,13 @@
 {
-  "version": "2026.11.22.26",
+  "version": "2026.11.22.27",
   "name": "Gestark",
-  "changes": "Directorio: en facturación solo Razón social y Giro obligatorios; RUT tributario, dirección, comuna y correo opcionales y validados si se ingresan. Mantiene predictor v25 y protección v24.",
+  "changes": "Directorio: evita zoom automático de Safari iPhone al abrir Agregar contacto o enfocar campos; entradas a 16 px, sin teclado automático. Mantiene facturación flexible v26, predictor v25 y protección v24.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
   "clientsVersion": "2026.11.22.16",
-  "directoryVersion": "2026.11.22.26",
+  "directoryVersion": "2026.11.22.27",
   "safetyVersion": "2026.11.22.24",
   "predictorVersion": "2026.11.22.25"
 }

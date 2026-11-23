@@ -1,4 +1,4 @@
-/* Gestark · Directorio de clientes · v2026.11.22.26
+/* Gestark · Directorio de clientes · v2026.11.22.27
  * Fuente única: Firestore. No guarda los datos del directorio en GitHub ni localStorage.
  * RUT módulo 11; móvil Chile +56 9 XXXXXXXX; XLSX auténtico autocontenido.
  */
@@ -151,7 +151,8 @@ function editContact(id){
 function addContact(){
  editingId=null;$('contact-form').reset();t('contact-heading','Agregar contacto');t('contact-error','');
  t('rut-hint','');t('invoice-rut-hint','');phoneHint('Escribe o pega desde WhatsApp; se adaptará automáticamente.');invoiceVisibility();
- openDialog('contact-dialog');$('name').focus();
+ // Evitar que iOS abra el teclado y amplíe la vista al mostrar el formulario.
+ openDialog('contact-dialog');
 }
 function getFormData(){
  const nombre=clean($('name').value),nombreAlternativo=clean($('alternate-name').value);
