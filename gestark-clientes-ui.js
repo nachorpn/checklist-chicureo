@@ -1,4 +1,4 @@
-/* Gestark · Nómina operativa y archivo por fecha · v2026.11.23.29
+/* Gestark · Nómina operativa y archivo por fecha · v2026.11.23.30
  * Presentación independiente: conserva el escáner y los datos originales.
  * «Archivada» significa O.F. cerrada en sistema; NO elimina ni mueve
  * documentos de Firestore. El módulo Cloud sincroniza el cambio de estado.
@@ -118,20 +118,24 @@ const s=document.createElement('style');s.id='gs-clientes-ui-css';s.textContent=
 #gs-clientes-ui .gs-copy{min-width:34px;min-height:31px;color:#3f795b}
 #gs-clientes-ui .gs-copy.copied{background:#e0f2e6;color:#126441}
 #gs-clientes-ui .gs-orders{border-left:2px solid #dce8df;padding-left:9px;margin:2px 0 1px 2px;min-width:0}
-#gs-clientes-ui .gs-order{display:flex;align-items:center;gap:5px;min-height:44px;border-bottom:1px solid #edf1ed;padding:1px 0;min-width:0;background:transparent}
+#gs-clientes-ui .gs-order{display:flex;align-items:center;gap:8px;min-height:60px;border-bottom:1px solid #edf1ed;padding:7px 0;min-width:0;background:transparent}
 #gs-clientes-ui .gs-order:last-child{border-bottom:0}
 #gs-clientes-ui .gs-order-info{flex:1;min-width:0}
-#gs-clientes-ui .gs-of{font:750 14px/1.3 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.04px;color:#254c39;font-variant-numeric:tabular-nums;white-space:nowrap}
+#gs-clientes-ui .gs-of{font:750 16px/1.3 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.04px;color:#254c39;font-variant-numeric:tabular-nums;white-space:nowrap}
 #gs-clientes-ui .gs-order.closed .gs-of{color:#456355}
-#gs-clientes-ui .gs-meta{font-size:10px;color:#74897a;line-height:1.3}
-#gs-clientes-ui .gs-state{font-size:10px;display:flex;align-items:center;gap:4px;color:#866c39;white-space:nowrap}
+#gs-clientes-ui .gs-order-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px}
+#gs-clientes-ui .gs-meta{font-size:11px;color:#60776b;line-height:1.3}
+#gs-clientes-ui .gs-state{font-size:11px;display:inline-flex;align-items:center;gap:4px;color:#83652d;white-space:nowrap}
 #gs-clientes-ui .gs-state:before{content:'';width:6px;height:6px;border-radius:50%;background:#c79a4f;flex:none}
 #gs-clientes-ui .gs-order.closed .gs-state{color:#437656}
 #gs-clientes-ui .gs-order.closed .gs-state:before{background:#66a17b}
-#gs-clientes-ui .gs-order-actions{display:flex;gap:0;align-items:center}
-#gs-clientes-ui .gs-action{color:#347b53}
-#gs-clientes-ui .gs-action.reopen{color:#537866}
-#gs-clientes-ui .gs-remove{color:#916b63}
+#gs-clientes-ui .gs-order-actions{display:flex;gap:3px;align-items:center;flex-shrink:0}
+#gs-clientes-ui .gs-action{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:106px;min-height:44px;padding:8px 10px;border:1px solid #176b4b;border-radius:9px;background:#176b4b;color:#fff;font-size:13px;font-weight:750;line-height:1.15;white-space:nowrap;flex:none;cursor:pointer;touch-action:manipulation}
+#gs-clientes-ui .gs-action svg{width:19px;height:19px;flex:none;stroke-width:2}
+#gs-clientes-ui .gs-action:hover,#gs-clientes-ui .gs-action:active{background:#10563c;border-color:#10563c}
+#gs-clientes-ui .gs-action.reopen{background:#f2f7f3;color:#286447;border-color:#cfdfd3}
+#gs-clientes-ui .gs-action.reopen:hover,#gs-clientes-ui .gs-action.reopen:active{background:#e2efe5;border-color:#b9d2c1}
+#gs-clientes-ui .gs-remove{color:#916b63;min-width:44px;min-height:44px}
 #gs-clientes-ui .gs-icon:hover{background:#eef5ef}
 #gs-clientes-ui button:focus-visible{outline:2px solid #48a67a;outline-offset:2px}
 #gs-clientes-ui .gs-empty{padding:24px 12px;text-align:center;border:1px dashed #cbded1;border-radius:10px;background:#fbfefa;color:#607d6b;font-size:13px;line-height:1.5}
@@ -140,18 +144,20 @@ const s=document.createElement('style');s.id='gs-clientes-ui-css';s.textContent=
 #gs-clientes-ui .gs-foot{font-size:11px;color:#718578;line-height:1.5;margin:10px 0 0}
 #gs-rut-feedback{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);z-index:10000;background:#174e39;color:white;padding:7px 12px;border-radius:9px;font-size:12px;pointer-events:none;white-space:nowrap}
 #gs-rut-feedback:empty{display:none}
-#gs-confirm-closure{max-width:min(92vw,440px);width:100%;border:0;background:transparent;padding:0;max-height:85dvh;color:#173e2c}
+#gs-confirm-closure{box-sizing:border-box;max-width:460px;width:calc(100% - 28px);border:0;background:transparent;padding:0;max-height:85dvh;color:#173e2c}
 #gs-confirm-closure::backdrop{background:rgba(3,30,18,.64);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
-#gs-confirm-closure .gs-dialog-body{border-radius:19px;padding:23px;background:white;box-shadow:0 15px 50px #00271d45;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+#gs-confirm-closure .gs-dialog-body{box-sizing:border-box;border-radius:19px;padding:22px;background:white;box-shadow:0 15px 50px #00271d45;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 #gs-confirm-closure .gs-dialog-pill{font-size:11px;font-weight:850;color:#10704b;letter-spacing:.09em;text-transform:uppercase}
-#gs-confirm-closure h3{font-size:21px;margin:9px 0;letter-spacing:-.5px}
+#gs-confirm-closure h3{font-size:23px;line-height:1.2;margin:9px 0 14px;letter-spacing:-.5px}
 #gs-confirm-closure .gs-dialog-of{border-radius:12px;background:#eff9f2;padding:13px;text-align:center;font:900 25px/1.3 ui-monospace,SFMono-Regular,monospace;color:#0b6345;letter-spacing:1px}
-#gs-confirm-closure p{color:#536f5d;font-size:13px;line-height:1.55;margin:12px 0 18px}
-#gs-confirm-closure .gs-dialog-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-#gs-confirm-closure .gs-dialog-buttons button{min-height:48px;border-radius:11px;font-size:13px;font-weight:850;border:1px solid #cfded3;background:#f8faf8;color:#456451;padding:9px;cursor:pointer}
-#gs-confirm-closure .gs-dialog-buttons button.confirm{background:#0b8057;border-color:#0b8057;color:white}
-@media(max-width:430px){#gs-clientes-ui .gs-main{padding:12px}#gs-clientes-ui .gs-tools{grid-template-columns:1fr}#gs-clientes-ui .gs-icon{min-width:34px}#gs-clientes-ui .gs-order{gap:3px}#gs-clientes-ui .gs-orders{padding-left:7px}#gs-clientes-ui .gs-state{font-size:10px}}
-@media(max-width:345px){#gs-clientes-ui .gs-main{padding:9px}#gs-clientes-ui .gs-icon{min-width:29px;padding:4px}#gs-clientes-ui .gs-of{font-size:13px}#gs-clientes-ui .gs-day{padding:7px}#gs-clientes-ui .gs-state{gap:3px}}
+#gs-confirm-closure p{color:#456351;font-size:15px;line-height:1.5;margin:14px 0 20px;overflow-wrap:anywhere}
+#gs-confirm-closure .gs-dialog-buttons{display:grid;grid-template-columns:1fr;gap:8px}
+#gs-confirm-closure .gs-dialog-buttons button{box-sizing:border-box;min-height:52px;width:100%;border-radius:11px;font-size:15px;font-weight:750;border:1px solid #cfded3;background:#f8faf8;color:#456451;padding:12px;cursor:pointer;touch-action:manipulation}
+#gs-confirm-closure .gs-dialog-buttons button.confirm{background:#176b4b;border-color:#176b4b;color:white;font-size:16px;min-height:54px}
+#gs-confirm-closure[data-action=remove] .gs-dialog-buttons button.confirm{background:#a13d35;border-color:#a13d35}
+#gs-confirm-closure button:focus-visible{outline:3px solid #35a276;outline-offset:2px}
+@media(max-width:430px){#gs-clientes-ui .gs-main{padding:12px}#gs-clientes-ui .gs-tools{grid-template-columns:1fr}#gs-clientes-ui .gs-order{gap:5px}#gs-clientes-ui .gs-orders{padding-left:7px}#gs-clientes-ui .gs-order-meta{gap:4px}}
+@media(max-width:345px){#gs-clientes-ui .gs-main{padding:9px}#gs-clientes-ui .gs-of{font-size:14px}#gs-clientes-ui .gs-day{padding:7px}#gs-clientes-ui .gs-state{gap:3px}#gs-clientes-ui .gs-action{min-width:96px;padding:8px 7px;font-size:12px}#gs-clientes-ui .gs-order-actions{gap:1px}#gs-clientes-ui .gs-order-meta{column-gap:4px;row-gap:2px}#gs-confirm-closure .gs-dialog-body{padding:17px}}
 `;document.head.append(s)
 }
 function mount(){
@@ -174,7 +180,7 @@ function mount(){
  const more=button('gs-more','Ver más órdenes');more.id='gs-order-more';more.hidden=true;more.addEventListener('click',()=>{page+=PAGE_SIZE;render()});main.append(more);
  const foot=el('p','gs-foot','Cerrada = cierre administrativo confirmado. Las O.F. archivadas permanecen en Firebase; puedes reabrirlas si corresponde.');main.append(foot);root.append(main);
  historyView.insertBefore(root,old);
- const dialog=el('dialog');dialog.id='gs-confirm-closure';dialog.setAttribute('aria-labelledby','gs-dialog-title');const body=el('div','gs-dialog-body');body.append(el('div','gs-dialog-pill','CONFIRMACIÓN REQUERIDA'));const title=el('h3');title.id='gs-dialog-title';body.append(title);const of=el('div','gs-dialog-of');of.id='gs-dialog-of';body.append(of);const description=el('p');description.id='gs-dialog-desc';body.append(description);const actions=el('div','gs-dialog-buttons');const cancel=button('','Cancelar');const confirm=button('confirm','Sí, marcar cerrada');confirm.id='gs-dialog-confirm';cancel.addEventListener('click',()=>dialog.close());confirm.addEventListener('click',commit);actions.append(cancel,confirm);body.append(actions);dialog.append(body);document.body.append(dialog);
+ const dialog=el('dialog');dialog.id='gs-confirm-closure';dialog.setAttribute('aria-labelledby','gs-dialog-title');dialog.setAttribute('aria-describedby','gs-dialog-desc');const body=el('div','gs-dialog-body');body.append(el('div','gs-dialog-pill','CONFIRMACIÓN REQUERIDA'));const title=el('h3');title.id='gs-dialog-title';body.append(title);const of=el('div','gs-dialog-of');of.id='gs-dialog-of';body.append(of);const description=el('p');description.id='gs-dialog-desc';body.append(description);const actions=el('div','gs-dialog-buttons');const cancel=button('','Cancelar');cancel.autofocus=true;const confirm=button('confirm','Confirmar cierre');confirm.id='gs-dialog-confirm';cancel.addEventListener('click',()=>dialog.close());confirm.addEventListener('click',commit);actions.append(confirm,cancel);body.append(actions);dialog.append(body);document.body.append(dialog);
  dialog.addEventListener('close',()=>{selection=null;if(lastFocus?.isConnected)lastFocus.focus({preventScroll:true});lastFocus=null});
  list.addEventListener('click',event=>{const b=event.target.closest('button[data-order-id]');if(!b)return;requestAction(b.dataset.orderId,b.dataset.of,b.dataset.action,b)});
  window.addEventListener('storage',e=>{if([HISTORY_KEY,STATUS_KEY,DATES_KEY].includes(e.key))scheduleRender()});
@@ -210,13 +216,13 @@ function addRow(parent,r){
  const row=el('div','gs-order '+(r.closed?'closed':'pending'));row.setAttribute('role','listitem');
  const info=el('div','gs-order-info');info.append(el('div','gs-of',r.of));
  const meta=r.closed?(r.legacy?'Cierre sin fecha':hourFmt.format(new Date(r.archivedAt))):hourFmt.format(new Date(r.scannedAt));
- info.append(el('div','gs-meta',meta));
  const state=el('span','gs-state',r.closed?'Cerrada':'Pendiente');
- const action=button('gs-icon gs-action'+(r.closed?' reopen':''));action.append(svgIcon(r.closed?'reopen':'close'));
+ const details=el('div','gs-order-meta');details.append(state,el('span','gs-meta',meta));info.append(details);
+ const action=button('gs-action'+(r.closed?' reopen':''));action.append(svgIcon(r.closed?'reopen':'close'),el('span','',r.closed?'Reabrir':'Cerrar OF'));
  action.dataset.action=r.closed?'reopen':'close';action.dataset.orderId=r.id;action.dataset.of=r.of;
  action.setAttribute('aria-label',(r.closed?'Reabrir':'Confirmar cierre de')+' O.F. '+r.of+' · '+r.client);action.title=r.closed?'Reabrir O.F.':'Confirmar cierre';
  const remove=button('gs-icon gs-remove');remove.append(svgIcon('remove'));remove.dataset.action='remove';remove.dataset.orderId=r.id;remove.dataset.of=r.of;remove.title='Eliminar O.F.';remove.setAttribute('aria-label','Eliminar O.F. '+r.of+' de '+r.client);
- const actions=el('div','gs-order-actions');actions.append(action,remove);row.append(info,state,actions);parent.append(row);
+ const actions=el('div','gs-order-actions');actions.append(action,remove);row.append(info,actions);parent.append(row);
 }
 function addClient(parent,group){
  const section=el('section','gs-client-group');
@@ -272,8 +278,8 @@ function requestAction(id,of,action,control){
  const closing=action==='close',removing=action==='remove';
  $('gs-dialog-title').textContent=removing?'¿Eliminar esta O.F.?':closing?'¿Confirmar cierre en sistema?':'¿Reabrir esta orden?';$('gs-dialog-of').textContent=of;
  $('gs-dialog-desc').textContent=removing?'Cliente: '+row.client+'. Se eliminará esta O.F. de la nómina compartida en todos los dispositivos. No equivale a marcarla como cerrada y no se puede deshacer.':closing?'Cliente: '+row.client+'. Confirma solo después de completar el cierre en el sistema. La orden saldrá de Pendientes y pasará al Archivo por fecha.':'Cliente: '+row.client+'. La O.F. volverá a Pendientes en todos los dispositivos sincronizados.';
- $('gs-dialog-confirm').textContent=removing?'Sí, eliminar O.F.':closing?'Sí, marcar cerrada':'Sí, reabrir';
- const dialog=$('gs-confirm-closure');if(typeof dialog.showModal==='function')dialog.showModal();else {if(window.confirm($('gs-dialog-title').textContent+'\nO.F. '+of)){commit()}else selection=null}
+ $('gs-dialog-confirm').textContent=removing?'Eliminar OF':closing?'Confirmar cierre':'Confirmar reapertura';
+ const dialog=$('gs-confirm-closure');dialog.dataset.action=action;if(typeof dialog.showModal==='function')dialog.showModal();else {if(window.confirm($('gs-dialog-title').textContent+'\nO.F. '+of)){commit()}else selection=null}
 }
 function commit(){
  if(!selection)return;

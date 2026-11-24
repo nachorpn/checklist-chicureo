@@ -1,10 +1,10 @@
-/* Gestark · instalador PWA 2026.11.23.29.
+/* Gestark · instalador PWA 2026.11.23.30.
  * El contenedor nativo registra el Service Worker una sola vez.
  * Los módulos abiertos dentro de iframes NO lo registran nuevamente.
  */
 (() => {
  'use strict';
- const VERSION='2026.11.23.29';
+ const VERSION='2026.11.23.30';
  const appBase=new URL('./',document.currentScript?.src||location.href);
  // v29: predictor opcional. No altera los formularios ni exige un cliente del Directorio.
  // Cargar solamente en Entregas y Transferencias tras la autorizacion Firebase.
@@ -46,7 +46,7 @@
      if(window.__gestarkClientsUiRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
      window.__gestarkClientsUiRequested=true;
      const script=document.createElement('script');
-     script.src='./gestark-clientes-ui.js?v=2026.11.23.29';
+     script.src='./gestark-clientes-ui.js?v=2026.11.23.30';
      script.async=true;
      script.onerror=()=>{window.__gestarkClientsUiRequested=false;console.warn('Gestark: vista de archivo no disponible; se conserva la nómina anterior.')};
      document.head.append(script);
