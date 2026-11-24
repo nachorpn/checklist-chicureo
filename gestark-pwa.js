@@ -1,19 +1,19 @@
-/* Gestark · instalador PWA 2026.11.22.24.
+/* Gestark · instalador PWA 2026.11.23.29.
  * El contenedor nativo registra el Service Worker una sola vez.
  * Los módulos abiertos dentro de iframes NO lo registran nuevamente.
  */
 (() => {
  'use strict';
- const VERSION='2026.11.22.25';
+ const VERSION='2026.11.23.29';
  const appBase=new URL('./',document.currentScript?.src||location.href);
- // v25: predictor opcional. No altera los formularios ni exige un cliente del Directorio.
+ // v29: predictor opcional. No altera los formularios ni exige un cliente del Directorio.
  // Cargar solamente en Entregas y Transferencias tras la autorizacion Firebase.
  if(/(?:\/entregas-clientes|\/notas-transferencias)\.html$/.test(location.pathname)){
    const loadAutocomplete=()=>{
      if(window.__gestarkAutocompleteRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
      window.__gestarkAutocompleteRequested=true;
      const script=document.createElement('script');
-     script.src='./gestark-client-autocomplete.js?v=2026.11.22.25';
+     script.src='./gestark-client-autocomplete.js?v=2026.11.23.29';
      script.async=true;
      script.onerror=()=>{window.__gestarkAutocompleteRequested=false;console.warn('Gestark: sugerencias no disponibles. El campo manual sigue funcionando.')};
      document.head.append(script);
@@ -28,7 +28,7 @@
      if(window.__gestarkClientsCloudRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
      window.__gestarkClientsCloudRequested=true;
      const script=document.createElement('script');
-     script.src='./gestark-clientes-cloud.js?v=2026.11.22.17';
+     script.src='./gestark-clientes-cloud.js?v=2026.11.23.29';
      script.async=true;
      script.onerror=()=>{
        window.__gestarkClientsCloudRequested=false;
@@ -46,7 +46,7 @@
      if(window.__gestarkClientsUiRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
      window.__gestarkClientsUiRequested=true;
      const script=document.createElement('script');
-     script.src='./gestark-clientes-ui.js?v=2026.11.22.17';
+     script.src='./gestark-clientes-ui.js?v=2026.11.23.29';
      script.async=true;
      script.onerror=()=>{window.__gestarkClientsUiRequested=false;console.warn('Gestark: vista de archivo no disponible; se conserva la nómina anterior.')};
      document.head.append(script);
@@ -57,7 +57,7 @@
      if(window.__gestarkDraftSafetyRequested || !window.GestarkAuth?.getUser?.()?.uid)return;
      window.__gestarkDraftSafetyRequested=true;
      const script=document.createElement('script');
-     script.src='./gestark-retire-draft.js?v=2026.11.22.24';
+     script.src='./gestark-retire-draft.js?v=2026.11.23.29';
      script.async=true;
      script.onerror=()=>{
        window.__gestarkDraftSafetyRequested=false;

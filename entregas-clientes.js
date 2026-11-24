@@ -1,6 +1,6 @@
-/* Gestark · Entregas clientes · 2026.11.21.36
+/* Gestark · Entregas clientes · 2026.11.23.29
  * Escáner continuo usando motor aprobado de Contingentes/Laboratorio 2026.11.21.15.
- * Sin directorio ni sincronización central en esta versión.
+ * RUT opcional del Directorio preservado desde la selección hasta el retiro finalizado.
  */
 (()=>{
 'use strict';
@@ -18,6 +18,16 @@ let lastDuplicateOf='',lastDuplicateAt=0,toastTimer=null,preparedFiles=[],prepar
 let sharePreviewUrl='';
 const cleanName=s=>String(s||'').replace(/\s+/g,' ').trim().slice(0,80);
 const validOF=s=>/^\d{9}$/.test(String(s||''));
+function cleanClientRef(value){
+ if(!value||typeof value!=='object')return null;
+ const rut=String(value.rut||'').trim().toUpperCase(),id=String(value.id||'');
+ if(!/^[0-9]{1,3}(\.[0-9]{3}){0,2}-[0-9K]$/.test(rut)||!/^[0-9]{1,8}-[0-9K]$/.test(id)||rut.replace(/\./g,'')!==id)return null;
+ const [body,dv]=id.split('-');if(Number(body)===0)return null;
+ let sum=0,factor=2;for(let i=body.length-1;i>=0;i--){sum+=Number(body[i])*factor;factor=factor===7?2:factor+1}
+ const m=11-sum%11;if((m===11?'0':m===10?'K':String(m))!==dv)return null;
+ return {id,rut,alias:typeof value.alias==='string'?value.alias.trim().slice(0,100):''};
+}
+
 const dateParts=t=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'America/Santiago',day:'2-digit',month:'2-digit',year:'numeric'}).formatToParts(new Date(t));const obj=Object.fromEntries(parts.map(x=>[x.type,x.value]));return obj};
 const fmtTime=t=>new Date(t).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',timeZone:'America/Santiago'});
 const fmtDay=t=>{const p=dateParts(t);return `${p.day}/${p.month}/${p.year}`};
@@ -37,11 +47,17 @@ function canUse(){return active&&validateClient(true)}
 function normalizedOrder(item){if(typeof item==='string')return validOF(item)?{of:item,at:Date.now()}:null;
  if(!item||!validOF(item.of)||!Number.isFinite(item.at))return null;
  return {of:item.of,at:item.at};}
-function readDraft(){try{const v=JSON.parse(localStorage.getItem(draftKey)||'null');return {client:typeof v?.client==='string'?v.client.slice(0,80):'',orders:Array.isArray(v?.orders)?v.orders.map(normalizedOrder).filter(Boolean).slice(0,MAX_ROSTER):[]}}catch{return {client:'',orders:[]}}}
+function readDraft(){try{const v=JSON.parse(localStorage.getItem(draftKey)||'null'),clientRef=cleanClientRef(v?.clientRef);return {client:typeof v?.client==='string'?v.client.slice(0,80):'',orders:Array.isArray(v?.orders)?v.orders.map(normalizedOrder).filter(Boolean).slice(0,MAX_ROSTER):[],...(clientRef&&v?.client?{clientRef}:{})}}catch{return {client:'',orders:[]}}}
 function readHistory(){try{const a=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');return Array.isArray(a)?a.filter(v=>v&&typeof v.id==='string'&&typeof v.client==='string'&&Number.isFinite(v.at)&&Array.isArray(v.orders)).map(v=>({...v,client:v.client.slice(0,80),orders:v.orders.map(normalizedOrder).filter(Boolean).slice(0,MAX_ROSTER)})).filter(v=>v.orders.length):[]}catch{return []}}
 function persistDraft(){try{localStorage.setItem(draftKey,JSON.stringify(draft));return true}catch(e){console.warn('Gestark: no pudo guardar borrador',e);status('Sin espacio para guardar la nómina. No cierres esta página.','bad');toast('Error de almacenamiento del borrador','warn');return false}}
 function persistHistory(next){try{localStorage.setItem(HISTORY_KEY,JSON.stringify(next));history=next;return true}catch(e){console.warn('Gestark: no pudo guardar nómina',e);toast('No se pudo guardar el retiro; revisa espacio disponible','warn');return false}}
-function updateDraft(){draft.client=$('client').value.slice(0,80);persistDraft()}
+function updateDraft(event){
+ draft.client=$('client').value.slice(0,80);
+ // Solo una selección explícita del predictor aporta identidad. Cualquier edición manual la desvincula.
+ const ref=cleanClientRef(event?.detail?.gestarkClientRef);
+ if(ref&&cleanName(draft.client))draft.clientRef=ref;else delete draft.clientRef;
+ persistDraft();
+}
 function renderOrders(){
  const rows=$('order-list');rows.replaceChildren();$('order-count').textContent=String(draft.orders.length);
  $('last-of').textContent=draft.orders.length?'Última: '+draft.orders.at(-1).of:'';
@@ -431,7 +447,8 @@ function newDraft(){draft={client:'',orders:[]};$('client').value='';clientError
 function finalize(){
  if(!validateClient(true))return;
  if(draft.orders.length===0){toast('Escanea al menos una orden','warn');return}
- const entry={id:crypto.randomUUID?.()||Date.now()+'-'+Math.random().toString(36).slice(2,9),client:cleanName($('client').value),at:Date.now(),user:currentUser,operator:operatorName,orders:draft.orders.map(x=>({...x}))};
+ const clientName=cleanName($('client').value),clientRef=clientName===cleanName(draft.client)?cleanClientRef(draft.clientRef):null;
+ const entry={id:crypto.randomUUID?.()||Date.now()+'-'+Math.random().toString(36).slice(2,9),client:clientName,at:Date.now(),user:currentUser,operator:operatorName,orders:draft.orders.map(x=>({...x})),...(clientRef?{clientRef}:{})};
  const next=[...readHistory(),entry];
  if(!persistHistory(next))return;
  // Primero confirmar guardado; si el cliente cancela compartir, no se pierden los registros.
@@ -579,7 +596,7 @@ async function copyText(s){try{await navigator.clipboard.writeText(s);return tru
 function init(){
  if(active)return;active=true;draftKey=DRAFT_PREFIX+currentUser;draft=readDraft();history=readHistory();
  $('workspace').hidden=false;$('client').value=draft.client;renderOrders();renderHistory();
- $('client').addEventListener('input',()=>{clientError('');updateDraft();renderOrders()});
+ $('client').addEventListener('input',event=>{clientError('');updateDraft(event);renderOrders()});
  $('client').addEventListener('keydown',ev=>{if(ev.key==='Enter'){$('client').blur();ev.preventDefault()}});
  $('start-cam').addEventListener('click',startCamera);$('stop-cam').addEventListener('click',stopCamera);$('torch').addEventListener('click',toggleTorch);
  $('manual-form').addEventListener('submit',ev=>{ev.preventDefault();const raw=$('manual-order').value.trim();const added=addOrder(raw,'manual');if(added)$('manual-order').value='';else if(!validOF(raw)&&!core.parseBarcode(raw).valid){$('order-error').textContent='Ingresa una O.F. válida de nueve dígitos o un código reconocido.';$('order-error').hidden=false}});

@@ -104,7 +104,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 <script>
 (() => {
 'use strict';
- const BUILD='2026.11.22.26';
+ const BUILD='2026.11.23.29';
 const base=new URL('./',location.href);
 const available={
  home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
@@ -221,11 +221,11 @@ function hideEmbeddedChrome(d){
 }
 function attach(key,frame){
  let d;try{d=frame.contentDocument}catch(_){return};if(!d)return;
-  // Predictor v25: carga segura tambien desde el shell para evitar caches antiguas.
+  // Predictor v29: carga segura tambien desde el shell para evitar caches antiguas.
   if((key==='clients'||key==='transfers')&&!d.getElementById('gs-client-predictor-native-v25')){
     const predictor=d.createElement('script');
     predictor.id='gs-client-predictor-native-v25';
-    predictor.src='./gestark-client-autocomplete.js?v=2026.11.22.25';
+    predictor.src='./gestark-client-autocomplete.js?v=2026.11.23.29';
     predictor.async=true;
     (d.head||d.documentElement).append(predictor);
   }

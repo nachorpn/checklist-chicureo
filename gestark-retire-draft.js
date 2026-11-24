@@ -1,4 +1,4 @@
-/* Gestark v24 · protección del escaneo. No modifica el lector ni el historial existente.
+/* Gestark v29 · protección del escaneo. No modifica el lector ni el historial existente.
  * Cada sesión de escaneo tiene su propio documento de respaldo; nunca se borra
  * antes de comprobar que su retiro finalizado existe en la nómina de Firestore.
  */
@@ -15,7 +15,16 @@ if(!user?.uid||user.provider!=='firebase')return;
 const draftKey=PREFIX+user.username,sessionKey=SESSION_PREFIX+user.username,outboxKey=OUTBOX_PREFIX+user.username;
 const validOf=x=>/^\d{9}$/.test(String(x?.of||''))&&Number.isFinite(x.at);
 const readJSON=(key,def)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??def}catch{return def}};
-const normalize=v=>({client:String(v?.client||'').slice(0,80),orders:(Array.isArray(v?.orders)?v.orders:[]).filter(validOf).slice(0,500).map(x=>({of:String(x.of),at:Number(x.at)}))});
+function cleanClientRef(value){
+ if(!value||typeof value!=='object')return null;
+ const rut=String(value.rut||'').trim().toUpperCase(),id=String(value.id||'');
+ if(!/^[0-9]{1,3}(\.[0-9]{3}){0,2}-[0-9K]$/.test(rut)||!/^[0-9]{1,8}-[0-9K]$/.test(id)||rut.replace(/\./g,'')!==id)return null;
+ const [body,dv]=id.split('-');if(Number(body)===0)return null;
+ let sum=0,factor=2;for(let i=body.length-1;i>=0;i--){sum+=Number(body[i])*factor;factor=factor===7?2:factor+1}
+ const m=11-sum%11;if((m===11?'0':m===10?'K':String(m))!==dv)return null;
+ return {id,rut,alias:typeof value.alias==='string'?value.alias.trim().slice(0,100):''};
+}
+const normalize=v=>{const clientRef=cleanClientRef(v?.clientRef);return {client:String(v?.client||'').slice(0,80),orders:(Array.isArray(v?.orders)?v.orders:[]).filter(validOf).slice(0,500).map(x=>({of:String(x.of),at:Number(x.at)})),...(clientRef&&v?.client?{clientRef}:{})}};
 const local=()=>normalize(readJSON(draftKey,{}));
 const history=()=>{const a=readJSON(HISTORY,[]);return Array.isArray(a)?a:[]};
 const random=()=>crypto.randomUUID?.()||('s'+Date.now()+'_'+Math.random().toString(36).slice(2));
@@ -35,8 +44,9 @@ function findCompleted(rec){
  return history().slice().reverse().find(e=>Number(e?.at)>=firstScan&&e?.client?.trim()===rec.client.trim()&&Array.isArray(e.orders)&&e.orders.length===orders.size&&e.orders.every(o=>orders.has(o.of))&&typeof e.id==='string');
 }
 function makeRecord(id,draft,state='active',entryId=''){
+ const clientRef=cleanClientRef(draft.clientRef);
  return {ownerUid:user.uid,username:user.username,operator:String(user.name||user.username).slice(0,70),client:draft.client,
-   orders:draft.orders,state,entryId,deviceId:id.split('_').slice(1).join('_'),updatedAt:null};
+   orders:draft.orders,state,entryId,deviceId:id.split('_').slice(1).join('_'),updatedAt:null,...(clientRef?{clientRef}:{})};
 }
 function setStatus(message,bad=false){
  if(!statusLine)return;
@@ -66,7 +76,7 @@ function updateUI(){
  else if(d.orders.length){
   const cloud=remote.find(x=>x.id===sessionId);
   const safe=server&&cloud&&cloud.state==='active'&&cloud.orders.length===d.orders.length&&
-   cloud.orders.every((x,i)=>x.of===d.orders[i].of);
+   cloud.orders.every((x,i)=>x.of===d.orders[i].of)&&JSON.stringify(cleanClientRef(cloud.clientRef))===JSON.stringify(cleanClientRef(d.clientRef));
   setStatus(safe?'✓ '+d.orders.length+' orden(es) respaldadas en Firebase.':
     '⚠ '+d.orders.length+' orden(es) guardadas en este dispositivo; respaldo en nube pendiente.',!safe);
  }else if(pending.length){
@@ -106,7 +116,7 @@ function capture(){
  }else if(previous.orders.length&&sessionId){
   const entry=findCompleted(previous);
   if(entry){
-   enqueue(sessionId,makeRecord(sessionId,previous,'awaiting-cloud',entry.id));
+   enqueue(sessionId,makeRecord(sessionId,{...previous,clientRef:entry.clientRef},'awaiting-cloud',entry.id));
    sessionId='';try{localStorage.removeItem(sessionKey)}catch(_){}
   }else{
    // No hubo finalización confirmada. Conservar el último respaldo en nube.
@@ -136,6 +146,7 @@ async function cleanup(){
   if(!roster||roster.deleted===true)continue;
   const saved=new Set((roster.orders||[]).map(x=>x.of));
   if(!r.orders.every(o=>saved.has(o.of)))continue;
+  const ref=cleanClientRef(r.clientRef);if(ref&&cleanClientRef(roster.clientRef)?.id!==ref.id)continue;
   if(outbox.some(x=>x.id===r.id))continue;
   busyDelete.add(r.id);
   try{await client.fs.deleteDoc(client.fs.doc(client.db,DRAFTS,r.id))}
@@ -176,7 +187,7 @@ async function start(){
    for(const r of remote){
     if(r.state==='active'&&!outbox.some(x=>x.id===r.id)&&!(sessionId===r.id&&local().orders.length)){
       const done=findCompleted(r);
-      if(done)enqueue(r.id,makeRecord(r.id,r,'awaiting-cloud',done.id));
+      if(done)enqueue(r.id,makeRecord(r.id,{...r,clientRef:done.clientRef},'awaiting-cloud',done.id));
     }
    }
    updateUI();void cleanup();

@@ -1,4 +1,4 @@
-/* Gestark · Entregas clientes compartidas · 2026.11.22.16
+/* Gestark · Entregas clientes compartidas · 2026.11.23.29
  * Integra el módulo existente sin modificar el lector de códigos ni la función nativa de compartir.
  * Fuente de verdad: Firestore gestark_client_deliveries_v1.
  * Respaldo/borrador: almacenamiento local existente. Operaciones pendientes: cola local durable.
@@ -9,7 +9,7 @@
 if (window.__gestarkClientsCloudLoaded) return;
 window.__gestarkClientsCloudLoaded = true;
 if (!location.pathname.endsWith('/entregas-clientes.html')) return;
-const VERSION = '2026.11.22.16';
+const VERSION = '2026.11.23.29';
 const SDK = 'https://www.gstatic.com/firebasejs/12.11.0/';
 const COLLECTION = 'gestark_client_deliveries_v1';
 const HISTORY_KEY = 'gestark:clients:rosters:v1';
@@ -32,11 +32,21 @@ function localArr(key){const r=safeJSON(localStorage.getItem(key),[]);return Arr
 function localObj(key){const r=safeJSON(localStorage.getItem(key),{});return !Array.isArray(r)&&r? r:{} }
 function nativeSave(key, value) { rawSetItem.call(localStorage, key, JSON.stringify(value)); }
 function isOrder(x){return x&&VALID_OF.test(String(x.of))&&Number.isFinite(x.at)}
+function cleanClientRef(value){
+ if(!value||typeof value!=='object')return null;
+ const rut=String(value.rut||'').trim().toUpperCase(),id=String(value.id||'');
+ if(!/^[0-9]{1,3}(\.[0-9]{3}){0,2}-[0-9K]$/.test(rut)||!/^[0-9]{1,8}-[0-9K]$/.test(id)||rut.replace(/\./g,'')!==id)return null;
+ const [body,dv]=id.split('-');if(Number(body)===0)return null;
+ let sum=0,factor=2;for(let i=body.length-1;i>=0;i--){sum+=Number(body[i])*factor;factor=factor===7?2:factor+1}
+ const m=11-sum%11;if((m===11?'0':m===10?'K':String(m))!==dv)return null;
+ return {id,rut,alias:typeof value.alias==='string'?value.alias.trim().slice(0,100):''};
+}
 function cleanEntry(e){
  if (!e || !VALID_ID.test(String(e.id)) || typeof e.client !== 'string' || !Number.isFinite(e.at) || !Array.isArray(e.orders)) return null;
  const orders=e.orders.filter(isOrder).slice(0,500).map(x=>({of:String(x.of),at:Number(x.at)}));
  if(!orders.length || !e.client.trim())return null;
- return {id:String(e.id),client:e.client.trim().slice(0,80),at:Number(e.at),user:String(e.user||'').slice(0,32),operator:String(e.operator||'').slice(0,70),orders};
+ const clientRef=cleanClientRef(e.clientRef);
+ return {id:String(e.id),client:e.client.trim().slice(0,80),at:Number(e.at),user:String(e.user||'').slice(0,32),operator:String(e.operator||'').slice(0,70),orders,...(clientRef?{clientRef}:{})};
 }
 function goodRoster(x){return x&&typeof x.id==='string'&&Array.isArray(x.orders)&&x.closures&&typeof x.closures==='object'}
 function makeStatus() {

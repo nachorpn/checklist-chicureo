@@ -1,4 +1,4 @@
-/* Gestark · Nómina operativa y archivo por fecha · v2026.11.22.16
+/* Gestark · Nómina operativa y archivo por fecha · v2026.11.23.29
  * Presentación independiente: conserva el escáner y los datos originales.
  * «Archivada» significa O.F. cerrada en sistema; NO elimina ni mueve
  * documentos de Firestore. El módulo Cloud sincroniza el cambio de estado.
@@ -15,10 +15,57 @@ const TZ='America/Santiago';
 const $=id=>document.getElementById(id);
 const numFmt=new Intl.NumberFormat('es-CL');
 const dateFmt=new Intl.DateTimeFormat('es-CL',{day:'2-digit',month:'short',year:'numeric',timeZone:TZ});
+const headingDateFmt=new Intl.DateTimeFormat('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:TZ});
 const hourFmt=new Intl.DateTimeFormat('es-CL',{hour:'2-digit',minute:'2-digit',timeZone:TZ});
 const dayFmt=new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:TZ});
 const dayKey=t=>{const parts=dayFmt.formatToParts(new Date(t));const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));return p.year+p.month+p.day;};
 const validOF=v=>/^\d{9}$/.test(String(v||''));
+const nameKey=v=>String(v||'').normalize('NFC').toLocaleLowerCase('es-CL').replace(/\s+/g,' ').trim();
+const searchKey=v=>nameKey(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const rutKey=v=>String(v||'').toUpperCase().replace(/[.\s-]/g,'');
+function readClientRef(v){
+ if(!v||typeof v!=='object')return null;
+ const id=String(v.id||''),rut=String(v.rut||'').trim().toUpperCase();
+ if(!/^[0-9]{1,3}(\.[0-9]{3}){0,2}-[0-9K]$/.test(rut)||!/^[0-9]{1,8}-[0-9K]$/.test(id)||rut.replace(/\./g,'')!==id)return null;
+ const [body,dv]=id.split('-');if(Number(body)===0)return null;
+ let sum=0,factor=2;for(let i=body.length-1;i>=0;i--){sum+=Number(body[i])*factor;factor=factor===7?2:factor+1}
+ const m=11-sum%11;if((m===11?'0':m===10?'K':String(m))!==dv)return null;
+ return {id,rut,alias:typeof v.alias==='string'?v.alias.slice(0,100):''};
+}
+const collapsed=new Set();
+const dateBucket=r=>mode==='pending'?dayKey(r.at):(r.legacy?'legacy:':'closed:')+dayKey(r.archivedAt);
+const clientBucket=r=>r.clientRef?'ref:'+r.clientRef.id:'manual:'+nameKey(r.client);
+function groupRows(source){
+ const days=new Map();
+ for(const r of source){
+  const dk=dateBucket(r);let day=days.get(dk);
+  if(!day){day={key:dk,at:mode==='pending'?r.at:r.archivedAt,legacy:mode==='archived'&&r.legacy,groups:new Map(),total:0};days.set(dk,day)}
+  const ck=clientBucket(r);let group=day.groups.get(ck);
+  if(!group){group={key:mode+'|'+dk+'|'+ck,client:r.client,ref:r.clientRef,rows:[]};day.groups.set(ck,group)}
+  group.rows.push(r);day.total++;
+ }
+ return [...days.values()];
+}
+function matchSearch(r,q){
+ if(!q)return true;
+ const norm=searchKey(q);
+ if(r.of.includes(norm)||searchKey(r.client).includes(norm)||searchKey(r.clientRef?.alias).includes(norm))return true;
+ const compact=rutKey(q);
+ return !!r.clientRef&&/^[0-9K]+$/.test(compact)&&rutKey(r.clientRef.rut).includes(compact);
+}
+function svgIcon(name){
+ const paths={chevron:'M6 9l6 6 6-6',copy:'M8 8h12v12H8zM4 16V4h12',close:'M9 12l2 2 4-5M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18',reopen:'M9 7H4v5M4 7l3 3a7 7 0 1 1 1 10',remove:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v6M14 10v6'};
+ const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.7');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');svg.setAttribute('aria-hidden','true');const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',paths[name]);svg.append(path);return svg;
+}
+async function copyRut(rut,control){
+ let ok=false;
+ try{await navigator.clipboard.writeText(rut);ok=true}catch(_){
+  const t=document.createElement('textarea');t.value=rut;t.readOnly=true;t.style.cssText='position:fixed;left:0;top:0;opacity:0;';document.body.append(t);t.focus();t.select();t.setSelectionRange(0,t.value.length);try{ok=document.execCommand('copy')}catch(_e){}t.remove();
+ }
+ if(ok){control.classList.add('copied');control.setAttribute('aria-label','RUT copiado');control.title='RUT copiado';$('gs-rut-feedback').textContent='RUT copiado';setTimeout(()=>{control.classList.remove('copied');control.setAttribute('aria-label','Copiar RUT '+rut);control.title='Copiar RUT';$('gs-rut-feedback').textContent=''},1600)}
+ else{window.prompt('Copia el RUT:',rut)}
+}
+
 const read=(key,fallback)=>{try{const a=JSON.parse(localStorage.getItem(key)||'null');return a&&typeof a==='object'?a:fallback}catch{return fallback}};
 const readHistory=()=>{const a=read(HISTORY_KEY,[]);return Array.isArray(a)?a:[]};
 const readClosures=()=>{const a=read(STATUS_KEY,{});return !Array.isArray(a)?a:{}};
@@ -29,49 +76,70 @@ function el(tag,className,text){const x=document.createElement(tag);if(className
 function button(className,text){const x=el('button',className,text);x.type='button';return x}
 function css(){
 const s=document.createElement('style');s.id='gs-clientes-ui-css';s.textContent=`
-#gs-clientes-ui{--gs-ink:#143e30;--gs-line:#dbe9df;--gs-green:#117852;--gs-soft:#edf8f1;color:var(--gs-ink);display:grid;gap:12px;padding-bottom:16px}
+#gs-clientes-ui{--gs-ink:#153d30;--gs-line:#e3ebe5;--gs-green:#226747;--gs-soft:#edf3ef;color:var(--gs-ink);display:grid;gap:10px;padding-bottom:16px;min-width:0}
 #gs-clientes-ui *{box-sizing:border-box}
-#gs-clientes-ui .gs-main{background:#fff;border:1px solid var(--gs-line);border-radius:18px;padding:16px;box-shadow:0 4px 15px #122c1a08}
-#gs-clientes-ui .gs-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-#gs-clientes-ui .gs-kicker{font-size:10px;letter-spacing:.11em;font-weight:900;color:#60917b;text-transform:uppercase}
-#gs-clientes-ui h2{font-size:21px;letter-spacing:-.65px;margin:5px 0 4px;font-weight:880}
-#gs-clientes-ui .gs-lead{margin:0;font-size:12px;color:#5e7668;line-height:1.4}
-#gs-clientes-ui .gs-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:16px 0 12px}
-#gs-clientes-ui .gs-stat{border-radius:13px;border:1px solid #cee7d6;padding:12px 13px;background:#edf9f1}
-#gs-clientes-ui .gs-stat.archived{background:#f6f8f6;border-color:#e1e7e1}
-#gs-clientes-ui .gs-stat strong{font-size:28px;font-variant-numeric:tabular-nums;letter-spacing:-.8px;display:block;line-height:1.05;color:#117852}
-#gs-clientes-ui .gs-stat.archived strong{color:#627a6d}
-#gs-clientes-ui .gs-stat span{font-size:11px;font-weight:750;color:#577566}
-#gs-clientes-ui .gs-mode{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:5px;border-radius:13px;background:#eef3ef;margin-top:5px}
-#gs-clientes-ui .gs-mode button{border:0;border-radius:10px;min-height:44px;font-weight:850;font-size:12px;color:#547564;background:transparent;padding:8px}
-#gs-clientes-ui .gs-mode button[aria-selected=true]{background:white;color:#117852;box-shadow:0 2px 9px #164e3020}
-#gs-clientes-ui .gs-tools{margin-top:13px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
-#gs-clientes-ui .gs-field{display:grid;gap:5px;font-size:11px;font-weight:850;color:#426d58}
-#gs-clientes-ui input,#gs-clientes-ui select{width:100%;border:1px solid #cfe2d6;outline-offset:2px;border-radius:11px;min-height:44px;padding:10px 12px;background:#fcfffd;color:#194734;font-size:14px;font-weight:650}
-#gs-clientes-ui input::placeholder{color:#8a9f93;font-weight:500}
-#gs-clientes-ui .gs-countline{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:16px 2px 10px;font-size:12px;color:#6b8274;font-weight:750}
-#gs-clientes-ui .gs-countline strong{color:#125b40}
-#gs-clientes-ui .gs-list{display:grid;gap:9px}
-#gs-clientes-ui .gs-order{border:1px solid #dbe9df;background:#fff;border-radius:14px;padding:12px 13px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;box-shadow:0 2px 12px #14332608}
-#gs-clientes-ui .gs-order.pending{border-left:5px solid #139567;padding-left:10px}
-#gs-clientes-ui .gs-order.closed{background:#fcfdfc;border-left:4px solid #a8c2b1;padding-left:11px}
-#gs-clientes-ui .gs-of{font:900 clamp(20px,4.3vw,26px)/1.12 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.35px;color:#0a533b;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-#gs-clientes-ui .gs-order.closed .gs-of{color:#536f5e;font-size:20px}
-#gs-clientes-ui .gs-client{font-size:13px;font-weight:800;margin-top:6px;color:#204937;overflow-wrap:anywhere}
-#gs-clientes-ui .gs-meta{font-size:10px;font-weight:600;color:#708778;margin-top:4px;line-height:1.5}
-#gs-clientes-ui .gs-action{background:#0b8057;color:white;border:0;border-radius:10px;padding:11px 12px;min-height:47px;min-width:114px;font-size:12px;font-weight:850;box-shadow:0 2px 8px #0b805727;cursor:pointer;white-space:normal;text-align:center}
-#gs-clientes-ui .gs-action.reopen{background:#edf5ee;color:#176047;box-shadow:none;border:1px solid #bfd9c9;min-width:87px}
-#gs-clientes-ui .gs-order-actions{display:grid;gap:4px;justify-items:stretch}
-#gs-clientes-ui .gs-remove{background:transparent;border:0;color:#9a5952;border-radius:8px;min-height:30px;font-size:11px;font-weight:750;cursor:pointer}
-#gs-clientes-ui .gs-remove:focus-visible{outline:3px solid #b78e83;outline-offset:2px}
-#gs-clientes-ui .gs-action:focus-visible{outline:3px solid #45b38c;outline-offset:2px}
-#gs-clientes-ui .gs-day{margin:11px 0 3px;background:#eef5ef;border:1px solid #e1ebe3;color:#38654c;border-radius:10px;padding:9px 11px;font-weight:850;font-size:12px;display:flex;justify-content:space-between;gap:8px}
-#gs-clientes-ui .gs-day:first-child{margin-top:0}
-#gs-clientes-ui .gs-day small{font-size:10px;font-weight:650;color:#6c8473}
-#gs-clientes-ui .gs-empty{padding:28px 15px;text-align:center;border:1px dashed #cbded1;border-radius:13px;background:#fbfefa;color:#6b8674;font-size:13px;line-height:1.5}
-#gs-clientes-ui .gs-empty strong{display:block;font-size:16px;color:#2c664a;margin-bottom:5px}
-#gs-clientes-ui .gs-more{border:1px solid #c9ded0;background:#f0f8f2;color:#176446;font-weight:850;border-radius:11px;min-height:44px;margin-top:9px;width:100%;font-size:12px;cursor:pointer}
-#gs-clientes-ui .gs-foot{font-size:11px;color:#769080;line-height:1.5;margin:10px 2px 0}
+#gs-clientes-ui [hidden]{display:none!important}
+#gs-clientes-ui .gs-main{background:#fff;border:1px solid #e0eae3;border-radius:16px;padding:15px;min-width:0}
+#gs-clientes-ui .gs-heading{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#gs-clientes-ui h2{font-size:21px;letter-spacing:-.55px;margin:0 0 4px;font-weight:800;color:#153d30}
+#gs-clientes-ui .gs-lead{margin:0;font-size:12px;color:#64786c;line-height:1.35}
+#gs-clientes-ui .gs-stats{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0 10px;font-size:12px;color:#5c7265;align-items:baseline}
+#gs-clientes-ui .gs-stat{display:inline-flex;align-items:baseline;gap:4px}
+#gs-clientes-ui .gs-stat strong{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:#176345}
+#gs-clientes-ui .gs-stat.archived strong{color:#647b6c}
+#gs-clientes-ui .gs-stat.archived:before{content:'·';padding-right:3px;color:#a4b4aa}
+#gs-clientes-ui .gs-mode{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:11px;background:#eff3f0;margin:6px 0 10px}
+#gs-clientes-ui .gs-mode button{border:0;border-radius:8px;min-height:40px;font-weight:700;font-size:13px;color:#627568;background:transparent;padding:6px}
+#gs-clientes-ui .gs-mode button[aria-selected=true]{background:white;color:#165f41;box-shadow:0 1px 5px #163c2220}
+#gs-clientes-ui .gs-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+#gs-clientes-ui .gs-field{display:grid;gap:4px;font-size:11px;font-weight:650;color:#5b7666;min-width:0}
+#gs-clientes-ui input,#gs-clientes-ui select{width:100%;border:1px solid #dce7df;outline-offset:2px;border-radius:9px;min-height:42px;padding:8px 10px;background:#f6f8f6;color:#234938;font-size:16px;font-weight:500;min-width:0}
+#gs-clientes-ui input::placeholder{color:#829286;font-weight:400;font-size:13px}
+#gs-clientes-ui .gs-countline{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:13px 0 8px;font-size:11px;color:#667d6e;font-weight:650}
+#gs-clientes-ui .gs-countline strong{color:#456557;font-weight:700}
+#gs-clientes-ui .gs-list{display:grid;gap:13px;min-width:0}
+#gs-clientes-ui .gs-day-section{min-width:0}
+#gs-clientes-ui .gs-day{margin:0;background:#edf3ef;color:#456558;border-radius:7px;padding:8px 10px;font-weight:750;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+#gs-clientes-ui .gs-day-title:first-letter{text-transform:uppercase}
+#gs-clientes-ui .gs-day small{font-size:10px;font-weight:600;color:#60776b;text-align:right;flex-shrink:0}
+#gs-clientes-ui .gs-day-note{font-size:10px;color:#718579;padding:5px 10px 0;margin:0}
+#gs-clientes-ui .gs-client-group{padding:10px 2px 9px;border-bottom:1px solid var(--gs-line);min-width:0}
+#gs-clientes-ui .gs-client-group:last-child{border-bottom:0;padding-bottom:0}
+#gs-clientes-ui .gs-group-toggle{width:100%;display:flex;align-items:center;gap:7px;min-height:30px;background:transparent;border:0;padding:2px 0;text-align:left;color:#153d30;cursor:pointer;font:inherit;box-shadow:none}
+#gs-clientes-ui .gs-group-name{flex:1;font-size:14px;font-weight:780;line-height:1.3;overflow-wrap:anywhere;min-width:0}
+#gs-clientes-ui .gs-group-count{font-size:11px;font-weight:650;color:#697e72;white-space:nowrap}
+#gs-clientes-ui .gs-group-toggle svg{width:17px;height:17px;color:#87998d;flex:none;transition:transform .16s ease}
+#gs-clientes-ui .gs-group-toggle[aria-expanded=true] svg{transform:rotate(180deg)}
+#gs-clientes-ui .gs-rut-line{display:flex;align-items:center;gap:4px;min-height:28px;padding:0 0 2px;color:#52695b;font-size:13px;font-variant-numeric:tabular-nums;user-select:text;-webkit-user-select:text}
+#gs-clientes-ui .gs-rut-line.missing{font-size:11px;color:#78897e}
+#gs-clientes-ui .gs-rut-number{font-weight:650}
+#gs-clientes-ui .gs-icon{display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;box-shadow:none;border-radius:7px;padding:5px;color:#527b66;min-width:34px;min-height:34px;cursor:pointer;flex:none}
+#gs-clientes-ui .gs-icon svg{width:19px;height:19px}
+#gs-clientes-ui .gs-copy{min-width:34px;min-height:31px;color:#3f795b}
+#gs-clientes-ui .gs-copy.copied{background:#e0f2e6;color:#126441}
+#gs-clientes-ui .gs-orders{border-left:2px solid #dce8df;padding-left:9px;margin:2px 0 1px 2px;min-width:0}
+#gs-clientes-ui .gs-order{display:flex;align-items:center;gap:5px;min-height:44px;border-bottom:1px solid #edf1ed;padding:1px 0;min-width:0;background:transparent}
+#gs-clientes-ui .gs-order:last-child{border-bottom:0}
+#gs-clientes-ui .gs-order-info{flex:1;min-width:0}
+#gs-clientes-ui .gs-of{font:750 14px/1.3 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.04px;color:#254c39;font-variant-numeric:tabular-nums;white-space:nowrap}
+#gs-clientes-ui .gs-order.closed .gs-of{color:#456355}
+#gs-clientes-ui .gs-meta{font-size:10px;color:#74897a;line-height:1.3}
+#gs-clientes-ui .gs-state{font-size:10px;display:flex;align-items:center;gap:4px;color:#866c39;white-space:nowrap}
+#gs-clientes-ui .gs-state:before{content:'';width:6px;height:6px;border-radius:50%;background:#c79a4f;flex:none}
+#gs-clientes-ui .gs-order.closed .gs-state{color:#437656}
+#gs-clientes-ui .gs-order.closed .gs-state:before{background:#66a17b}
+#gs-clientes-ui .gs-order-actions{display:flex;gap:0;align-items:center}
+#gs-clientes-ui .gs-action{color:#347b53}
+#gs-clientes-ui .gs-action.reopen{color:#537866}
+#gs-clientes-ui .gs-remove{color:#916b63}
+#gs-clientes-ui .gs-icon:hover{background:#eef5ef}
+#gs-clientes-ui button:focus-visible{outline:2px solid #48a67a;outline-offset:2px}
+#gs-clientes-ui .gs-empty{padding:24px 12px;text-align:center;border:1px dashed #cbded1;border-radius:10px;background:#fbfefa;color:#607d6b;font-size:13px;line-height:1.5}
+#gs-clientes-ui .gs-empty strong{display:block;font-size:15px;color:#2c664a;margin-bottom:5px}
+#gs-clientes-ui .gs-more{border:1px solid #c9ded0;background:#f0f8f2;color:#176446;font-weight:750;border-radius:9px;min-height:44px;margin-top:9px;width:100%;font-size:12px;cursor:pointer}
+#gs-clientes-ui .gs-foot{font-size:11px;color:#718578;line-height:1.5;margin:10px 0 0}
+#gs-rut-feedback{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);z-index:10000;background:#174e39;color:white;padding:7px 12px;border-radius:9px;font-size:12px;pointer-events:none;white-space:nowrap}
+#gs-rut-feedback:empty{display:none}
 #gs-confirm-closure{max-width:min(92vw,440px);width:100%;border:0;background:transparent;padding:0;max-height:85dvh;color:#173e2c}
 #gs-confirm-closure::backdrop{background:rgba(3,30,18,.64);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 #gs-confirm-closure .gs-dialog-body{border-radius:19px;padding:23px;background:white;box-shadow:0 15px 50px #00271d45;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -82,7 +150,8 @@ const s=document.createElement('style');s.id='gs-clientes-ui-css';s.textContent=
 #gs-confirm-closure .gs-dialog-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 #gs-confirm-closure .gs-dialog-buttons button{min-height:48px;border-radius:11px;font-size:13px;font-weight:850;border:1px solid #cfded3;background:#f8faf8;color:#456451;padding:9px;cursor:pointer}
 #gs-confirm-closure .gs-dialog-buttons button.confirm{background:#0b8057;border-color:#0b8057;color:white}
-@media(max-width:430px){#gs-clientes-ui .gs-main{padding:12px}#gs-clientes-ui .gs-tools{grid-template-columns:1fr}#gs-clientes-ui .gs-order{grid-template-columns:1fr;gap:10px}#gs-clientes-ui .gs-action{width:100%;min-height:43px}#gs-clientes-ui .gs-stats{margin-top:12px}}
+@media(max-width:430px){#gs-clientes-ui .gs-main{padding:12px}#gs-clientes-ui .gs-tools{grid-template-columns:1fr}#gs-clientes-ui .gs-icon{min-width:34px}#gs-clientes-ui .gs-order{gap:3px}#gs-clientes-ui .gs-orders{padding-left:7px}#gs-clientes-ui .gs-state{font-size:10px}}
+@media(max-width:345px){#gs-clientes-ui .gs-main{padding:9px}#gs-clientes-ui .gs-icon{min-width:29px;padding:4px}#gs-clientes-ui .gs-of{font-size:13px}#gs-clientes-ui .gs-day{padding:7px}#gs-clientes-ui .gs-state{gap:3px}}
 `;document.head.append(s)
 }
 function mount(){
@@ -93,15 +162,15 @@ function mount(){
  const root=el('section');root.id='gs-clientes-ui';root.setAttribute('aria-label','Nómina operativa de clientes');
  const main=el('div','gs-main');
  const heading=el('div','gs-heading');
- const left=el('div');left.append(el('div','gs-kicker','CONTROL DE ÓRDENES'),el('h2','', 'Nómina operativa'),el('p','gs-lead','Pendientes a la vista. Cerradas en el historial por fecha.'));
+ const left=el('div');left.append(el('h2','', 'Nómina general'),el('p','gs-lead','Retiros agrupados por día y cliente.'));
  heading.append(left);main.append(heading);
- const stats=el('div','gs-stats');for(const [id,label,cls] of [['pending','Pendientes',''],['archived','Cerradas · Historial','archived']]){const box=el('div','gs-stat '+cls);const strong=el('strong','', '0');strong.id='gs-count-'+id;box.append(strong,el('span','',label));stats.append(box)}main.append(stats);
+ const stats=el('div','gs-stats');for(const [id,label,cls] of [['pending','pendientes',''],['archived','cerradas','archived']]){const box=el('div','gs-stat '+cls);const strong=el('strong','', '0');strong.id='gs-count-'+id;box.append(strong,el('span','',label));stats.append(box)}main.append(stats);
  const modes=el('div','gs-mode');modes.setAttribute('role','tablist');modes.setAttribute('aria-label','Estado de las órdenes');
- for(const [value,title] of [['pending','Por cerrar'],['archived','Archivo por fecha']]){const b=button('',title);b.dataset.mode=value;b.setAttribute('role','tab');b.setAttribute('aria-selected',String(mode===value));b.addEventListener('click',()=>{mode=value;page=PAGE_SIZE;dateFilter='all';render();});modes.append(b)}main.append(modes);
- const tools=el('div','gs-tools');const searchLabel=el('label','gs-field','Buscar O.F. o cliente');searchLabel.setAttribute('for','gs-order-search');const input=el('input');input.type='search';input.id='gs-order-search';input.placeholder='Número de orden o cliente';input.autocomplete='off';input.addEventListener('input',()=>{search=input.value.trim().toLocaleLowerCase('es-CL');page=PAGE_SIZE;render()});searchLabel.append(input);tools.append(searchLabel);
+ for(const [value,title] of [['pending','Por cerrar'],['archived','Archivo']]){const b=button('',title);b.dataset.mode=value;b.setAttribute('role','tab');b.setAttribute('aria-selected',String(mode===value));b.addEventListener('click',()=>{mode=value;page=PAGE_SIZE;dateFilter='all';render();});modes.append(b)}main.append(modes);
+ const tools=el('div','gs-tools');const searchLabel=el('label','gs-field','Buscar cliente, RUT u O.F.');searchLabel.setAttribute('for','gs-order-search');const input=el('input');input.type='search';input.id='gs-order-search';input.placeholder='Nombre, RUT o número de O.F.';input.autocomplete='off';input.addEventListener('input',()=>{search=input.value.trim();collapsed.clear();page=PAGE_SIZE;render()});searchLabel.append(input);tools.append(searchLabel);
  const dateLabel=el('label','gs-field','Fecha de archivo');dateLabel.id='gs-date-label';dateLabel.setAttribute('for','gs-date-filter');const select=el('select');select.id='gs-date-filter';select.addEventListener('change',()=>{dateFilter=select.value;page=PAGE_SIZE;render()});dateLabel.append(select);tools.append(dateLabel);main.append(tools);
  const countLine=el('div','gs-countline');countLine.id='gs-count-line';main.append(countLine);
- const list=el('div','gs-list');list.id='gs-orders-list';list.setAttribute('role','list');main.append(list);
+ const list=el('div','gs-list');list.id='gs-orders-list';main.append(list);const feedback=el('div');feedback.id='gs-rut-feedback';feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');main.append(feedback);
  const more=button('gs-more','Ver más órdenes');more.id='gs-order-more';more.hidden=true;more.addEventListener('click',()=>{page+=PAGE_SIZE;render()});main.append(more);
  const foot=el('p','gs-foot','Cerrada = cierre administrativo confirmado. Las O.F. archivadas permanecen en Firebase; puedes reabrirlas si corresponde.');main.append(foot);root.append(main);
  historyView.insertBefore(root,old);
@@ -112,18 +181,19 @@ function mount(){
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleRender()});
  window.addEventListener('focus',scheduleRender);
  $('tab-history')?.addEventListener('click',scheduleRender);
+ $('finish')?.addEventListener('click',()=>setTimeout(scheduleRender,0));
  render();
 }
 function rows(){
  const closures=readClosures(),dates=readDates(),result=[];
  for(const entry of readHistory()){
   if(!entry||typeof entry.id!=='string'||!Array.isArray(entry.orders))continue;
-  const client=String(entry.client||'').slice(0,80),at=Number(entry.at)||0;
+  const client=String(entry.client||'').slice(0,80),at=Number(entry.at)||0,clientRef=readClientRef(entry.clientRef);
   for(const order of entry.orders){if(!validOF(order?.of))continue;
    const id=entry.id,of=String(order.of),key=closeKey(id,of),closed=closures[key]===true;
    const archivedAt=Number(dates[key]);
    const hasDate=Number.isFinite(archivedAt)&&archivedAt>0;
-   result.push({id,of,client,at,scannedAt:Number(order.at)||at,closed,archivedAt:hasDate?archivedAt:at,legacy:!hasDate});
+   result.push({id,of,client,clientRef,at,scannedAt:Number(order.at)||at,closed,archivedAt:hasDate?archivedAt:at,legacy:!hasDate});
   }
  }
  return result;
@@ -137,31 +207,62 @@ function updateDateSelect(source){
  select.value=dateFilter;
 }
 function addRow(parent,r){
- const card=el('article','gs-order '+(r.closed?'closed':'pending'));card.setAttribute('role','listitem');
- const info=el('div');info.append(el('div','gs-of',r.of),el('div','gs-client',r.client));
- const m=r.closed?(r.legacy?'Retiro: '+dateFmt.format(new Date(r.at))+' · fecha de cierre no registrada':'Cerrada: '+dateFmt.format(new Date(r.archivedAt))+' · '+hourFmt.format(new Date(r.archivedAt))):'Retiro: '+dateFmt.format(new Date(r.at))+' · '+hourFmt.format(new Date(r.at));
- info.append(el('div','gs-meta',m));const action=button('gs-action'+(r.closed?' reopen':''),r.closed?'↶ Reabrir':'✓ Confirmar cerrada');
+ const row=el('div','gs-order '+(r.closed?'closed':'pending'));row.setAttribute('role','listitem');
+ const info=el('div','gs-order-info');info.append(el('div','gs-of',r.of));
+ const meta=r.closed?(r.legacy?'Cierre sin fecha':hourFmt.format(new Date(r.archivedAt))):hourFmt.format(new Date(r.scannedAt));
+ info.append(el('div','gs-meta',meta));
+ const state=el('span','gs-state',r.closed?'Cerrada':'Pendiente');
+ const action=button('gs-icon gs-action'+(r.closed?' reopen':''));action.append(svgIcon(r.closed?'reopen':'close'));
  action.dataset.action=r.closed?'reopen':'close';action.dataset.orderId=r.id;action.dataset.of=r.of;
- action.setAttribute('aria-label',(r.closed?'Reabrir':'Confirmar cierre de')+' O.F. '+r.of+' · '+r.client);
- const actions=el('div','gs-order-actions');actions.append(action);const remove=button('gs-remove','Eliminar O.F.');remove.dataset.action='remove';remove.dataset.orderId=r.id;remove.dataset.of=r.of;remove.setAttribute('aria-label','Eliminar O.F. '+r.of+' de '+r.client);actions.append(remove);card.append(info,actions);parent.append(card);
+ action.setAttribute('aria-label',(r.closed?'Reabrir':'Confirmar cierre de')+' O.F. '+r.of+' · '+r.client);action.title=r.closed?'Reabrir O.F.':'Confirmar cierre';
+ const remove=button('gs-icon gs-remove');remove.append(svgIcon('remove'));remove.dataset.action='remove';remove.dataset.orderId=r.id;remove.dataset.of=r.of;remove.title='Eliminar O.F.';remove.setAttribute('aria-label','Eliminar O.F. '+r.of+' de '+r.client);
+ const actions=el('div','gs-order-actions');actions.append(action,remove);row.append(info,state,actions);parent.append(row);
+}
+function addClient(parent,group){
+ const section=el('section','gs-client-group');
+ const toggle=button('gs-group-toggle');toggle.append(el('span','gs-group-name',group.client||'Cliente sin nombre'),el('span','gs-group-count',numFmt.format(group.rows.length)+' OF'),svgIcon('chevron'));
+ const open=!collapsed.has(group.key);toggle.setAttribute('aria-expanded',String(open));
+ section.append(toggle);
+ const identity=el('div','gs-rut-line'+(group.ref?'':' missing'));
+ if(group.ref){
+  identity.append(el('span','gs-rut-number',group.ref.rut));
+  const copy=button('gs-icon gs-copy');copy.append(svgIcon('copy'));copy.title='Copiar RUT';copy.setAttribute('aria-label','Copiar RUT '+group.ref.rut);copy.addEventListener('click',()=>void copyRut(group.ref.rut,copy));identity.append(copy);
+ }else identity.textContent='Sin RUT registrado';
+ section.append(identity);
+ const orders=el('div','gs-orders');orders.setAttribute('role','list');orders.setAttribute('aria-label','Órdenes de '+group.client);orders.hidden=!open;
+ for(const r of group.rows)addRow(orders,r);
+ toggle.addEventListener('click',()=>{const closed=collapsed.has(group.key);if(closed)collapsed.delete(group.key);else collapsed.add(group.key);orders.hidden=!closed;toggle.setAttribute('aria-expanded',String(closed))});
+ section.append(orders);parent.append(section);
 }
 function render(){
  const all=rows(),pending=all.filter(r=>!r.closed),archived=all.filter(r=>r.closed);
  $('gs-count-pending').textContent=numFmt.format(pending.length);
  $('gs-count-archived').textContent=numFmt.format(archived.length);
- for(const b of document.querySelectorAll('#gs-clientes-ui [data-mode]')){b.setAttribute('aria-selected',String(b.dataset.mode===mode))}
- const source=mode==='pending'?pending:archived;
- updateDateSelect(source);
- let filtered=source.filter(r=>(!search || r.of.includes(search)||r.client.toLocaleLowerCase('es-CL').includes(search)) && (dateFilter==='all'||dayKey(mode==='pending'?r.at:r.archivedAt)===dateFilter));
- // La prioridad operativa es despachar primero las órdenes pendientes más antiguas.
+ for(const b of document.querySelectorAll('#gs-clientes-ui [data-mode]'))b.setAttribute('aria-selected',String(b.dataset.mode===mode));
+ const source=mode==='pending'?pending:archived;updateDateSelect(source);
+ const filtered=source.filter(r=>matchSearch(r,search)&&(dateFilter==='all'||dayKey(mode==='pending'?r.at:r.archivedAt)===dateFilter));
+ // Mantener pendientes más antiguas primero; archivo ordenado por fecha de cierre.
  if(mode==='pending')filtered.sort((a,b)=>a.at-b.at||a.scannedAt-b.scannedAt||a.of.localeCompare(b.of));
  else filtered.sort((a,b)=>b.archivedAt-a.archivedAt||b.at-a.at||a.of.localeCompare(b.of));
- const countLine=$('gs-count-line');countLine.replaceChildren(el('strong','',mode==='pending'?'Órdenes pendientes':'Archivo de órdenes cerradas'),el('span','',numFmt.format(filtered.length)+' O.F.'));
- const target=$('gs-orders-list');target.replaceChildren();const slice=filtered.slice(0,page);
- if(!filtered.length){const empty=el('div','gs-empty');empty.append(el('strong','',mode==='pending'?'Sin pendientes':'Sin órdenes archivadas'),el('span','',source.length===0?(mode==='pending'?'Todo al día. Las órdenes cerradas están en el Archivo por fecha.':'Al confirmar una O.F. como cerrada, aparecerá aquí organizada por fecha.'):'Ninguna O.F. coincide con la búsqueda o fecha.'));target.append(empty)}
- else if(mode==='pending'){const frag=document.createDocumentFragment();for(const r of slice)addRow(frag,r);target.append(frag)}
- else {let group='',container=null;for(const r of slice){const key=(r.legacy?'legacy:':'closed:')+dayKey(r.archivedAt);if(key!==group){group=key;const header=el('div','gs-day');header.append(el('span','',dateFmt.format(new Date(r.archivedAt))),el('small','',r.legacy?'Fecha retiro · cierre antiguo':'Fecha de cierre'));target.append(header);container=el('div','gs-list');target.append(container)}addRow(container,r)}}
- const more=$('gs-order-more');more.hidden=filtered.length<=page;if(!more.hidden)more.textContent='Ver más órdenes · '+numFmt.format(filtered.length-page)+' restantes';
+ const countLine=$('gs-count-line');countLine.replaceChildren(el('strong','',mode==='pending'?'Por cerrar':'Archivo de órdenes cerradas'),el('span','',numFmt.format(filtered.length)+' O.F.'));
+ const target=$('gs-orders-list');target.replaceChildren();let shown=0;
+ if(!filtered.length){const empty=el('div','gs-empty');empty.append(el('strong','',mode==='pending'?'Sin pendientes':'Sin órdenes archivadas'),el('span','',source.length===0?(mode==='pending'?'Todo al día. Las órdenes cerradas están en el Archivo.':'Al confirmar una O.F. como cerrada, aparecerá aquí organizada por fecha.'):'Ninguna O.F. coincide con la búsqueda o fecha.'));target.append(empty)}
+ else{
+  // La paginación nunca parte una agrupación: el cliente conserva juntas todas sus O.F.
+  for(const day of groupRows(filtered)){
+   if(shown>=page)break;
+   const section=el('section','gs-day-section'),header=el('div','gs-day');let dayShown=0,groupsShown=0;
+   const caption=el('small');header.append(el('span','gs-day-title',headingDateFmt.format(new Date(day.at))),caption);section.append(header);
+   if(day.legacy)section.append(el('p','gs-day-note','Fecha de retiro · cierre antiguo sin fecha registrada'));
+   for(const group of day.groups.values()){
+    if(shown>=page)break;
+    addClient(section,group);shown+=group.rows.length;dayShown+=group.rows.length;groupsShown++;
+   }
+   caption.textContent=numFmt.format(dayShown)+(dayShown<day.total?' de '+numFmt.format(day.total):'')+' OF · '+numFmt.format(groupsShown)+' '+(groupsShown===1?'cliente':'clientes');
+   target.append(section);
+  }
+ }
+ const more=$('gs-order-more');more.hidden=filtered.length<=shown;if(!more.hidden)more.textContent='Ver más órdenes · '+numFmt.format(filtered.length-shown)+' restantes';
 }
 function scheduleRender(){if(renderQueued||!$('gs-clientes-ui'))return;renderQueued=true;requestAnimationFrame(()=>{renderQueued=false;render()})}
 function requestAction(id,of,action,control){

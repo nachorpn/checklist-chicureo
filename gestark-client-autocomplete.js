@@ -1,4 +1,4 @@
-/* Gestark v25 · Predictor opcional para Entregas clientes y Transferencias.
+/* Gestark v29 · Predictor opcional para Entregas clientes y Transferencias.
  * Lee contactos del Directorio en Firestore, sin modificarlos ni copiarlos a localStorage.
  * Encuentra nombre principal y alternativo; al seleccionar usa el principal.
  * Escribir manualmente continua disponible, incluso sin conexion al Directorio.
@@ -10,6 +10,7 @@ if(window.__gestarkClientAutocompleteLoaded)return;
 window.__gestarkClientAutocompleteLoaded=true;
 const SDK='https://www.gstatic.com/firebasejs/12.11.0/';
 const COLLECTION='gestark_directorio_clientes_v1';
+const isDelivery=location.pathname.endsWith('/entregas-clientes.html');
 const input=document.getElementById('client');
 if(!input)return;
 const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es-CL').replace(/\s+/g,' ').trim();
@@ -69,7 +70,7 @@ function select(contact){
  // En Entregas, el evento input guarda el nombre en el borrador existente.
  // Evitar volver a mostrar la lista durante este evento programatico.
  suppressInput=true;
- input.dispatchEvent(new Event('input',{bubbles:true}));
+ input.dispatchEvent(isDelivery?new CustomEvent('input',{bubbles:true,detail:{gestarkClientRef:{id:contact.id,rut:contact.rut,alias:contact.nombreAlternativo}}}):new Event('input',{bubbles:true}));
  input.dispatchEvent(new Event('change',{bubbles:true}));
  suppressInput=false;
  input.focus();close();
@@ -98,6 +99,7 @@ function render(){
     const alt=document.createElement('span');alt.className='gs-client-predict-alt';
     alt.textContent='También: '+c.nombreAlternativo;b.append(alt);
    }
+   if(isDelivery&&c.rut){const rut=document.createElement('span');rut.className='gs-client-predict-alt';rut.textContent='RUT: '+c.rut;b.append(rut)}
    b.addEventListener('pointerdown',e=>e.preventDefault());
    b.addEventListener('click',()=>select(c));list.append(b);
   });
@@ -155,7 +157,7 @@ async function start(identity){
   unsubscribe=fs.onSnapshot(fs.collection(db,COLLECTION),snapshot=>{
    contacts=snapshot.docs.map(doc=>{
     const x=doc.data(),nombre=clean(x.nombre),nombreAlternativo=clean(x.nombreAlternativo);
-    return {nombre,nombreAlternativo,searchName:normalize(nombre),searchAlias:normalize(nombreAlternativo)};
+    return {nombre,nombreAlternativo,id:doc.id,rut:clean(x.rut),searchName:normalize(nombre),searchAlias:normalize(nombreAlternativo)};
    }).filter(c=>c.nombre);
    ready=true;if(document.activeElement===input)render();
   },err=>{
