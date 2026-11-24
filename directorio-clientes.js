@@ -1,4 +1,4 @@
-/* Gestark · Directorio de clientes · v2026.11.22.28
+/* Gestark · Directorio de clientes · v2026.11.23.31
  * Fuente única: Firestore. No guarda los datos del directorio en GitHub ni localStorage.
  * RUT módulo 11; móvil Chile +56 9 XXXXXXXX; XLSX auténtico autocontenido.
  */
@@ -18,6 +18,8 @@ const fold=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,
 const collator=new Intl.Collator('es-CL',{sensitivity:'base',numeric:true});
 let contacts=[],user=null,client=null,unsub=null,editingId=null,loaded=false,serverReady=false;
 let renderQueued=false;
+// Estado visual en memoria; no se modifica Firestore ni se guardan datos de factura localmente.
+const expandedInvoices=new Set();
 
 function rutParts(value){
  const compact=String(value||'').toUpperCase().replace(/[^0-9K]/g,'').slice(0,9);
@@ -102,6 +104,30 @@ function matched(){
  });
 }
 function el(tag,className,text){const e=document.createElement(tag);if(className)e.className=className;if(text!==undefined)e.textContent=text;return e}
+// La ficha tributaria se construye con textContent: los datos son de solo lectura.
+function invoicePanel(c){
+ const panel=el('section','invoice-details');panel.id='invoice-details-'+c.id;panel.hidden=!expandedInvoices.has(c.id);
+ panel.setAttribute('aria-label','Datos de facturación de '+c.nombre);
+ panel.append(el('h3','invoice-details-title','Datos de facturación'));
+ const list=el('dl','invoice-details-grid');
+ for(const [key,label,wide] of [
+  ['razonSocial','Razón social',true],['rutFactura','RUT de facturación',false],
+  ['giro','Giro',false],['direccion','Dirección tributaria',true],
+  ['comuna','Comuna',false],['correoFactura','Correo de facturación',false]
+ ]){
+  const field=el('div','invoice-detail'+(wide?' full':''));
+  field.append(el('dt','',label),el('dd',c[key]?'':'not-provided',c[key]||'No informado'));
+  list.append(field);
+ }
+ panel.append(list);return panel;
+}
+function invoiceToggleState(row,open){
+ const panel=row.querySelector('.invoice-details');if(!panel)return;
+ panel.hidden=!open;row.classList.toggle('invoice-expanded',open);
+ for(const toggle of row.querySelectorAll('[data-invoice-toggle]'))toggle.setAttribute('aria-expanded',String(open));
+ const label=row.querySelector('.invoice-toggle-label');if(label)label.textContent=open?'Ocultar factura':'Ver factura';
+ const badge=row.querySelector('.invoice-toggle');if(badge)badge.title=open?'Ocultar datos de facturación':'Mostrar datos de facturación';
+}
 function render(){
  renderQueued=false;
  const matches=matched();t('total',contacts.length+' clientes');
@@ -112,17 +138,24 @@ function render(){
  for(const c of matches){
   const row=el('div',c.factura?'entry needs-invoice':'entry');
   const nameStack=el('div','name-stack cell');
-  nameStack.append(el('div','person',c.nombre));
+  const name=el(c.factura?'button':'div','person'+(c.factura?' invoice-name-toggle':''),c.nombre);
+  if(c.factura){name.type='button';name.dataset.invoiceToggle=c.id;name.setAttribute('aria-controls','invoice-details-'+c.id);name.setAttribute('aria-label','Datos de facturación de '+c.nombre);}
+  nameStack.append(name);
   if(c.nombreAlternativo)nameStack.append(el('div','alternate-name','También: '+c.nombreAlternativo));
   row.append(nameStack,el('div','rut cell',c.rut));
   const link=el('a','phone cell',c.telefono);link.href='tel:'+c.telefono.replace(/\s+/g,'');link.title='Llamar';row.append(link);
-  const badge=el('div',c.factura?'tag is-invoice':'tag',c.factura?'⚠ Requiere factura':'—');
-  if(c.factura)badge.title='Este cliente requiere factura. Comprueba sus datos tributarios antes de emitir.';
+  const badge=el(c.factura?'button':'div',c.factura?'tag is-invoice invoice-toggle':'tag',c.factura?undefined:'—');
+  if(c.factura){
+   badge.type='button';badge.dataset.invoiceToggle=c.id;badge.setAttribute('aria-controls','invoice-details-'+c.id);
+   badge.append(el('span','invoice-toggle-label','Ver factura'),el('span','invoice-chevron',''));
+  }
   row.append(badge);
   const actions=el('div','rowactions');
   const edit=el('button','iconbtn','Editar');edit.type='button';edit.dataset.edit=c.id;edit.setAttribute('aria-label','Editar '+c.nombre);
   const del=el('button','iconbtn','×');del.type='button';del.dataset.delete=c.id;del.title='Eliminar';del.setAttribute('aria-label','Eliminar '+c.nombre);
-  actions.append(edit,del);row.append(actions);frag.append(row);
+  actions.append(edit,del);row.append(actions);
+  if(c.factura){row.append(invoicePanel(c));invoiceToggleState(row,expandedInvoices.has(c.id));}
+  frag.append(row);
  }
  host.append(frag);
 }
@@ -299,6 +332,8 @@ async function init(profile){
   unsub=client.fs.onSnapshot(client.fs.collection(client.db,COLLECTION),{includeMetadataChanges:true},snap=>{
    const list=snap.docs.map(d=>normalizeContact(d.data(),d.id));
    list.sort((a,b)=>collator.compare(a.nombre,b.nombre));contacts=list;loaded=true;
+   const invoiceIds=new Set(list.filter(c=>c.factura).map(c=>c.id));
+   for(const id of expandedInvoices)if(!invoiceIds.has(id))expandedInvoices.delete(id);
    serverReady=!snap.metadata.fromCache;
    setStatus(serverReady?'Firebase sincronizado':('Datos en caché · reconectando con Firebase'),!serverReady);
    queueRender();
@@ -334,12 +369,22 @@ function setup(){
  $('phone').addEventListener('input',()=>phoneChanged(false));
  $('phone').addEventListener('change',()=>phoneChanged(false,true));
  $('phone').addEventListener('blur',()=>phoneChanged(false,true));
- $('list').addEventListener('click',ev=>{const edit=ev.target.closest('[data-edit]'),del=ev.target.closest('[data-delete]');if(edit)editContact(edit.dataset.edit);else if(del)void deleteContact(del.dataset.delete)});
+ $('list').addEventListener('click',ev=>{
+  const toggle=ev.target.closest('[data-invoice-toggle]');
+  if(toggle){
+   const id=toggle.dataset.invoiceToggle,row=toggle.closest('.entry');
+   if(!row||!contacts.some(c=>c.id===id&&c.factura))return;
+   const open=!expandedInvoices.has(id);if(open)expandedInvoices.add(id);else expandedInvoices.delete(id);
+   invoiceToggleState(row,open);return;
+  }
+  const edit=ev.target.closest('[data-edit]'),del=ev.target.closest('[data-delete]');
+  if(edit)editContact(edit.dataset.edit);else if(del)void deleteContact(del.dataset.delete);
+ });
  document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>closeDialog(b.dataset.close)));
  $('select-all-fields').addEventListener('change',e=>{for(const c of $('export-fields').querySelectorAll('input'))c.checked=e.target.checked;syncSelectAll()});
  $('download').addEventListener('click',downloadExcel);
  document.addEventListener('gestark:ready',event=>{void init(event.detail)});
- document.addEventListener('gestark:sessionlost',()=>{unsub?.();unsub=null;user=null;contacts=[];loaded=false;serverReady=false;queueRender();setStatus('Sesión finalizada.',true)});
+ document.addEventListener('gestark:sessionlost',()=>{unsub?.();unsub=null;user=null;contacts=[];expandedInvoices.clear();loaded=false;serverReady=false;queueRender();setStatus('Sesión finalizada.',true)});
  window.addEventListener('pagehide',()=>{unsub?.()},{once:true});
  window.addEventListener('online',()=>{if(client&&!serverReady)setStatus('Reconectando Firebase…',false)});
  const existing=window.GestarkAuth?.getUser?.();if(existing)void init(existing);

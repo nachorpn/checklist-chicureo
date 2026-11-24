@@ -1,13 +1,13 @@
 {
-  "version": "2026.11.23.30",
+  "version": "2026.11.23.31",
   "name": "Gestark",
-  "changes": "Nómina: botón Cerrar OF visible con texto, área táctil de 44 px, estado bajo el número y confirmación ampliada. Conserva agrupación, RUT opcional, cierres y respaldo v29.",
+  "changes": "Directorio: ficha de facturación desplegable desde nombre o botón Ver factura; seis datos tributarios de solo lectura. Conserva nómina v30 y demás módulos.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
   "clientsVersion": "2026.11.23.30",
-  "directoryVersion": "2026.11.22.28",
+  "directoryVersion": "2026.11.23.31",
   "safetyVersion": "2026.11.23.29",
   "predictorVersion": "2026.11.23.29"
 }
