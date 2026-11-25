@@ -14,6 +14,10 @@
 <link rel="manifest" href="./manifest.webmanifest?v=2026.11.22.16">
 <link rel="icon" type="image/png" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<script>
+// Android solamente: no alterar la ruta de renderizado de iOS ni escritorio.
+if (/\bAndroid\b/i.test(navigator.userAgent)) document.documentElement.classList.add('gestark-android-render');
+</script>
 <style>
 :root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#f3f7f5;color:#173f34;font-synthesis:none}
 *{box-sizing:border-box}
@@ -66,6 +70,9 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 .gs-alert-arrow{font-size:17px;opacity:.65}
 #gestark-open-bubble{position:absolute;z-index:12;top:12px;left:50%;transform:translateX(-50%);max-width:min(350px,92vw);width:max-content;padding:11px 15px;border:1px solid #e0bf7c;background:#fff9e8;box-shadow:0 8px 24px #422d1533;border-radius:14px;color:#715018;font-size:12px;font-weight:800;text-align:center;pointer-events:none;animation:gsBubbleIn .18s ease-out}
 @keyframes gsBubbleIn{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
+/* Android: reducir composición gráfica sin desmontar iframes ni cambiar su tamaño. */
+html.gestark-android-render .pane:not(.active){visibility:hidden}
+html.gestark-android-render #native-tabs{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
 </style>
 </head>
 <body>
@@ -104,7 +111,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 <script>
 (() => {
 'use strict';
- const BUILD='2026.11.23.31';
+ const BUILD='2026.11.24.32';
 const base=new URL('./',location.href);
 const available={
  home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
