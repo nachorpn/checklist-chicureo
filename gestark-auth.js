@@ -1,4 +1,4 @@
-/* Gestark · Firebase Auth + acceso por usuario (v2026.11.22.24 — sesión persistente entre secciones)
+/* Gestark · Firebase Auth + acceso por usuario (v2026.11.25.33 — acceso inicial en Inicio y sesión persistente)
  * Sin autenticar contra usuarios.js ni contraseñas locales.
  * El usuario/alias se vincula solamente DESPUES de autenticar y autorizar Firebase.
  * Las asociaciones usuario->correo se guardan SOLO en el navegador actual.
@@ -12,14 +12,15 @@ const OLD_OVERRIDES = 'gestark:users:overrides:v1';
 const OLD_PAUSE = 'gestark:firebase:automatic-login-paused:v1';
 const LOGIN_ALIAS_KEY = 'gestark:firebase:login-alias:v1';
 const usernameRE = /^[A-Z0-9_-]{2,30}$/;
-// Solo el documento principal muestra formularios de inicio de sesión.
-// Los módulos embebidos esperan que Firebase restaure la sesión existente.
+// El documento principal y exclusivamente el iframe Inicio pueden mostrar el acceso.
+// Los demás módulos embebidos esperan que Firebase restaure la sesión existente.
 function embeddedInNative() {
   try { return window.parent!==window && window.parent.location.origin===location.origin &&
     window.parent.location.pathname.endsWith('/gestark-app.html'); }
   catch (_) { return false; }
 }
 const EMBEDDED = embeddedInNative();
+const HOME_LOGIN = EMBEDDED && window.frameElement?.id === 'frame-home';
 let activeUser = null;
 let clientPromise = null;
 let screen = null;
@@ -194,6 +195,7 @@ function showLogin(message='') {
   $('#ga-reset').hidden = false;
   $('#ga-foot').hidden = false;
   $('#ga-error').textContent = message;
+  $('#ga-start-retry')?.remove();
 }
 async function handleSubmit(event) {
   event.preventDefault();
@@ -246,7 +248,7 @@ function sessionLost() {
   if(!EMBEDDED)location.replace('./');
 }
 function monitorTopSession(client) {
-  if(EMBEDDED||topSessionMonitor)return;
+  if((EMBEDDED&&!HOME_LOGIN)||topSessionMonitor)return;
   topSessionMonitor=client.authSDK.onAuthStateChanged(client.auth,user=>{
     if(activeUser && (!user || user.uid!==activeUser.uid))sessionLost();
   },error=>console.warn('Gestark: fallo observando sesión Firebase',error?.code||'sin código'));
@@ -329,13 +331,25 @@ async function waitForNativeSession(client) {
     }
     box.querySelector('#gestark-native-retry-message').textContent=message;
   }
-  const unsub=client.authSDK.onAuthStateChanged(client.auth,async firebaseUser=>{
+  // Cuando Inicio no tiene sesión propia (p. ej. PWA recién instalada),
+  // detener el observador antes de mostrar el acceso: handleSubmit valida
+  // también el alias y el perfil antes de desbloquear cualquier dato.
+  let unsub=()=>{};
+  let handedOff=false;
+  function offerHomeLogin(message=''){
+    if(!HOME_LOGIN||activeUser||handedOff)return false;
+    handedOff=true;++change;
+    if(retryTimer){clearTimeout(retryTimer);retryTimer=null;}
+    clearWarning();unsub();showLogin(message);return true;
+  }
+  unsub=client.authSDK.onAuthStateChanged(client.auth,async firebaseUser=>{
+    if(handedOff)return;
     const current=++change;
     if(retryTimer){clearTimeout(retryTimer);retryTimer=null;}
     if(!firebaseUser){
       // Esperar la sincronización entre ventanas; jamás mostrar login en un módulo.
       if(activeUser)sessionLost();
-      retryTimer=setTimeout(()=>warning('No se ha podido recuperar la sesión de esta sección. Puedes reintentar sin volver a escribir tu contraseña.'),6500);
+      retryTimer=setTimeout(()=>{if(!offerHomeLogin())warning('No se ha podido recuperar la sesión de esta sección. Puedes reintentar sin volver a escribir tu contraseña.');},6500);
       return;
     }
     clearWarning();
@@ -347,9 +361,9 @@ async function waitForNativeSession(client) {
       document.documentElement.classList.remove('gestark-checking');
     } catch(error) {
       if(current!==change)return;
-      warning(errorMessage(error));
+      if(!offerHomeLogin(errorMessage(error)))warning(errorMessage(error));
     }
-  },error=>warning(errorMessage(error)));
+  },error=>{if(!offerHomeLogin(errorMessage(error)))warning(errorMessage(error));});
   window.addEventListener('pagehide',()=>{unsub();if(retryTimer)clearTimeout(retryTimer);},{once:true});
 }
 async function start() {
@@ -357,6 +371,18 @@ async function start() {
   // Cada documento HTML restaura Firebase por separado. Mantener la vista
   // cerrada hasta validar el perfil; no abrir una pantalla de login transitoria.
   document.documentElement.classList.add('gestark-checking');
+  // Solo Inicio: indicar progreso si la restauración tarda, sin tocar
+  // la navegación silenciosa de módulos ni la ruta rápida de sesión válida.
+  if(HOME_LOGIN){
+    setTimeout(()=>{if(!activeUser&&!screen)mountShell();},900);
+    setTimeout(()=>{
+      if(activeUser||!screen||$('#ga-loading')?.hidden)return;
+      $('#ga-loading').textContent='La conexión está tardando. Puedes reintentar sin borrar tus datos.';
+      const retry=document.createElement('button');retry.id='ga-start-retry';retry.type='button';retry.className='ga-link';
+      retry.textContent='Reintentar conexión';retry.addEventListener('click',()=>location.reload());
+      $('#ga-loading').after(retry);
+    },15000);
+  }
   try {
     const client=await firebaseClient();
     if(EMBEDDED){
@@ -375,7 +401,7 @@ async function start() {
     showAuthenticated(profile);
     monitorTopSession(client);
   } catch(error) {
-    if(EMBEDDED) {
+    if(EMBEDDED&&!HOME_LOGIN) {
       // Si falla Firebase aquí, la pantalla permanece cerrada y el módulo
       // no permite operaciones. La app sigue disponible en las otras pestañas.
       const box=document.createElement('div');box.id='gestark-native-error';
