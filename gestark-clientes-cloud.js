@@ -56,7 +56,7 @@ function makeStatus() {
  host.setAttribute('role','status'); host.setAttribute('aria-live','polite');
  host.style.cssText='max-width:680px;margin:10px auto;padding:10px 13px;border:1px solid #cfe5d8;border-radius:12px;background:#eef8f2;color:#215943;font:700 12px/1.45 system-ui;display:flex;align-items:center;flex-wrap:wrap;gap:8px';
  const message=document.createElement('span');message.id='gestark-cloud-clientes-msg';message.style.flex='1';message.style.minWidth='175px';
- message.textContent='Entregas clientes: preparando sincronización…';
+ message.textContent='Preparando sincronización…';
  const retry=document.createElement('button');retry.type='button';retry.textContent='Sincronizar';retry.title='Enviar registros pendientes, conservando los datos locales';
  retry.style.cssText='border:1px solid #bfd8ca;background:white;color:#206247;border-radius:8px;padding:6px 10px;font:700 11px system-ui';
  retry.addEventListener('click',()=>{captureLocalChanges();if(!serverReady){location.reload();return}notifyError='';showProgress();void flush()});
@@ -221,12 +221,12 @@ function reflectRemote() {
 }
 function showProgress(){
  if(notifyError){setStatus(notifyError,true);return}
- if(!navigator.onLine){setStatus('Sin conexión · '+queue.length+' cambio(s) pendientes de sincronizar',true);return}
- if(!serverReady){setStatus('Conectando Entregas clientes con Firebase…',true);return}
+ if(!navigator.onLine){setStatus('Sin conexión · '+queue.length+' cambio(s) pendientes',true);return}
+ if(!serverReady){setStatus('Conectando…',true);return}
  if(queue.length){setStatus('Sincronizando '+queue.length+' cambio(s) pendientes…',true);return}
  const valid=[...remote.values()].filter(v=>!v.deleted&&Array.isArray(v.orders));
  const orders=valid.reduce((sum,r)=>sum+r.orders.length,0);
- setStatus('Firebase sincronizado · '+valid.length+' retiro(s) en la nube · '+orders+' O.F.');
+ setStatus('Sincronizado · '+valid.length+' retiro(s) · '+orders+' O.F.');
 }
 async function uploadCreate(op){
  const ref=client.fs.doc(client.db,COLLECTION,op.id);
@@ -282,7 +282,7 @@ async function flush(){
    } catch(error){
     const code=error?.code||'';
     notifyError=code==='permission-denied'?'Firebase rechazó el acceso a Entregas clientes. Revisa las reglas de Firestore.':
-      code==='unavailable'?'Sin conexión con Firebase. Los cambios siguen guardados localmente.':
+      code==='unavailable'?'Sin conexión. Los cambios siguen guardados en este dispositivo.':
       'Sin sincronizar: '+String(error?.message||error).slice(0,140);
     showProgress();console.warn('Gestark: sync Entregas clientes',error);break;
    }

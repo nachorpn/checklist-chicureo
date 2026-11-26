@@ -10,7 +10,24 @@ const SCAN_LIB='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min
 const HISTORY_KEY='gestark:clients:rosters:v1'; // nómina general en este navegador
 const STATUS_KEY='gestark:clients:system-closure:v1'; // control de cierre por O.F. y retiro
 const DRAFT_PREFIX='gestark:clients:draft:v1:';
-const SHARE_TEXT='¡Hola! Hoy retiraste estos pedidos. En unos minutos te enviaremos el total a pagar.';
+const SHARE_TEXT_PENDING='¡Hola! 😊 Te compartimos tus pedidos retirados hoy. En breve te enviaremos el total a pagar.';
+const SHARE_TEXT_PAID='¡Hola! 😊 Te compartimos tus pedidos retirados hoy. Están pagados, no tienes saldo pendiente.';
+const shareText=entry=>entry?.paid===true?SHARE_TEXT_PAID:SHARE_TEXT_PENDING;
+// Estado exclusivo de la interfaz y del envío: nunca se guarda en nómina ni en Firebase.
+function mountPaymentOption(){
+ if($('orders-paid'))return;
+ const label=document.createElement('label');label.htmlFor='orders-paid';
+ label.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 14px;margin-top:12px;border:1px solid #d9e3db;border-radius:11px;background:#f3f7f2;color:#293b30;cursor:pointer;min-height:48px';
+ const input=document.createElement('input');input.type='checkbox';input.id='orders-paid';input.autocomplete='off';input.checked=false;
+ input.style.cssText='appearance:auto;-webkit-appearance:checkbox;width:20px;height:20px;flex:0 0 20px;margin:0;padding:0;accent-color:#355c43';
+ const body=document.createElement('span');body.style.cssText='display:flex;flex-direction:column;gap:3px;line-height:1.35';
+ const title=document.createElement('span');title.style.cssText='font-size:14px;font-weight:600';title.textContent='Pedidos previamente pagados';
+ const note=document.createElement('span');note.style.cssText='font-size:12px;font-weight:400;color:#58665e';note.textContent='Marca solo si todas las órdenes de este retiro están pagadas.';
+ body.append(title,note);label.append(input,body);$('finish').before(label);
+}
+function resetPaymentOption(){const input=$('orders-paid');if(input)input.checked=false}
+function syncPaymentOption(){const input=$('orders-paid');if(input){input.disabled=$('finish').disabled;if(input.disabled)input.checked=false}}
+
 const MAX_ROSTER=500;
 let active=false,currentUser='',operatorName='',draftKey='',draft={client:'',orders:[]},history=[],view='scan';
 let scanner=null,cameraOn=false,working=false,stopping=false,flashOn=false;
@@ -61,7 +78,7 @@ function updateDraft(event){
 function renderOrders(){
  const rows=$('order-list');rows.replaceChildren();$('order-count').textContent=String(draft.orders.length);
  $('last-of').textContent=draft.orders.length?'Última: '+draft.orders.at(-1).of:'';
- $('orders-empty').hidden=draft.orders.length>0;$('finish').disabled=draft.orders.length===0||!cleanName($('client').value);
+ $('orders-empty').hidden=draft.orders.length>0;$('finish').disabled=draft.orders.length===0||!cleanName($('client').value);syncPaymentOption();
  const fragment=document.createDocumentFragment();
  for(let idx=draft.orders.length-1;idx>=0;idx--){const item=draft.orders[idx];const li=document.createElement('li');li.className='order-item';
    const of=document.createElement('span');of.className='order-num';of.textContent=item.of;
@@ -80,10 +97,10 @@ function addOrder(raw,source='cámara'){
  if(draft.orders.length>=MAX_ROSTER){toast('Nómina muy extensa. Finaliza este retiro primero.','warn');return false}
  const order={of,at:Date.now()};draft.orders.push(order);
  if(!persistDraft()){draft.orders.pop();renderOrders();return false}
- renderOrders();$('order-error').hidden=true;
+ resetPaymentOption();renderOrders();$('order-error').hidden=true;
  toast('Orden '+of+' escaneada correctamente');
  if(source==='cámara'){playScanBeep();try{navigator.vibrate?.(45)}catch(_){}}
- status('Lectura correcta. Mantén la cámara abierta para la siguiente orden.','ok');
+ status('Orden registrada. Escanea la siguiente.','ok');
  return true;
 }
 function onDecode(raw){if(!cameraOn)return;const p=core.parseBarcode(raw);if(p?.valid)addOrder(p,'cámara')}
@@ -321,7 +338,7 @@ function onDecode(raw){if(!cameraOn)return;const p=core.parseBarcode(raw);if(p?.
      if(!scanner)throw lastErr||Error('Sin cámara');
      if(document.hidden){await stopCamera();return}
      flashOnSupported=!!scanner.getRunningTrackCapabilities?.()?.torch;
-     showCamera(true);status('Cámara activa. Enfoca el código de barras.','ok');
+     showCamera(true);status('Cámara activa. Enfoca la etiqueta.','ok');
      // Segundo motor HD en paralelo. Sin controles de lente, zoom ni diagnóstico.
      startFarScan();
    }catch(err){
@@ -333,7 +350,7 @@ function onDecode(raw){if(!cameraOn)return;const p=core.parseBarcode(raw);if(p?.
  async function stopCamera(){
    if(stopping)return;stopping=true;stopFarScan();
    try{if(scanner){try{await scanner.stop()}catch(_){}try{await scanner.clear()}catch(_){}scanner=null}}
-   finally{flashOn=false;flashOnSupported=false;showCamera(false);stopping=false;status('Cámara detenida. Los datos actuales se conservan.')}
+   finally{flashOn=false;flashOnSupported=false;showCamera(false);stopping=false;status('Cámara detenida. Datos conservados.')}
  }
  async function toggleTorch(){
    if(!cameraOn||!scanner)return;
@@ -443,17 +460,18 @@ function renderHistory(){
  root.append(frag);
  $('history-more').hidden=filtered.length<=historyShow;
 }
-function newDraft(){draft={client:'',orders:[]};$('client').value='';clientError('');$('manual-order').value='';lastDuplicateOf='';lastDuplicateAt=0;persistDraft();renderOrders();}
+function newDraft(){resetPaymentOption();draft={client:'',orders:[]};$('client').value='';clientError('');$('manual-order').value='';lastDuplicateOf='';lastDuplicateAt=0;persistDraft();renderOrders();}
 function finalize(){
  if(!validateClient(true))return;
  if(draft.orders.length===0){toast('Escanea al menos una orden','warn');return}
  const clientName=cleanName($('client').value),clientRef=clientName===cleanName(draft.client)?cleanClientRef(draft.clientRef):null;
  const entry={id:crypto.randomUUID?.()||Date.now()+'-'+Math.random().toString(36).slice(2,9),client:clientName,at:Date.now(),user:currentUser,operator:operatorName,orders:draft.orders.map(x=>({...x})),...(clientRef?{clientRef}:{})};
+ const paid=$('orders-paid')?.checked===true;
  const next=[...readHistory(),entry];
  if(!persistHistory(next))return;
  // Primero confirmar guardado; si el cliente cancela compartir, no se pierden los registros.
  newDraft();renderHistory();toast('Retiro guardado · '+entry.orders.length+' órdenes');
- shareEntry(entry); // navigator.share debe invocarse dentro del clic del usuario, sin await previo.
+ shareEntry({...entry,paid}); // La condición de pago solo viaja al generador local. navigator.share debe invocarse dentro del clic del usuario, sin await previo.
  if(cameraOn)stopCamera(); // Cámara apagada después de abrir el compartir; no rompe el gesto de Safari.
 }
 const SHARE_CHUNK=24;
@@ -551,7 +569,8 @@ function renderShareCanvas(entry,orders,pageIndex,totalPages){
  ctx.fillStyle=deep;canvasFont(ctx,600,35);ctx.fillText('¡Hola!',64,322);
  const helloWidth=ctx.measureText('¡Hola!').width;
  ctx.fillStyle=muted;canvasFont(ctx,400,35);ctx.fillText('Hoy retiraste estos pedidos.',64+helloWidth+16,322);
- const second='En unos minutos te enviaremos el total a pagar.';
+ const second=entry.paid===true?'Tus pedidos ya están pagados. No tienes saldo pendiente.':'En unos minutos te enviaremos el total a pagar.';
+ if(entry.paid===true)ctx.fillStyle=deep;
  canvasFont(ctx,400,fitFont(ctx,second,952,400,32,26));ctx.fillText(second,64,371);
  receiptLine(ctx,64,398,1016,398,accent);
  drawShareCard(ctx,entry,clientLines,detailTop,clientH,colors);
@@ -585,7 +604,7 @@ function shareEntry(entry){
  if(nativeAvailable){
    try{
      // Llamada síncrona dentro del gesto para Safari en iPhone.
-     const result=navigator.share({files,title:'Gestark · Pedidos retirados',text:SHARE_TEXT});
+     const result=navigator.share({files,title:'Gestark · Pedidos retirados',text:shareText(entry)});
      Promise.resolve(result).catch(err=>{if(err?.name==='AbortError'){toast('Retiro guardado. Compartir cancelado.');return}showShareFallback()});
      return;
    }catch(err){console.warn('Gestark: share',err)}
@@ -604,13 +623,14 @@ function downloadImages(){if(!preparedFiles.length)return;preparedFiles.forEach(
 async function copyText(s){try{await navigator.clipboard.writeText(s);return true}catch(_){const el=document.createElement('textarea');el.value=s;document.body.append(el);el.select();let ok=false;try{ok=document.execCommand('copy')}catch(_e){}el.remove();return ok}}
 function init(){
  if(active)return;active=true;draftKey=DRAFT_PREFIX+currentUser;draft=readDraft();history=readHistory();
+ mountPaymentOption();resetPaymentOption();
  $('workspace').hidden=false;$('client').value=draft.client;renderOrders();renderHistory();
- $('client').addEventListener('input',event=>{clientError('');updateDraft(event);renderOrders()});
+ $('client').addEventListener('input',event=>{resetPaymentOption();clientError('');updateDraft(event);renderOrders()});
  $('client').addEventListener('keydown',ev=>{if(ev.key==='Enter'){$('client').blur();ev.preventDefault()}});
  $('start-cam').addEventListener('click',startCamera);$('stop-cam').addEventListener('click',stopCamera);$('torch').addEventListener('click',toggleTorch);
  $('manual-form').addEventListener('submit',ev=>{ev.preventDefault();const raw=$('manual-order').value.trim();const added=addOrder(raw,'manual');if(added)$('manual-order').value='';else if(!validOF(raw)&&!core.parseBarcode(raw).valid){$('order-error').textContent='Ingresa una O.F. válida de nueve dígitos o un código reconocido.';$('order-error').hidden=false}});
  $('order-list').addEventListener('click',e=>{const b=e.target.closest('button[data-index]');if(!b)return;const i=Number(b.dataset.index);if(!Number.isInteger(i)||i<0||i>=draft.orders.length)return;
-  const removed=draft.orders[i].of;draft.orders.splice(i,1);if(!persistDraft()){draft.orders.splice(i,0,{of:removed,at:Date.now()});return}renderOrders();toast('O.F. '+removed+' retirada de la nómina')});
+  const removed=draft.orders[i].of;draft.orders.splice(i,1);if(!persistDraft()){draft.orders.splice(i,0,{of:removed,at:Date.now()});return}resetPaymentOption();renderOrders();toast('O.F. '+removed+' retirada de la nómina')});
  $('finish').addEventListener('click',finalize);
  $('tab-scan').addEventListener('click',()=>setView('scan'));$('tab-history').addEventListener('click',()=>setView('history'));
  $('history-date-filter').addEventListener('change',()=>{historyShow=80;renderHistory()});
@@ -624,9 +644,9 @@ function init(){
  $('history-delete-dialog').addEventListener('click',e=>{if(e.target===$('history-delete-dialog'))e.target.close()});
  $('share-close').addEventListener('click',closeShareFallback);$('share-download').addEventListener('click',downloadImages);
  $('share-retry').addEventListener('click',()=>{closeShareFallback();if(preparedEntry)shareEntry(preparedEntry)});
- $('share-copy').addEventListener('click',async()=>{const ok=await copyText(SHARE_TEXT);toast(ok?'Mensaje copiado':'No se pudo copiar el mensaje',ok?'ok':'warn')});
+ $('share-copy').addEventListener('click',async()=>{if(!preparedEntry)return;const ok=await copyText(shareText(preparedEntry));toast(ok?'Mensaje copiado':'No se pudo copiar el mensaje',ok?'ok':'warn')});
  $('share-dialog').addEventListener('click',e=>{if(e.target===$('share-dialog'))closeShareFallback()});
- window.addEventListener('storage',e=>{if((e.key===HISTORY_KEY||e.key===STATUS_KEY)&&view==='history')renderHistory();if(e.key===draftKey){draft=readDraft();$('client').value=draft.client;renderOrders()}});
+ window.addEventListener('storage',e=>{if((e.key===HISTORY_KEY||e.key===STATUS_KEY)&&view==='history')renderHistory();if(e.key===draftKey){const next=readDraft();if(JSON.stringify(next)!==JSON.stringify(draft))resetPaymentOption();draft=next;$('client').value=draft.client;renderOrders()}});
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&cameraOn)stopCamera()});
  window.addEventListener('pagehide',()=>{if(cameraOn||scanner)stopCamera()});
  // El motor se descarga únicamente al abrir la cámara, sin bloquear el inicio del formulario.

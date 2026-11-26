@@ -82,17 +82,17 @@ html.gestark-android-render #native-tabs{background:#fff;-webkit-backdrop-filter
  <section class="pane" id="pane-checklist" aria-label="Checklist"></section>
  <section class="pane" id="pane-clients" aria-label="Clientes"></section>
  <section class="pane" id="pane-transfers" aria-label="Transferencias"></section>
- <section class="pane" id="pane-more" aria-label="Más herramientas"><div id="more-view"><div class="more-inner"><h1>Más herramientas</h1><p class="subtitle">Accesos de Sucursal Chicureo</p><div class="section-label">Operaciones</div><div class="menu-group">
-  <button class="menu-row" data-open="repositorio"><span class="menu-glyph">🔗</span><span class="menu-copy">Repositorio de links<small>Formularios y archivos de trabajo</small></span><span class="menu-chevron">›</span></button>
-  <button class="menu-row" data-open="contingencias"><span class="menu-glyph">📦</span><span class="menu-copy">Entregas contingentes<small>Registro de contingencias</small></span><span class="menu-chevron">›</span></button>
-  <button class="menu-row" data-open="calendario"><span class="menu-glyph">📆</span><span class="menu-copy">Calendario<small>Fechas y feriados</small></span><span class="menu-chevron">›</span></button>
-  <button class="menu-row" id="traslados-action" data-open="traslados" hidden><span class="menu-glyph">🚐</span><span class="menu-copy">Registro de traslados<small>Acceso según permisos</small></span><span class="menu-chevron">›</span></button>
+ <section class="pane" id="pane-more" aria-label="Más herramientas"><div id="more-view"><div class="more-inner"><h1>Más herramientas</h1><div class="section-label">Operaciones</div><div class="menu-group">
+  <button class="menu-row" data-open="repositorio"><span class="menu-glyph">🔗</span><span class="menu-copy">Repositorio</span><span class="menu-chevron">›</span></button>
+  <button class="menu-row" data-open="contingencias"><span class="menu-glyph">📦</span><span class="menu-copy">Entregas contingentes</span><span class="menu-chevron">›</span></button>
+  <button class="menu-row" data-open="calendario"><span class="menu-glyph">📆</span><span class="menu-copy">Calendario</span><span class="menu-chevron">›</span></button>
+  <button class="menu-row" id="traslados-action" data-open="traslados" hidden><span class="menu-glyph">🚐</span><span class="menu-copy">Traslados</span><span class="menu-chevron">›</span></button>
  </div><div class="section-label">Herramientas adicionales</div><div class="menu-group">
-  <a class="menu-row" href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiUD06FKRYXJZIncdeqhvYNd9URTFXTFpDNVZROE80UkZCMk5ZV1dEWkMzNS4u" target="_blank" rel="noopener noreferrer"><span class="menu-glyph">📝</span><span class="menu-copy">Gestiones Chicureo<small>Abrir formulario de Microsoft</small></span><span class="menu-chevron">↗</span></a>
-  <a class="menu-row" href="./escaner.html" target="_blank" rel="noopener noreferrer"><span class="menu-glyph">▦</span><span class="menu-copy">Escáner independiente<small>Se abre aparte para gestionar su cámara</small></span><span class="menu-chevron">↗</span></a>
-  <button class="menu-row" id="admin-action" data-open="admin" hidden><span class="menu-glyph">⚙️</span><span class="menu-copy">Administración Firebase<small>Solo administradores</small></span><span class="menu-chevron">›</span></button>
-  <button class="menu-row" id="lab-action" data-open="laboratorio" hidden><span class="menu-glyph">🧪</span><span class="menu-copy">Laboratorio<small>Solo administradores</small></span><span class="menu-chevron">›</span></button>
- </div><p class="app-footnote">Gestark · Navegación rápida · Firebase</p></div></div></section>
+  <a class="menu-row" href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=Wgv9cmqK_0yJ9r3pYffiUD06FKRYXJZIncdeqhvYNd9URTFXTFpDNVZROE80UkZCMk5ZV1dEWkMzNS4u" target="_blank" rel="noopener noreferrer"><span class="menu-glyph">📝</span><span class="menu-copy">Gestiones Chicureo</span><span class="menu-chevron">↗</span></a>
+  <a class="menu-row" href="./escaner.html" target="_blank" rel="noopener noreferrer"><span class="menu-glyph">▦</span><span class="menu-copy">Escáner independiente</span><span class="menu-chevron">↗</span></a>
+  <button class="menu-row" id="admin-action" data-open="admin" hidden><span class="menu-glyph">⚙️</span><span class="menu-copy">Administración</span><span class="menu-chevron">›</span></button>
+  <button class="menu-row" id="lab-action" data-open="laboratorio" hidden><span class="menu-glyph">🧪</span><span class="menu-copy">Laboratorio</span><span class="menu-chevron">›</span></button>
+ </div></div></div></section>
  <section class="pane" id="pane-extra" aria-label="Herramienta"><div id="extra-banner"><button id="back-more" type="button">‹ Volver</button><span id="extra-title">Herramienta</span></div><div id="extra-slot" style="height:100%"></div></section>
  <div id="native-toast" role="status" aria-live="polite" hidden></div>
  <div id="gestark-open-bubble" role="status" hidden></div>
@@ -107,20 +107,20 @@ html.gestark-android-render #native-tabs{background:#fff;-webkit-backdrop-filter
  <button type="button" data-tab="transfers" aria-label="Transferencias" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>Transferencias</span></button>
  <button type="button" data-tab="more" aria-label="Más herramientas" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>Más</span></button>
 </nav>
-<div id="app-menu" role="dialog" aria-modal="true" aria-labelledby="menu-title"><div class="sheet"><h2 id="menu-title">Opciones de Gestark</h2><p id="menu-user">Sesión Firebase</p><button id="reload-app">Actualizar aplicación</button><a href="./?modo=clasico" id="classic-link">Abrir versión clásica</a><button id="install-help">Instalar en pantalla de inicio</button><button id="exit-account" class="danger">Cerrar sesión</button><button id="close-app-menu" class="neutral">Cancelar</button></div></div>
+<div id="app-menu" role="dialog" aria-modal="true" aria-labelledby="menu-title"><div class="sheet"><h2 id="menu-title">Opciones</h2><p id="menu-user">Mi cuenta</p><button id="reload-app">Actualizar</button><a href="./?modo=clasico" id="classic-link">Vista clásica</a><button id="install-help">Instalar aplicación</button><button id="exit-account" class="danger">Cerrar sesión</button><button id="close-app-menu" class="neutral">Cancelar</button></div></div>
 <script>
 (() => {
 'use strict';
- const BUILD='2026.11.25.33';
+ const BUILD='2026.11.25.36';
 const base=new URL('./',location.href);
 const available={
  home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
  clients:{path:'./entregas-clientes.html',title:'Clientes'}, transfers:{path:'./notas-transferencias.html',title:'Transferencias'},
- repositorio:{path:'./repositorio.html',title:'Repositorio de links'},
+ repositorio:{path:'./repositorio.html',title:'Repositorio'},
  contingencias:{path:'./entregas-contingentes.html',title:'Entregas contingentes'},
  calendario:{path:'./calendario.html',title:'Calendario'},
- traslados:{path:'./traslados.html',title:'Registro de traslados'},
- admin:{path:'./admin.html',title:'Administración Firebase',admin:true},
+ traslados:{path:'./traslados.html',title:'Traslados'},
+ admin:{path:'./admin.html',title:'Administración',admin:true},
  laboratorio:{path:'./laboratorio.html',title:'Laboratorio',admin:true},
   directorio:{path:'./directorio-clientes.html',title:'Directorio de clientes'}
 };
@@ -177,7 +177,7 @@ async function signOut(){
      if(typeof candidate==='function'){fn=candidate;break;}}
    catch(_){}
  }
- if(!fn){showToast('No se pudo localizar la sesión Firebase. Recarga la aplicación e inténtalo nuevamente.',4500);return;}
+ if(!fn){showToast('No se encontró tu sesión. Actualiza e inténtalo de nuevo.',4500);return;}
  signingOut=true;
  try{
    const done=await fn();
@@ -186,7 +186,7 @@ async function signOut(){
    location.replace('./gestark-app.html');
  }catch(error){
    signingOut=false;
-   showToast('No se pudo cerrar la sesión Firebase. Comprueba la conexión e inténtalo nuevamente.',5000);
+   showToast('No se pudo cerrar sesión. Revisa tu conexión e inténtalo de nuevo.',5000);
    console.warn('Gestark: salida no confirmada',error?.code||error?.message||'Error desconocido');
  }
 }
@@ -254,7 +254,7 @@ function authorized(user){if(signingOut)return;
  if(!profile){profile=user;
  $('native-header').classList.add('visible');$('native-tabs').classList.add('visible');$('person-label').textContent=user.name||user.username;
   updateDirectoryFab();
- $('menu-user').textContent=(user.name||user.username)+' · '+user.username+' · Firebase';
+ $('menu-user').textContent=(user.name||user.username);
  $('admin-action').hidden=user.role!=='admin';$('lab-action').hidden=user.role!=='admin';$('traslados-action').hidden=user.username!=='SCMN';
  window.__gestarkPendingPushUser=user;
  window.GestarkPush?.init?.(user);
@@ -268,7 +268,7 @@ function authorized(user){if(signingOut)return;
 }
 function refreshCurrent(){if(!profile)return;const key=active;if(key==='more'){location.reload();return}const f=frames[key];if(!f)return;const u=new URL(available[key].path,base);u.searchParams.set('actualizar',String(Date.now()));f.dataset.ready='';f.src=u.href;showToast('Actualizando '+available[key].title+'…',1500)}
 function menu(open){$('app-menu').classList.toggle('open',open)}
-function installHelp(){menu(false);if(/iPad|iPhone|iPod/.test(navigator.userAgent)){alert('En Safari, toca Compartir y después «Agregar a pantalla de inicio». Si ya tenías Gestark instalada, abre esta nueva versión antes de agregarla.');}else alert('En Chrome o Edge, utiliza el menú del navegador y elige «Instalar aplicación».');}
+function installHelp(){menu(false);if(/iPad|iPhone|iPod/.test(navigator.userAgent)){alert('En Safari, toca Compartir → Agregar a pantalla de inicio.');}else alert('En Chrome o Edge, abre el menú y selecciona «Instalar aplicación».');}
 const home=frames.home;home.addEventListener('load',()=>attach('home',home));
 for(const b of document.querySelectorAll('#native-tabs button'))b.addEventListener('click',()=>select(b.dataset.tab));
 for(const b of document.querySelectorAll('[data-open]'))b.addEventListener('click',()=>select(b.dataset.open));
