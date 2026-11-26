@@ -1,12 +1,12 @@
 {
-  "version": "2026.11.25.33",
+  "version": "2026.11.25.34",
   "name": "Gestark",
-  "changes": "Inicio instalado: acceso Firebase cuando no existe sesión local; progreso y reintento ante conexión lenta. Conserva módulos, permisos, datos y optimización Android v32.",
+  "changes": "Entregas Clientes: comprobante PNG con tipografía limpia, verde pastel, marca discreta y lista de OF. Sin cambios en datos, escáner, nómina ni permisos.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",
   "contingencyUpdatedAt": "2026-11-21T20:25:00-03:00",
-  "clientsVersion": "2026.11.23.30",
+  "clientsVersion": "2026.11.25.34",
   "directoryVersion": "2026.11.23.31",
   "safetyVersion": "2026.11.23.29",
   "predictorVersion": "2026.11.23.29"

@@ -489,77 +489,86 @@ function textLines(ctx,value,maxWidth,weight,size){
  if(current)lines.push(current);
  return lines;
 }
-function drawShareCard(ctx,entry,clientLines,detailTop,detailH,colors){
- const {deep,ink,muted,border}=colors;
- rounded(ctx,28,detailTop,1024,detailH,25,'#ffffff',border);
- const colA=465,colB=764;
- ctx.strokeStyle=border;ctx.lineWidth=2.2;
- ctx.beginPath();ctx.moveTo(colA,detailTop+40);ctx.lineTo(colA,detailTop+detailH-40);ctx.moveTo(colB,detailTop+40);ctx.lineTo(colB,detailTop+detailH-40);ctx.stroke();
- ctx.fillStyle=muted;canvasFont(ctx,500,27);ctx.fillText('Cliente:',73,detailTop+62);
- ctx.fillStyle=ink;canvasFont(ctx,700,34);
- clientLines.forEach((line,i)=>ctx.fillText(line,73,detailTop+112+i*43));
- ctx.fillStyle=muted;canvasFont(ctx,500,27);ctx.fillText('Fecha:',502,detailTop+62);
- ctx.fillStyle=ink;canvasFont(ctx,700,35);ctx.fillText(fmtDay(entry.at),502,detailTop+111);
- ctx.fillStyle=muted;canvasFont(ctx,500,26);ctx.fillText('Cantidad de',797,detailTop+54);ctx.fillText('pedidos:',797,detailTop+86);
- rounded(ctx,834,detailTop+108,134,75,15,deep);
- ctx.textAlign='center';ctx.fillStyle='#ffffff';canvasFont(ctx,750,53);ctx.fillText(String(entry.orders.length),901,detailTop+162);ctx.textAlign='start';
+// Iconos lineales dibujados en Canvas: sin dependencias externas ni imágenes IA.
+function receiptIcon(ctx,kind,x,y,size,colors){
+ rounded(ctx,x,y,size,size,Math.round(size*0.10),colors.pastel);
+ ctx.save();ctx.translate(x,y);ctx.scale(size/100,size/100);
+ ctx.strokeStyle=colors.deep;ctx.lineWidth=3.4;ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.beginPath();
+ if(kind==='box'){
+  ctx.moveTo(50,19);ctx.lineTo(81,36);ctx.lineTo(81,66);ctx.lineTo(50,83);ctx.lineTo(19,66);ctx.lineTo(19,36);ctx.closePath();
+  ctx.moveTo(19,36);ctx.lineTo(50,53);ctx.lineTo(81,36);ctx.moveTo(50,53);ctx.lineTo(50,83);
+ }else if(kind==='person'){
+  ctx.arc(50,34,13,0,Math.PI*2);ctx.moveTo(25,75);ctx.lineTo(25,68);ctx.bezierCurveTo(25,48,75,48,75,68);ctx.lineTo(75,75);
+ }else if(kind==='date'){
+  ctx.rect(23,28,54,50);ctx.moveTo(23,43);ctx.lineTo(77,43);ctx.moveTo(36,20);ctx.lineTo(36,35);ctx.moveTo(64,20);ctx.lineTo(64,35);
+ }else{
+  for(const [cx,cy] of [[50,32],[34,60],[66,60]]){
+   ctx.moveTo(cx,cy-13);ctx.lineTo(cx+15,cy-5);ctx.lineTo(cx+15,cy+12);ctx.lineTo(cx,cy+20);ctx.lineTo(cx-15,cy+12);ctx.lineTo(cx-15,cy-5);ctx.closePath();
+   ctx.moveTo(cx-15,cy-5);ctx.lineTo(cx,cy+3);ctx.lineTo(cx+15,cy-5);ctx.moveTo(cx,cy+3);ctx.lineTo(cx,cy+20);
+  }
+ }
+ ctx.stroke();ctx.restore();
+}
+function receiptLine(ctx,x1,y1,x2,y2,color){
+ ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+}
+function drawShareCard(ctx,entry,clientLines,detailTop,clientH,colors){
+ const {ink,muted,border}=colors;
+ const rows=[['person','Cliente',clientLines,clientH],['date','Fecha',[fmtDay(entry.at)],84],['count','Cantidad de pedidos',[String(entry.orders.length)],84]];
+ let y=detailTop;
+ rows.forEach(([icon,label,values,h],i)=>{
+  receiptIcon(ctx,icon,64,y+(h-62)/2,62,colors);
+  ctx.fillStyle=muted;canvasFont(ctx,400,31);ctx.fillText(label,150,y+h/2+11);
+  receiptLine(ctx,526,y+20,526,y+h-20,border);
+  ctx.fillStyle=ink;canvasFont(ctx,500,34);
+  values.forEach((value,j)=>ctx.fillText(value,555,y+h/2-(values.length-1)*21+12+j*42));
+  y+=h;
+  if(i<rows.length-1)receiptLine(ctx,64,y,1016,y,border);
+ });
 }
 function renderShareCanvas(entry,orders,pageIndex,totalPages){
  const cols=orders.length>COLS_THRESHOLD?2:1;
  const rows=Math.ceil(orders.length/cols);
  const cv=document.createElement('canvas');cv.width=CANVAS_W;
  const ctx=cv.getContext('2d');if(!ctx)throw Error('Canvas no disponible');
- const deep='#064c3b',ink='#092f25',muted='#516b5e',border='#bad6c6',green='#37a819';
- const client=cleanName(entry.client);
- let clientSize=34,clientLines=[];
- do{clientLines=textLines(ctx,client,367,700,clientSize);if(clientLines.length<=3)break;clientSize-=1}while(clientSize>25);
- const lineH=clientSize+10;
- const detailTop=457,detailH=Math.max(210,110+clientLines.length*lineH+25);
- const rowH=78,listTop=detailTop+detailH+42,listHeader=80;
+ const colors={deep:'#355C43',ink:'#252B29',muted:'#535D58',border:'#D9DFDB',pastel:'#E6F0E2',accent:'#A8C69A'};
+ const {deep,ink,muted,border,pastel,accent}=colors;
+ const clientLines=textLines(ctx,cleanName(entry.client),445,500,34);
+ const clientH=Math.max(84,clientLines.length*42+30);
+ const detailTop=421,detailH=clientH+168;
+ const rowH=69,listTop=detailTop+detailH+44,listHeader=74;
  const listHeight=listHeader+Math.max(1,rows)*rowH;
- const height=listTop+listHeight+150;
+ const height=listTop+listHeight+78;
  cv.height=height;ctx.textBaseline='alphabetic';
- const colors={deep,ink,muted,border};
  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,CANVAS_W,height);
- // Marca tipográfica Gestark: la escritura es exacta y no depende de generación de imágenes.
- canvasFont(ctx,750,94);
- const word1='Gest',word2='ark',brandWidth=ctx.measureText(word1+word2).width;
- const brandX=(CANVAS_W-brandWidth)/2;
- ctx.fillStyle=deep;ctx.fillText(word1,brandX,113);
- ctx.fillStyle=green;ctx.fillText(word2,brandX+ctx.measureText(word1).width,113);
- const subtitle='Resumen de pedidos retirados';
- canvasFont(ctx,450,39);ctx.fillStyle='#435e50';ctx.textAlign='center';ctx.fillText(subtitle,CANVAS_W/2,182);ctx.textAlign='start';
- const subtitleWidth=ctx.measureText(subtitle).width;
- ctx.strokeStyle='#158347';ctx.lineWidth=2.5;
- ctx.beginPath();ctx.moveTo(67,175);ctx.lineTo((CANVAS_W-subtitleWidth)/2-30,175);ctx.moveTo((CANVAS_W+subtitleWidth)/2+30,175);ctx.lineTo(1013,175);ctx.stroke();
- // Mensaje claro y sin signos ni frases duplicadas.
- rounded(ctx,26,235,1028,189,27,'#e9f6f1');
- rounded(ctx,63,277,9,108,5,green);
- ctx.fillStyle=ink;
- const first='¡Hola! Hoy retiraste estos pedidos.';
- canvasFont(ctx,750,42);
- ctx.fillText(first,94,315);
+ ctx.fillStyle=accent;ctx.fillRect(0,0,300,12);ctx.fillRect(0,height-12,CANVAS_W,12);
+ // Marca pequeña, sin competir con el contenido del comprobante.
+ ctx.save();ctx.globalAlpha=0.32;ctx.textAlign='right';ctx.fillStyle=deep;canvasFont(ctx,600,39);ctx.fillText('Gestark',1016,73);ctx.restore();
+ receiptIcon(ctx,'box',64,122,136,colors);
+ receiptLine(ctx,230,126,230,254,border);
+ ctx.fillStyle=ink;canvasFont(ctx,600,53);ctx.fillText('Resumen de',266,177);ctx.fillText('pedidos retirados',266,238);
+ ctx.fillStyle=deep;canvasFont(ctx,600,35);ctx.fillText('¡Hola!',64,322);
+ const helloWidth=ctx.measureText('¡Hola!').width;
+ ctx.fillStyle=muted;canvasFont(ctx,400,35);ctx.fillText('Hoy retiraste estos pedidos.',64+helloWidth+16,322);
  const second='En unos minutos te enviaremos el total a pagar.';
- const secondSize=fitFont(ctx,second,928,450,36,29);
- canvasFont(ctx,450,secondSize);ctx.fillText(second,94,378);
- drawShareCard(ctx,entry,clientLines,detailTop,detailH,colors);
- // Nómina visual: una línea por O.F., números exactos, sin iconografía decorativa.
- rounded(ctx,28,listTop,1024,listHeight,23,'#ffffff',border);
- ctx.save();ctx.beginPath();ctx.rect(28,listTop,1024,listHeader);ctx.clip();
- rounded(ctx,28,listTop,1024,102,23,deep);ctx.restore();
- const title=totalPages>1?`Pedidos retirados · ${pageIndex+1}/${totalPages}`:'Pedidos retirados';
- ctx.fillStyle='#ffffff';canvasFont(ctx,700,43);ctx.fillText(title,73,listTop+55);
- const cw=1024/cols;
+ canvasFont(ctx,400,fitFont(ctx,second,952,400,32,26));ctx.fillText(second,64,371);
+ receiptLine(ctx,64,398,1016,398,accent);
+ drawShareCard(ctx,entry,clientLines,detailTop,clientH,colors);
+ // Las OF se dibujan como texto real, sin recortar ni modificar sus dígitos.
+ rounded(ctx,48,listTop,984,listHeader,5,pastel);
+ const title=totalPages>1?`Pedidos retirados · OF · ${pageIndex+1}/${totalPages}`:'Pedidos retirados · OF';
+ ctx.fillStyle=deep;canvasFont(ctx,600,38);ctx.fillText(title,76,listTop+49);
+ const cw=984/cols;
  for(let i=0;i<orders.length;i++){
-  const col=Math.floor(i/rows),row=i%rows,x=28+col*cw,y=listTop+listHeader+row*rowH;
-  if(row>0){ctx.strokeStyle=border;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+cw,y);ctx.stroke()}
-  ctx.fillStyle=ink;canvasFont(ctx,700,cols===1?45:40);
-  ctx.fillText(orders[i].of,x+50,y+54);
+  const col=Math.floor(i/rows),row=i%rows,x=48+col*cw,y=listTop+listHeader+row*rowH;
+  ctx.fillStyle=ink;ctx.textAlign='center';
+  canvasFont(ctx,400,fitFont(ctx,String(orders[i].of),cw-48,400,cols===1?41:38,22));
+  ctx.fillText(orders[i].of,x+cw/2,y+46);
+  receiptLine(ctx,x+24,y+rowH,x+cw-24,y+rowH,border);
  }
- if(cols===2){ctx.strokeStyle=border;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(540,listTop+listHeader);ctx.lineTo(540,listTop+listHeight);ctx.stroke()}
- // Detalle verde de marca, discreto, sin degradados ni elementos tridimensionales.
- ctx.fillStyle='#0a6148';ctx.beginPath();ctx.moveTo(974,height);ctx.quadraticCurveTo(1053,height-39,1080,height-98);ctx.lineTo(1080,height);ctx.closePath();ctx.fill();
- ctx.fillStyle=green;ctx.beginPath();ctx.moveTo(1032,height);ctx.quadraticCurveTo(1061,height-40,1080,height-60);ctx.lineTo(1080,height);ctx.closePath();ctx.fill();
+ ctx.textAlign='start';
+ if(cols===2)receiptLine(ctx,540,listTop+listHeader+10,540,listTop+listHeight,border);
  return cv;
 }
 function pngFile(canvas,name){const data=canvas.toDataURL('image/png');const binary=atob(data.split(',')[1]);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new File([bytes],name,{type:'image/png'})}
