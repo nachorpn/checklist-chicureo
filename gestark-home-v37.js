@@ -7,9 +7,10 @@ const ops=[['clients','Entregas clientes','scan','#D9EADD','#347552','#254D36'],
 const tools=[['directorio','Directorio','contact','#DCEADF','#3E7351'],['cases','Gestiones','files','#DFE8F1','#527997'],['repositorio','Repositorio','folder','#EAE5D8','#83723F'],['collection','Cobranza','chat','#DDEDE7','#39806B'],['calendario','Calendario','calendar','#E8E1F1','#8470A0'],['notifications','Notificaciones','bell','#F2E7D6','#94703A']];
 const css=`
 html.gestark-v37-home,html.gestark-v37-home body{background:#f2f5f2!important;color:#25382e}
+html.gestark-v37-home body{margin:0!important;padding:0!important;width:100%!important;max-width:100%!important;overflow-x:hidden!important}
 html.gestark-v37-home #inicio{width:100%!important;max-width:100%!important;margin:0!important;padding:0!important;background:transparent!important}
 html.gestark-v37-home #inicio>header,html.gestark-v37-home #inicio>main,html.gestark-v37-home #inicio>footer{display:none!important}
-#gs37-home{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:760px;margin:auto;padding:16px 48px 25px 14px;color:#25382e;text-align:left;font-synthesis:none}
+#gs37-home{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;width:100%;box-sizing:border-box;max-width:760px;margin:auto;padding:16px 14px 25px;color:#25382e;text-align:left;font-synthesis:none}
 #gs37-home *,#gs37-home *::before,#gs37-home *::after{box-sizing:border-box}
 #gs37-home button,#gs37-home a{font:inherit;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 #gs37-home button:focus-visible,#gs37-home a:focus-visible{outline:2px solid #397e60;outline-offset:2px}
@@ -36,8 +37,8 @@ html.gestark-v37-home #inicio>header,html.gestark-v37-home #inicio>main,html.ges
 #gs37-home .gs37-toolicon svg{width:20px;height:20px}
 #gs37-home .gs37-tool .gs37-label{font-size:11px;font-weight:550;line-height:1.15;text-align:center;overflow-wrap:anywhere}
 #gs37-home button:active,#gs37-home a:active{filter:brightness(.96)}
-@media(min-width:600px){#gs37-home{padding:20px 52px 30px 22px}#gs37-home .gs37-ops{grid-template-columns:repeat(4,minmax(0,1fr))}#gs37-home .gs37-tools{grid-template-columns:repeat(6,minmax(0,1fr))}#gs37-home .gs37-tile{min-height:116px}}
-@media(min-width:900px){#gs37-home{padding-right:22px}}
+@media(min-width:600px){#gs37-home{padding:20px 22px 30px}#gs37-home .gs37-ops{grid-template-columns:repeat(4,minmax(0,1fr))}#gs37-home .gs37-tools{grid-template-columns:repeat(6,minmax(0,1fr))}#gs37-home .gs37-tile{min-height:116px}}
+
 `;
 function update(d,status){const val=d?.getElementById('gs37-pending');if(!val)return;val.textContent=status?.ready&&Number.isSafeInteger(status.pending)&&status.pending>=0?String(status.pending):'—';val.title=status?.ready?'Órdenes pendientes de cierre':'Sin confirmación de sincronización';}
 function date(d){const now=new Date();const a=d?.getElementById('gs37-date'),b=d?.getElementById('gs37-month');if(a)a.textContent=new Intl.DateTimeFormat('es-CL',{day:'numeric',month:'long',timeZone:'America/Santiago'}).format(now);if(b)b.textContent=new Intl.DateTimeFormat('es-CL',{month:'long',timeZone:'America/Santiago'}).format(now);}

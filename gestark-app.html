@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f2f5f2">
+<meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Gestark">
@@ -97,6 +97,20 @@ html.gestark-android-render #native-tabs{background:#fff;-webkit-backdrop-filter
 #gestark-directory-fab svg{width:24px;height:24px}#gestark-directory-fab span{font-size:9px;font-weight:550;line-height:1.15;white-space:nowrap;color:#eaf3ec}
 #gestark-directory-fab:after{content:'';position:absolute;right:3px;width:2px;height:24px;background:#a8c2b3;border-radius:2px;top:23px;opacity:.7}
 #gestark-directory-fab:active,#gestark-directory-fab:hover{transform:none;box-shadow:-2px 3px 9px #203c3026}#gestark-directory-fab.dragging{cursor:grabbing}
+
+/* v38: encuadre simétrico, cabecera opaca y pestaña dentro del área segura. */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+#native-header{position:relative;flex:0 0 auto;min-width:0;width:100%;background:#fff;opacity:1;filter:none;-webkit-filter:none;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;isolation:isolate}
+#native-header .header-brand,#native-header .header-actions{filter:none;-webkit-filter:none;opacity:1}
+#native-header .header-brand img{flex:none;object-fit:contain;filter:none;-webkit-filter:none}
+.header-actions{flex-shrink:0}.brand-copy{overflow:hidden}
+#app-body,.pane,.pane iframe{min-width:0;max-width:100%}
+#native-tabs{width:100%;min-width:0;flex:0 0 auto;padding-left:max(6px,env(safe-area-inset-left),env(safe-area-inset-right));padding-right:max(6px,env(safe-area-inset-left),env(safe-area-inset-right))}
+#gestark-directory-fab{right:max(6px,env(safe-area-inset-right,0px))!important;width:58px;height:64px;padding:6px 5px 6px 4px;border:1px solid #f5fbf7;border-radius:14px 6px 6px 14px;box-shadow:0 2px 7px #203c3026;overflow:hidden}
+#gestark-directory-fab span{font-size:9px;line-height:1.2;max-width:100%;letter-spacing:0;white-space:nowrap;text-align:center}
+#gestark-directory-fab:after{right:2px;top:13px;height:18px;width:2px}
+#gestark-directory-fab:active,#gestark-directory-fab:hover{box-shadow:0 2px 7px #203c3026}
+@media(max-width:340px){#native-header .header-actions{gap:3px}#native-header .icon-button{width:32px;height:34px}#native-header .header-brand{gap:6px}#native-header .header-brand img{width:32px;height:32px}}
 </style>
 </head>
 <body>
@@ -132,11 +146,11 @@ html.gestark-android-render #native-tabs{background:#fff;-webkit-backdrop-filter
  <button type="button" data-tab="more" aria-label="Más herramientas" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>Más</span></button>
 </nav>
 <div id="app-menu" role="dialog" aria-modal="true" aria-labelledby="menu-title"><div class="sheet"><h2 id="menu-title">Opciones</h2><p id="menu-user">Mi cuenta</p><button id="reload-app">Actualizar</button><a href="./?modo=clasico" id="classic-link">Vista clásica</a><button id="install-help">Instalar aplicación</button><button id="exit-account" class="danger">Cerrar sesión</button><button id="close-app-menu" class="neutral">Cancelar</button></div></div>
-<script src="./gestark-home-v37.js?actualizar=2026112537"></script>
+<script src="./gestark-home-v37.js?actualizar=2026112538"></script>
 <script>
 (() => {
 'use strict';
- const BUILD='2026.11.25.37';
+ const BUILD='2026.11.25.38';
 const base=new URL('./',location.href);
 const available={
  home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
@@ -161,7 +175,7 @@ let toastTimeout=null;
  const FAB_KEY='gestark:directory-tab-position:v1';
  let fabRatio=.64,drag=null,ignoreClick=false;
  try{const saved=localStorage.getItem(FAB_KEY);if(saved!==null&&Number.isFinite(Number(saved)))fabRatio=Math.max(0,Math.min(1,Number(saved)));}catch(_){}
- function fabBounds(){const body=$('app-body').getBoundingClientRect(),bar=$('native-tabs').getBoundingClientRect();return {min:Math.ceil(body.top+8),max:Math.floor(Math.min(body.bottom,bar.top-20)-70-8)};}
+ function fabBounds(){const body=$('app-body').getBoundingClientRect(),bar=$('native-tabs').getBoundingClientRect(),height=directoryFab.offsetHeight||64;return {min:Math.ceil(body.top+8),max:Math.floor(Math.min(body.bottom,bar.top-20)-height-8)};}
  function activeInputOrCamera(){
   try{const d=frames[active]?.contentDocument;if(!d)return false;const e=d.activeElement;
    if(e?.matches('input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=file]),textarea,select,[contenteditable="true"]'))return true;
