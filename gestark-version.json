@@ -1,7 +1,7 @@
 {
-  "version": "2026.11.25.36",
+  "version": "2026.11.25.37",
   "name": "Gestark",
-  "changes": "Textos y subtítulos normalizados; menú actual sin referencias técnicas redundantes. Conserva pedidos pagados v35, diseño y permisos.",
+  "changes": "Inicio renovado, resumen operativo, navegación compacta, pestaña Contactos desplazable y textos de notificaciones. Sin cambios de permisos ni datos.",
   "labVersion": "2026.11.21.15",
   "labUpdatedAt": "2026-11-21T17:58:00-03:00",
   "contingencyVersion": "2026.11.21.23",

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0c493d">
+<meta name="theme-color" content="#f2f5f2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Gestark">
@@ -73,6 +73,30 @@ button:focus-visible,a:focus-visible{outline:3px solid #4cb999;outline-offset:2p
 /* Android: reducir composición gráfica sin desmontar iframes ni cambiar su tamaño. */
 html.gestark-android-render .pane:not(.active){visibility:hidden}
 html.gestark-android-render #native-tabs{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
+/* v37: inicio y navegación compacta; mismo shell y sesiones. */
+:root,#app-body,.pane,.pane iframe{background:#f2f5f2}
+#native-header{min-height:calc(57px + env(safe-area-inset-top));background:#fff;color:#25382e;box-shadow:none;border-bottom:1px solid #e1e8e1}
+.header-brand img{box-shadow:none;width:36px;height:36px}.brand-title{font-weight:680}.brand-sub{color:#61786a;opacity:1}
+.icon-button{background:transparent;color:#52665a;border:0}.icon-button:active{background:#e4ece5}
+#online-pill{color:#52755e;font-weight:550}.status-dot{background:#679a76}#online-pill.offline{color:#956231}
+#native-tabs{position:relative;isolation:isolate;gap:0;height:calc(54px + env(safe-area-inset-bottom));padding:0 max(6px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(6px,env(safe-area-inset-left));background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;overflow:visible;border-top:1px solid #dfe7df}
+#native-tabs button{position:relative;min-height:0;height:53px;max-width:150px;justify-content:flex-end;gap:3px;padding:3px 0 5px;font-weight:550;font-size:10px;background:transparent!important;color:var(--tab-color);border-radius:0}
+#native-tabs button[aria-selected="true"]{color:var(--tab-color);font-weight:700}
+#native-tabs button svg{width:21px;height:21px;stroke-width:1.75;box-sizing:content-box;padding:3px 7px;border-radius:8px}
+#native-tabs button[aria-selected="true"] svg{background:var(--tab-bg)}
+#native-tabs [data-tab="home"]{--tab-color:#52755e;--tab-bg:#e4ece5}
+#native-tabs [data-tab="checklist"]{--tab-color:#76648f;--tab-bg:#eee9f4}
+#native-tabs [data-tab="clients"]{--tab-color:#245840;--tab-bg:#dceadf}
+#native-tabs [data-tab="transfers"]{--tab-color:#436f8b;--tab-bg:#e4edf4}
+#native-tabs [data-tab="more"]{--tab-color:#68766d;--tab-bg:#e8ece9}
+#native-tabs [data-tab="clients"]:before{content:'';position:absolute;left:50%;top:-19px;transform:translateX(-50%);width:62px;height:23px;border:1px solid #dfe7df;border-bottom:0;border-radius:40px 40px 0 0;background:#fff;z-index:-1}
+#native-tabs [data-tab="clients"] svg{position:absolute;left:50%;top:-14px;transform:translateX(-50%);width:26px;height:26px;padding:10px;background:#245840!important;color:white;border-radius:50%;box-shadow:0 0 0 3px #fff,0 3px 7px #193c2a25}
+#native-tabs [data-tab="clients"][aria-selected="true"] svg{background:#17452f!important}
+#native-tabs [data-tab="clients"] span{font-weight:650}
+#gestark-directory-fab{position:fixed;left:auto!important;right:env(safe-area-inset-right,0px)!important;bottom:auto!important;width:47px;height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:5px 1px;border:1px solid #f5fbf7;border-right:0;border-radius:15px 0 0 15px;background:#426c59;color:white;box-shadow:-2px 3px 9px #203c3026;opacity:1;touch-action:none;user-select:none;transition:none;cursor:grab}
+#gestark-directory-fab svg{width:24px;height:24px}#gestark-directory-fab span{font-size:9px;font-weight:550;line-height:1.15;white-space:nowrap;color:#eaf3ec}
+#gestark-directory-fab:after{content:'';position:absolute;right:3px;width:2px;height:24px;background:#a8c2b3;border-radius:2px;top:23px;opacity:.7}
+#gestark-directory-fab:active,#gestark-directory-fab:hover{transform:none;box-shadow:-2px 3px 9px #203c3026}#gestark-directory-fab.dragging{cursor:grabbing}
 </style>
 </head>
 <body>
@@ -98,20 +122,21 @@ html.gestark-android-render #native-tabs{background:#fff;-webkit-backdrop-filter
  <div id="gestark-open-bubble" role="status" hidden></div>
 </main>
 <button type="button" id="gestark-directory-fab" hidden aria-label="Abrir Directorio de clientes" title="Directorio de clientes">
-  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 3v18M12 9a2 2 0 1 1 4 0a2 2 0 0 1-4 0M11 16c.5-2 4.5-2 5 0"/></svg>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><circle cx="12" cy="9" r="2.5"/><path d="M7.5 17c0-4 9-4 9 0M2 8h3m-3 7h3"/></svg><span>Contactos</span>
 </button>
 <nav id="native-tabs" aria-label="Navegación principal de Gestark">
  <button type="button" data-tab="home" aria-label="Inicio" aria-selected="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3zM9 21v-8h6v8"/></svg><span>Inicio</span></button>
  <button type="button" data-tab="checklist" aria-label="Checklist" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 11l2 2 4-4M8 17h8"/></svg><span>Checklist</span></button>
- <button type="button" data-tab="clients" aria-label="Clientes" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 5h5M4 5v5M15 5h5v5M4 15v5h5M20 15v5M5 12h14M9 9v6m3-6v6m3-6v6"/></svg><span>Clientes</span></button>
- <button type="button" data-tab="transfers" aria-label="Transferencias" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>Transferencias</span></button>
+ <button type="button" data-tab="clients" aria-label="Entregar" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M3 8V3h5m8 0h5v5m0 8v5h-5m-8 0H3v-5M7 7v10m3-10v10m4-10v10m3-10v10"/></svg><span>Entregar</span></button>
+ <button type="button" data-tab="transfers" aria-label="Pagos" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M21 10h-5a2.5 2.5 0 0 0 0 5h5M16 12.5h.1"/></svg><span>Pagos</span></button>
  <button type="button" data-tab="more" aria-label="Más herramientas" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>Más</span></button>
 </nav>
 <div id="app-menu" role="dialog" aria-modal="true" aria-labelledby="menu-title"><div class="sheet"><h2 id="menu-title">Opciones</h2><p id="menu-user">Mi cuenta</p><button id="reload-app">Actualizar</button><a href="./?modo=clasico" id="classic-link">Vista clásica</a><button id="install-help">Instalar aplicación</button><button id="exit-account" class="danger">Cerrar sesión</button><button id="close-app-menu" class="neutral">Cancelar</button></div></div>
+<script src="./gestark-home-v37.js?actualizar=2026112537"></script>
 <script>
 (() => {
 'use strict';
- const BUILD='2026.11.25.36';
+ const BUILD='2026.11.25.37';
 const base=new URL('./',location.href);
 const available={
  home:{path:'./',title:'Inicio'}, checklist:{path:'./checklist.html',title:'Checklist'},
@@ -133,21 +158,28 @@ const $=id=>document.getElementById(id);
 let profile=null;let active='home';let signingOut=false;let warmStarted=false;
 let toastTimeout=null;
  const directoryFab=document.getElementById('gestark-directory-fab');
- function updateDirectoryFab(){
-   if(!directoryFab)return;
-   directoryFab.hidden=!profile||signingOut||active==='directorio';
-   if(directoryFab.hidden)return;
-   const more=document.querySelector('#native-tabs button[data-tab="more"]');
-   if(!more)return;
-   const r=more.getBoundingClientRect(),size=44;
-   const x=Math.max(8,Math.min(innerWidth-size-8,r.left+r.width/2-size/2));
-   directoryFab.style.left=Math.round(x)+'px';
-   directoryFab.style.right='auto';
-   directoryFab.style.bottom=Math.max(8,Math.round(innerHeight-r.top+9))+'px';
+ const FAB_KEY='gestark:directory-tab-position:v1';
+ let fabRatio=.64,drag=null,ignoreClick=false;
+ try{const saved=localStorage.getItem(FAB_KEY);if(saved!==null&&Number.isFinite(Number(saved)))fabRatio=Math.max(0,Math.min(1,Number(saved)));}catch(_){}
+ function fabBounds(){const body=$('app-body').getBoundingClientRect(),bar=$('native-tabs').getBoundingClientRect();return {min:Math.ceil(body.top+8),max:Math.floor(Math.min(body.bottom,bar.top-20)-70-8)};}
+ function activeInputOrCamera(){
+  try{const d=frames[active]?.contentDocument;if(!d)return false;const e=d.activeElement;
+   if(e?.matches('input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=file]),textarea,select,[contenteditable="true"]'))return true;
+   if(active==='clients'){const stop=d.getElementById('stop-cam');if(stop&&!stop.disabled)return true;}
+   if(d.querySelector('dialog[open],#share-dialog:not([hidden]),#cobro-fallback:not([hidden])'))return true;
+  }catch(_){}return false;
  }
+ function updateDirectoryFab(){
+   const b=fabBounds();
+   directoryFab.hidden=!profile||signingOut||['directorio','contingencias','laboratorio'].includes(active)||$('app-menu').classList.contains('open')||activeInputOrCamera()||b.max<b.min;
+   if(!directoryFab.hidden&&!drag)directoryFab.style.top=Math.round(b.min+(b.max-b.min)*fabRatio)+'px';
+ }
+ function updateHome(){try{const d=frames.home?.contentDocument;window.GestarkHome37?.date(d);window.GestarkHome37?.update(d,window.GestarkOperationalAlerts?.status?.());}catch(_){}}
+ function openNotifications(){select('more');const action=$('gs-push-action');if(action)action.click();else showToast('Notificaciones no disponibles. Actualiza e inténtalo nuevamente.');}
+ function installHome(d,user){try{window.GestarkHome37?.mount(d,user,{select,notifications:openNotifications,status:()=>window.GestarkOperationalAlerts?.status?.()});}catch(e){console.warn('Gestark: no se pudo mostrar el nuevo inicio',e);}}
 
 function showToast(message,duration=1800){const el=$('native-toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.hidden=true,duration)}
-function setOnline(){const ok=navigator.onLine;$('online-pill').classList.toggle('offline',!ok);$('online-label').textContent=ok?'En línea':'Sin red';$('online-pill').title=ok?'Conectividad del dispositivo; el módulo confirma la sincronización Firebase.':'Sin conexión de red'}
+function setOnline(){const ok=navigator.onLine;$('online-pill').classList.toggle('offline',!ok);$('online-label').textContent=ok?'En línea':'Sin red';$('online-pill').title=ok?'Conexión de red disponible.':'Sin conexión de red'}
 function parseHash(){const key=decodeURIComponent(location.hash.slice(1));return Object.hasOwn(available,key)||key==='more'?key:'home'}
 function stopCamera(key){if(key!=='clients')return;const f=frames[key];if(!f)return;try{const d=f.contentDocument;const b=d?.getElementById('stop-cam');if(b&&!b.disabled)b.click();}catch(_){}}
 function markTab(key){const selected=core.has(key)?key:key==='more'?'more':'more';for(const b of document.querySelectorAll('#native-tabs button')){const on=b.dataset.tab===selected;b.setAttribute('aria-selected',String(on));if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')}}
@@ -163,7 +195,7 @@ function select(key,push=true){
  if(core.has(key)) frameFor(key);
  else if(key!=='more')showExtra(key);
  for(const [k,p] of Object.entries(panes)){const on=k===paneName;p.classList.toggle('active',on);p.setAttribute('aria-hidden',String(!on));p.inert=!on;}
-  active=key;markTab(key);updateDirectoryFab();
+  active=key;markTab(key);updateDirectoryFab();if(key==='home')updateHome();
  if(push)history.pushState({tab:key},'', '#'+key);
  if(available[key]&&frames[key]&&!frames[key].dataset.ready)showToast('Abriendo '+available[key].title+'…',1500);
 }
@@ -238,10 +270,16 @@ function attach(key,frame){
   }
  hideEmbeddedChrome(d);
  d.addEventListener('click',e=>handleLink(key,frame,e),true);
+ const checkFab=()=>{if(active===key)updateDirectoryFab();};
+ d.addEventListener('focusin',checkFab);d.addEventListener('focusout',()=>setTimeout(checkFab,0));
+ d.addEventListener('change',checkFab);d.addEventListener('close',checkFab,true);
+ const watchFab=new MutationObserver(checkFab);
+ for(const id of ['stop-cam','share-dialog','cobro-fallback','history-delete-dialog']){const target=d.getElementById(id);if(target)watchFab.observe(target,{attributes:true,attributeFilter:['hidden','disabled','open']});}
+ 
  const detect=()=>{let user;try{user=frame.contentWindow?.GestarkAuth?.getUser?.()}catch(_){return};if(!user||user.provider!=='firebase')return;
   // No mezclar contenidos de perfiles diferentes dentro de una misma aplicación.
   if(profile&&profile.uid!==user.uid){freeze();location.replace('./gestark-app.html');return}
-  frame.dataset.ready='1';if(key==='home')authorized(user);
+  frame.dataset.ready='1';if(key==='home'){authorized(user);installHome(d,user);}updateDirectoryFab();
  };
  d.addEventListener('gestark:ready',detect);
  // El cierre de sesión en otra ventana debe bloquear también el contenedor.
@@ -267,13 +305,21 @@ function authorized(user){if(signingOut)return;
  }
 }
 function refreshCurrent(){if(!profile)return;const key=active;if(key==='more'){location.reload();return}const f=frames[key];if(!f)return;const u=new URL(available[key].path,base);u.searchParams.set('actualizar',String(Date.now()));f.dataset.ready='';f.src=u.href;showToast('Actualizando '+available[key].title+'…',1500)}
-function menu(open){$('app-menu').classList.toggle('open',open)}
+function menu(open){$('app-menu').classList.toggle('open',open);updateDirectoryFab()}
 function installHelp(){menu(false);if(/iPad|iPhone|iPod/.test(navigator.userAgent)){alert('En Safari, toca Compartir → Agregar a pantalla de inicio.');}else alert('En Chrome o Edge, abre el menú y selecciona «Instalar aplicación».');}
 const home=frames.home;home.addEventListener('load',()=>attach('home',home));
 for(const b of document.querySelectorAll('#native-tabs button'))b.addEventListener('click',()=>select(b.dataset.tab));
 for(const b of document.querySelectorAll('[data-open]'))b.addEventListener('click',()=>select(b.dataset.open));
 $('back-more').addEventListener('click',()=>select('more'));
- directoryFab.addEventListener('click',()=>select('directorio'));
+ directoryFab.addEventListener('click',()=>{if(ignoreClick){ignoreClick=false;return;}select('directorio');});
+ directoryFab.addEventListener('pointerdown',e=>{if(e.button!==0||drag)return;ignoreClick=false;drag={id:e.pointerId,y:e.clientY,top:directoryFab.getBoundingClientRect().top,moved:false};directoryFab.setPointerCapture?.(e.pointerId);});
+ directoryFab.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;const delta=e.clientY-drag.y;if(Math.abs(delta)>6)drag.moved=true;if(!drag.moved)return;const b=fabBounds();if(b.max<b.min)return;directoryFab.classList.add('dragging');directoryFab.style.top=Math.max(b.min,Math.min(b.max,drag.top+delta))+'px';});
+ function endFabDrag(e){if(!drag||e.pointerId!==drag.id)return;const moved=drag.moved;drag=null;directoryFab.classList.remove('dragging');if(moved){ignoreClick=true;const b=fabBounds();if(b.max>b.min){fabRatio=Math.max(0,Math.min(1,(directoryFab.getBoundingClientRect().top-b.min)/(b.max-b.min)));try{localStorage.setItem(FAB_KEY,String(fabRatio));}catch(_){}}setTimeout(()=>{ignoreClick=false},400);}updateDirectoryFab();}
+ directoryFab.addEventListener('pointerup',endFabDrag);directoryFab.addEventListener('pointercancel',endFabDrag);
+ window.addEventListener('gestark:operational-summary',updateHome);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden){updateHome();updateDirectoryFab();}});
+ window.visualViewport?.addEventListener('resize',updateDirectoryFab);
+ 
  window.addEventListener('resize',updateDirectoryFab);
  window.addEventListener('orientationchange',updateDirectoryFab);
 $('refresh-section').addEventListener('click',refreshCurrent);
@@ -294,7 +340,7 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>{
 });}
 })();
 </script>
-<script src="./gestark-push.js?v=2026.11.22.17"></script>
-<script src="./gestark-operational-alerts.js?v=2026.11.22.24"></script>
+<script src="./gestark-push.js?actualizar=2026112537"></script>
+<script src="./gestark-operational-alerts.js?actualizar=2026112537"></script>
 </body>
 </html>

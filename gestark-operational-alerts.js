@@ -60,6 +60,7 @@ function render(){
   host.append(makeNotice({critical:true,title:'No se pudieron verificar todas las alertas',detail:'Comprueba la conexión y los permisos de Firebase. '+why}));
  }
  host.hidden=host.children.length===0;
+ window.dispatchEvent(new Event('gestark:operational-summary'));
  // Mostrar el aviso breve una sola vez por apertura, tras la primera lectura real.
  if(rosterReady&&!bubbleShown){bubbleShown=true;showBubble(p)}
 }
@@ -91,6 +92,6 @@ async function init(user){
   },err=>{draftsReady=false;draftsError=err.code||err.message||'Error de lectura';render()});
  }catch(e){rosterError=e.message||String(e);render()}
 }
-window.GestarkOperationalAlerts={init};
+window.GestarkOperationalAlerts={init,status:()=>({ready:rosterReady&&!rosterError,pending:pendingCount()})};
 if(window.__gestarkPendingPushUser)void init(window.__gestarkPendingPushUser);
 })();

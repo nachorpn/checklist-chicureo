@@ -1,11 +1,11 @@
-/* Gestark · Web Push sin servidor de pago · v2026.11.22.17
+/* Gestark · Web Push sin servidor de pago · v2026.11.25.37
  * Solo la PWA principal. Registro explícito por dispositivo y por usuario Firebase.
  * La clave VAPID privada JAMÁS se almacena en el navegador ni en GitHub público.
  */
 (()=>{
 'use strict';
 if(window.__gestarkPushUI)return;window.__gestarkPushUI=true;
-const V='2026.11.22.17';
+const V='2026.11.25.37';
 const SDK='https://www.gstatic.com/firebasejs/12.11.0/';
 const COLLECTION='gestark_push_subscriptions_v1';
 const $=id=>document.getElementById(id);
@@ -24,32 +24,32 @@ function refFor(){return client.fs.doc(client.db,COLLECTION,'push_'+profile.uid+
 async function firebaseClient(){
  if(client)return client;
  if(!profile?.uid||profile.provider!=='firebase')throw Error('Entra primero con un usuario autorizado de Gestark.');
- const configApp=window.GestarkFirebaseConfig||await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='./gestark-firebase-config.js';s.onload=()=>resolve(window.GestarkFirebaseConfig);s.onerror=()=>reject(Error('No se pudo cargar configuración Firebase.'));document.head.append(s)});
- if(!configApp?.enabled)throw Error('Firebase está deshabilitado.');
+ const configApp=window.GestarkFirebaseConfig||await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='./gestark-firebase-config.js';s.onload=()=>resolve(window.GestarkFirebaseConfig);s.onerror=()=>reject(Error('No se pudo cargar la configuración.'));document.head.append(s)});
+ if(!configApp?.enabled)throw Error('Servicio de notificaciones no disponible.');
  const [apps,authSDK,fs]=await Promise.all([import(SDK+'firebase-app.js'),import(SDK+'firebase-auth.js'),import(SDK+'firebase-firestore.js')]);
  const app=apps.getApps().find(a=>a.name==='[DEFAULT]')||apps.initializeApp(configApp);
  const auth=authSDK.getAuth(app);
  const user=await new Promise((resolve,reject)=>{let unsub=()=>{};unsub=authSDK.onAuthStateChanged(auth,u=>{unsub();resolve(u)},reject)});
- if(!user||user.uid!==profile.uid)throw Error('La sesión de Firebase todavía no está preparada. Inténtalo nuevamente.');
+ if(!user||user.uid!==profile.uid)throw Error('Sesión aún no disponible. Inténtalo nuevamente.');
  client={fs,db:fs.getFirestore(app)};return client;
 }
 function btnMode(busy){operation=busy;for(const id of ['gs-push-enable','gs-push-disable','gs-push-save']){const b=$(id);if(b)b.disabled=busy;}}
 async function getSubscription(){const reg=await navigator.serviceWorker.register('./gestark-sw.js?v='+V,{scope:'./'});return {reg,subscription:await reg.pushManager.getSubscription()};}
 async function refresh(){
  if(!profile)return;
- if(!supported()){feedback('Este navegador no admite Web Push. En iPhone necesitas iOS 16.4+ e instalar Gestark en pantalla de inicio.',true);return;}
- if(/iP(hone|ad|od)/i.test(navigator.userAgent)&&!appInstalled()){feedback('Abre Gestark desde su ícono de pantalla de inicio para activar avisos en iPhone.',true);return;}
- if(Notification.permission==='denied'){feedback('Las notificaciones están bloqueadas. Actívalas desde Ajustes del iPhone → Notificaciones → Gestark.',true);return;}
+ if(!supported()){feedback('Notificaciones no compatibles. En iPhone, instala Gestark (iOS 16.4 o superior).',true);return;}
+ if(/iP(hone|ad|od)/i.test(navigator.userAgent)&&!appInstalled()){feedback('Abre Gestark desde su ícono para activar avisos.',true);return;}
+ if(Notification.permission==='denied'){feedback('Notificaciones bloqueadas. Revisa los permisos del dispositivo.',true);return;}
  try {
   const {subscription}=await getSubscription();if(!subscription){feedback('Notificaciones desactivadas en este dispositivo.');return;}
   const c=await firebaseClient();const doc=await c.fs.getDoc(refFor());
-  if(!doc.exists()){feedback('Permiso activo en el navegador, pero falta registrar este dispositivo. Pulsa Activar.',true);return;}
+  if(!doc.exists()){feedback('Pulsa Activar para registrar este dispositivo.',true);return;}
   const d=doc.data();$('gs-push-checklist').checked=d.checklistEnabled!==false;$('gs-push-orders').checked=d.ordersEnabled!==false;
-  feedback('Notificaciones activas en este dispositivo · Checklist 12:30 · O.F. 10:00 / 13:30 / 17:00');
+  feedback('Notificaciones activas en este dispositivo.');
  }catch(e){feedback('No se pudo verificar: '+String(e.message||e),true);}
 }
-async function enable(){if(operation)return;btnMode(true);feedback('Activando Web Push…');try{
- if(!supported())throw Error('Este navegador no admite notificaciones Web Push.');
+async function enable(){if(operation)return;btnMode(true);feedback('Activando notificaciones…');try{
+ if(!supported())throw Error('Este navegador no admite notificaciones.');
  if(/iP(hone|ad|od)/i.test(navigator.userAgent)&&!appInstalled())throw Error('En iPhone, abre Gestark instalada desde la pantalla de inicio.');
  // Safari/iOS exige que el permiso se solicite durante el clic del usuario;
  // no hacer fetch ni otras esperas antes de esta llamada.
@@ -68,13 +68,13 @@ async function enable(){if(operation)return;btnMode(true);feedback('Activando We
  if(!existing.exists())data.createdAt=c.fs.serverTimestamp();
  await c.fs.setDoc(ref,data,{merge:true});
  localStorage.setItem(OWNER_KEY,profile.uid);
- feedback('Notificaciones activas. Ya puedes bloquear el teléfono.');
+ feedback('Notificaciones activadas.');
  }catch(e){feedback('No fue posible activar: '+String(e.message||e),true);}finally{btnMode(false);}}
 async function savePreferences(){if(operation)return;btnMode(true);try{
  const c=await firebaseClient(),ref=refFor(),doc=await c.fs.getDoc(ref);
  if(!doc.exists())throw Error('Activa primero las notificaciones en este dispositivo.');
  await c.fs.updateDoc(ref,{checklistEnabled:$('gs-push-checklist').checked,ordersEnabled:$('gs-push-orders').checked,updatedAt:c.fs.serverTimestamp()});
- feedback('Preferencias guardadas en Firebase para este dispositivo.');
+ feedback('Preferencias guardadas.');
  }catch(e){feedback('Error al guardar: '+String(e.message||e),true);}finally{btnMode(false);}}
 async function disable(){if(operation)return;btnMode(true);try{
  const c=await firebaseClient(),ref=refFor();const found=await c.fs.getDoc(ref);if(found.exists())await c.fs.deleteDoc(ref);
@@ -82,16 +82,16 @@ async function disable(){if(operation)return;btnMode(true);try{
  feedback('Notificaciones desactivadas en este dispositivo.');
  }catch(e){feedback('No se pudo desactivar: '+String(e.message||e),true);}finally{btnMode(false);}}
 function setup(){const more=document.querySelector('#more-view .more-inner');if(!more)return;
- const action=document.createElement('button');action.type='button';action.className='menu-row';action.id='gs-push-action';action.innerHTML='<span class="menu-glyph">🔔</span><span class="menu-copy">Notificaciones<small>Checklist 12:30 y O.F. pendientes tres veces al día</small></span><span class="menu-chevron">›</span>';
+ const action=document.createElement('button');action.type='button';action.className='menu-row';action.id='gs-push-action';action.innerHTML='<span class="menu-glyph">🔔</span><span class="menu-copy">Notificaciones</span><span class="menu-chevron">›</span>';
  const groups=more.querySelectorAll('.menu-group');(groups[1]||groups[0]||more).append(action);
  const panel=document.createElement('section');panel.id='gs-push-panel';panel.hidden=true;
- panel.innerHTML=`<div class="gs-push-head"><strong>Notificaciones de Gestark</strong><button type="button" id="gs-push-back">Cerrar</button></div>
- <p class="gs-push-desc">Se muestran incluso con el iPhone bloqueado cuando Gestark está instalada en pantalla de inicio. Solicitan permiso una sola vez por dispositivo.</p>
- <label class="gs-push-option"><input type="checkbox" id="gs-push-orders" checked><span><strong>O.F. por cerrar</strong><small>Lunes a viernes · 10:00, 13:30 y 17:00 · solo si hay pendientes</small></span></label>
- <label class="gs-push-option"><input type="checkbox" id="gs-push-checklist" checked><span><strong>Checklist diario</strong><small>Lunes a viernes · 12:30 · enviar antes de las 13:00</small></span></label>
- <p id="gs-push-status" role="status" aria-live="polite">Abre este panel para revisar el dispositivo.</p>
- <button type="button" id="gs-push-enable" class="gs-push-primary">Activar notificaciones</button><button type="button" id="gs-push-save">Guardar preferencias</button><button type="button" id="gs-push-disable">Desactivar en este dispositivo</button>
- <p class="gs-push-foot">El Checklist se recuerda aunque ya lo hayas enviado: WhatsApp todavía no confirma ese envío a Firebase. Los recordatorios pueden llegar con retraso si GitHub demora la ejecución.</p>`;
+ panel.innerHTML=`<div class="gs-push-head"><strong>Notificaciones</strong><button type="button" id="gs-push-back">Cerrar</button></div>
+ <p class="gs-push-desc">Activa los avisos en este dispositivo.</p>
+ <label class="gs-push-option"><input type="checkbox" id="gs-push-orders" checked><span><strong>OF pendientes</strong><small>Lun. a vie. · 10:00, 13:30 y 17:00 · solo si hay pendientes</small></span></label>
+ <label class="gs-push-option"><input type="checkbox" id="gs-push-checklist" checked><span><strong>Checklist diario</strong><small>Lun. a vie. · 12:30 · enviar antes de las 13:00</small></span></label>
+ <p id="gs-push-status" role="status" aria-live="polite">Comprobando estado…</p>
+ <button type="button" id="gs-push-enable" class="gs-push-primary">Activar notificaciones</button><button type="button" id="gs-push-save">Guardar preferencias</button><button type="button" id="gs-push-disable">Desactivar notificaciones</button>
+ <p class="gs-push-foot">Los avisos pueden llegar con retraso. El recordatorio del checklist se envía aunque ya lo hayas completado.</p>`;
  more.append(panel);
  const css=document.createElement('style');css.textContent=`#gs-push-panel{margin:14px 0;padding:16px;border:1px solid #d7e9de;border-radius:16px;background:white;box-shadow:0 2px 12px #173c2111;color:#204c37;font:14px/1.45 system-ui}
  #gs-push-panel[hidden]{display:none!important}.gs-push-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:17px}.gs-push-head button{border:0;background:#eaf5ed;border-radius:8px;padding:7px 10px;color:#2a6648;font-weight:750}
