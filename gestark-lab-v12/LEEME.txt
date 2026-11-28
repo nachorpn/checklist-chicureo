@@ -1,0 +1,15 @@
+GESTARK LABORATORIO 1.2
+Pruebas aisladas: no sustituir ni modificar archivos de producción.
+
+1. Diagnóstico inicial (sin casos ficticios ni datos del cliente)
+   Abrir diagnostico/index.html en Chrome o Edge. Pegar la URL del formulario TOPdesk autorizado. El enlace se mantiene en memoria de la página y no se envía a ningún servicio de Gestark. Pulsar Abrir dentro de Gestark. Comparar con Abrir en nueva pestaña. No enviar solicitudes de prueba.
+   Para reproducir el origen HTTPS de Gestark, publicar solamente la carpeta genérica gestark-topdesk-prueba en una ubicación aprobada. No publicar el laboratorio completo en un repositorio público sin autorización de Starken: incluye rutas y plantillas operativas.
+   En el repositorio existente, si se publica la carpeta genérica por GitHub Pages desde main/root, la ruta prevista sería https://nachorpn.github.io/checklist-chicureo/gestark-topdesk-prueba/ (no publicada ni verificada).
+   Si el iframe falla y la pestaña externa funciona, abrir DevTools > Console (Mac: Cmd+Option+J; Windows: Ctrl+Shift+J). Buscar mensajes frame-ancestors, X-Frame-Options, refused to frame o errores de cookies/autenticación. No eludir las políticas del portal. No compartir tokens, cookies, credenciales ni datos de clientes.
+
+2. Laboratorio completo
+   Extraer gestark-lab-v12 y abrir index.html. Mantener app.js, style.css y diagnostico/index.html en sus posiciones. Puede alojarse en servidor HTTPS autorizado. Conserva los nueve flujos, escáner experimental, estados, historial y anulaciones del piloto 1.1. Abrir un caso en etapa Topdesk (por ejemplo Sacar a reparto) y pulsar Abrir Topdesk. Se carga el portal real de forma predeterminada, en panel interno. En modo real se deshabilitan las copias de datos ficticios y el registro ficticio de tickets; no usar datos de clientes ni enviar solicitudes. Volver a simulación para probar los pasos restantes. En Pruebas se puede configurar la URL de consulta de tickets (solo HTTPS de starken.topdesk.net). La apertura externa permanece disponible.
+
+3. Alcance y validación
+   No se han publicado archivos ni modificado GitHub, Firebase, reglas, autenticación o service workers. No se ha conectado Firebase; almacenamiento local y operador de prueba. Correos/WhatsApp siguen preparados/simulados, notificaciones visuales, escáner físico pendiente. No es una versión productiva.
+   Prueba de interfaz en Chromium mediante contenido cargado en memoria: URL correcta en iframe, copiado ficticio bloqueado en modo real, regreso a simulación, diagnóstico (URL, abrir externo, ampliar y cerrar), sin errores JS detectados. node --check correcto. El entorno bloquea navegación localhost en Chromium y no resuelve el dominio TOPdesk; la respuesta corporativa, sesión y permisos iframe no se han validado. La prueba de UI no demuestra conectividad real. No activar cambios de seguridad del navegador para eludir restricciones.
